@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "fastify": "^3.27.4",
-    "fastify-cors": "^6.0.3"
+    "fastify-cors": "^6.0.3",
+    "node-fetch": "2.6.5"
   }
 }

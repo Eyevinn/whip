@@ -12,21 +12,28 @@ window.addEventListener("DOMContentLoaded", () => {
       pc.oniceconnectionstatechange = e => console.log(pc.iceConnectionState);
       pc.onicecandidate = async (event) => {
         if (event.candidate === null) {
-          console.log(pc.localDescription);
           const whipEndpointUrl = document.querySelector<HTMLInputElement>("#whip-endpoint").value;
-          await fetch(whipEndpointUrl, {
+          const response = await fetch(whipEndpointUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/sdp"
             },
             body: pc.localDescription.sdp
           });
+          const answer = await response.text();
+          pc.setRemoteDescription({
+            type: "answer",
+            sdp: answer,
+          });
         }
       }
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       stream.getTracks().forEach(track => pc.addTrack(track, stream));
       document.querySelector<HTMLVideoElement>("video").srcObject = stream;
-      const sdpOffer = await pc.createOffer();
+      const sdpOffer = await pc.createOffer({
+        offerToReceiveAudio: false,
+        offerToReceiveVideo: false,
+      });
       pc.setLocalDescription(sdpOffer);
       
       pc.ontrack = event => {

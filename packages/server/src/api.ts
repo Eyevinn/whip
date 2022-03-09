@@ -1,6 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { WHIPResource } from "./models/WHIPResource";
-import fetch from "node-fetch";
+import { WRTCDummy } from "./wrtc/dummy";
 
 export default function(fastify: FastifyInstance, opts, done) {
   fastify.addContentTypeParser('application/sdp', { parseAs: "string" }, (req, body, done) => {
@@ -9,20 +8,23 @@ export default function(fastify: FastifyInstance, opts, done) {
 
   fastify.post("/whip", {}, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // This should of course be modularized
-      const pionSdpOffer = { type: "offer", sdp: request.body };
-      const pionSdpOfferb64 = Buffer.from(JSON.stringify(pionSdpOffer), "ascii").toString("base64");
-      const response = await fetch("http://localhost:8080/sdp", {
-        method: "POST",
-        body: pionSdpOfferb64
-      });
-      const pionSdpAnswerb64 = await response.text();
-      console.log(pionSdpAnswerb64);
-      const buf = Buffer.from(pionSdpAnswerb64, "base64");
-      const pionSdpAnswer = JSON.parse(buf.toString("ascii"))
+      const dummy = new WRTCDummy(<string>request.body);
+      opts.instance.addResource(dummy);
+
+      const sdpAnswer = await dummy.sdpAnswer();
       reply.code(201).headers({
-        "content-type": "application/sdp"
-      }).send(pionSdpAnswer);
+        "Content-Type": "application/sdp",
+        "Location": opts.prefix + "/whip/" + dummy.getId(),
+      }).send(sdpAnswer);
+    } catch (err) {
+      console.error(err);
+      reply.code(500).send(err.message);
+    }
+  });
+
+  fastify.get("/whip", {}, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      reply.code(200).send(opts.instance.listResources().map(id => opts.prefix + "/whip/" + id));
     } catch (err) {
       console.error(err);
       reply.code(500).send(err.message);

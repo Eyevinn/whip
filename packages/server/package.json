@@ -18,6 +18,9 @@
   "dependencies": {
     "fastify": "^3.27.4",
     "fastify-cors": "^6.0.3",
-    "node-fetch": "2.6.5"
+    "node-fetch": "2.6.5",
+    "node-pre-gyp": "^0.17.0",
+    "uuid": "^8.3.2",
+    "wrtc": "^0.4.7"
   }
 }

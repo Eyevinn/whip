@@ -2,6 +2,12 @@
 
 Client and Server modules for WebRTC HTTP Ingestion Protocol (WHIP)
 
+| Module | Description |
+| ------ | ----------- |
+| @eyevinn/whip-endpoint | Server endpoint for providing WHIP resources |
+| @eyevinn/whip-web-client | Client Javascript SDK for browser based WHIP client (WebRTC producer) |
+| @eyevinn/whip-web-client-demo | Demonstration of a browser based WHIP client |
+
 ## License (Apache-2.0)
 
 ```

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "baseUrl": "./packages",
+    "paths": {
+      "@eyevinn/whip-endpoint": ["server/src/index.ts"]
+    }
+  }
+}

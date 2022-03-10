@@ -14,8 +14,10 @@ export class WHIPResource {
     this.pc = new RTCPeerConnection({
       sdpSemantics: "unified-plan"
     });
+    this.pc.oniceconnectionstatechange = e => console.log(this.pc.iceConnectionState);
+
     this.resourceId = uuidv4();
-    this.videoTransceiver = this.pc.addTransceiver("video");
+    // this.videoTransceiver = this.pc.addTransceiver("video");
   }
 
   async beforeOffer() {

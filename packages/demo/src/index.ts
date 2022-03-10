@@ -1,6 +1,9 @@
 window.addEventListener("DOMContentLoaded", () => {
+  const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
   const videoSender = document.querySelector<HTMLVideoElement>("video#sender");
   const videoReceiver = document.querySelector<HTMLVideoElement>("video#receiver");
+
+  input.value = `http://${window.location.hostname}:8000/api/v1/whip/dummy`
 
   document.querySelector<HTMLButtonElement>("#start-session")
     .addEventListener("click", async () => {
@@ -44,6 +47,5 @@ window.addEventListener("DOMContentLoaded", () => {
         offerToReceiveVideo: true,
       });
       pc.setLocalDescription(sdpOffer);
-      
     });  
 });

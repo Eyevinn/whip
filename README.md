@@ -8,6 +8,20 @@ Client and Server modules for WebRTC HTTP Ingestion Protocol (WHIP)
 | @eyevinn/whip-web-client | Client Javascript SDK for browser based WHIP client (WebRTC producer) |
 | @eyevinn/whip-web-client-demo | Demonstration of a browser based WHIP client |
 
+## Getting started
+
+Install all dependencies
+
+```
+npm install
+```
+
+Run development environment which will launch a demo / test page at http://localhost:1234 and a WHIP endpoint at http://localhost:8000/api/v1
+
+```
+npm run dev
+```
+
 ## License (Apache-2.0)
 
 ```

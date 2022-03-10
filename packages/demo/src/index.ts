@@ -1,4 +1,7 @@
 window.addEventListener("DOMContentLoaded", () => {
+  const videoSender = document.querySelector<HTMLVideoElement>("video#sender");
+  const videoReceiver = document.querySelector<HTMLVideoElement>("video#receiver");
+
   document.querySelector<HTMLButtonElement>("#start-session")
     .addEventListener("click", async () => {
       // This below will be part of a client SDK
@@ -27,20 +30,20 @@ window.addEventListener("DOMContentLoaded", () => {
           });
         }
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      stream.getTracks().forEach(track => pc.addTrack(track, stream));
-      document.querySelector<HTMLVideoElement>("video").srcObject = stream;
+
+
+      const streamSender = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      streamSender.getTracks().forEach(track => pc.addTrack(track, streamSender));
+      videoSender.srcObject = streamSender;
+
+      const streamReceiver = new MediaStream(pc.getReceivers().map(receiver => receiver.track));
+      videoReceiver.srcObject = streamReceiver;
+
       const sdpOffer = await pc.createOffer({
         offerToReceiveAudio: false,
-        offerToReceiveVideo: false,
+        offerToReceiveVideo: true,
       });
       pc.setLocalDescription(sdpOffer);
       
-      pc.ontrack = event => {
-        const el = document.querySelector<HTMLVideoElement>("video");
-        el.srcObject = event.streams[0];
-        el.autoplay = true;
-        el.controls = true;
-      }
     });  
 });

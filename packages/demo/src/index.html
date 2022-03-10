@@ -3,11 +3,51 @@
   <head>
     <title>WHIP client demo</title>
     <script type="module" src="./index.ts"></script>
+    <style type="text/css">
+      #sender-receiver-wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+      #sender-receiver {
+        display: flex;
+      }
+      .video-wrapper {
+        position: relative;
+        height: 0;
+        width: 100%;
+        padding-bottom: 56.25%;
+      }
+      .video-wrapper video {
+        position: absolute;
+        background: black;
+        top: 0;
+        left: 0;
+        width:  100%;
+        height: 100%;
+      }
+    </style>
+    <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
   </head>
   <body>
-    <label for="whip-endpoint">WHIP Endpoint</label>
-    <input id="whip-endpoint" type="text" size="50" value="http://localhost:8000/api/v1/whip/dummy"></input>
-    <button id="start-session">Start session</button>
-    <video autoplay muted></video>
+    <section>
+      <label for="whip-endpoint">WHIP Endpoint</label>
+      <input id="whip-endpoint" type="text" size="50" value="http://localhost:8000/api/v1/whip/dummy"></input>
+      <button id="start-session">Start session</button>
+    </section>
+    <section id="sender-receiver-wrapper">
+      <h1>Sender/Receiver</h1>
+      <section id="sender-receiver">
+        <div class="video-wrapper">
+            <h2>Sender</h2>
+          <video id="sender" autoplay controls></video>
+        </div>
+
+        <div class="video-wrapper">
+          <h2>Receiver</h2>
+          <video id="receiver" autoplay controls></video>
+        </div>
+      </section>
+    </section>
   </body>
 </html>

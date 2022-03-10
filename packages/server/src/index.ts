@@ -21,7 +21,10 @@ export class WHIPEndpoint {
   }
 
   listResources() {
-    return Object.keys(this.resources);
+    return Object.keys(this.resources).map(id => {
+      const resource = this.resources[id];
+      return { id: resource.getId(), type: resource.getType() };
+    });
   }
 
   listen(port) {

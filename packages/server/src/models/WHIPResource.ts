@@ -36,4 +36,8 @@ export class WHIPResource {
   getId() {
     return this.resourceId;
   }
+
+  getType() {
+    return "base";
+  }
 }

@@ -14,4 +14,8 @@ export class WRTCDummy extends WHIPResource {
     videoSink.addEventListener("frame", ({ frame: { width, height, data }}) => {
     });
   }
+
+  getType() {
+    return "dummy";
+  }
 }

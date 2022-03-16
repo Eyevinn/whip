@@ -8,7 +8,9 @@ export class WHIPEndpoint {
 
   constructor() {
     this.server = fastify({ ignoreTrailingSlash: true });
-    this.server.register(require("fastify-cors"), {});
+    this.server.register(require("fastify-cors"), {
+      exposedHeaders: ["Location"]
+    });
     this.server.register(api, { prefix: "/api/v1", instance: this });
     this.server.get("/", async () => {
       return "OK\n";

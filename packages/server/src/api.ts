@@ -15,7 +15,7 @@ export default function(fastify: FastifyInstance, opts, done) {
       const sdpAnswer = await resource.sdpAnswer();
       reply.code(201).headers({
         "Content-Type": "application/sdp",
-        "Content-Location": opts.prefix + "/whip/" + type + "/" + resource.getId(),
+        "Location": opts.prefix + "/whip/" + type + "/" + resource.getId(),
       }).send(sdpAnswer);
     } catch (err) {
       console.error(err);

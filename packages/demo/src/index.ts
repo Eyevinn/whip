@@ -6,6 +6,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const client = new WHIPClient({ 
         endpoint: document.querySelector<HTMLInputElement>("#whip-endpoint").value,
         element: document.querySelector<HTMLVideoElement>("video"),
+        opts: { debug: true },
       });
       await client.connect();
     });

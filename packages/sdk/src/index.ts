@@ -12,6 +12,8 @@ export class WHIPClient {
   private pc: RTCPeerConnection;
   private whipEndpoint: URL;
   private videoElement: HTMLVideoElement;
+  private resource: string;
+  private debug: boolean;
 
   constructor({ endpoint, element, opts }: WHIPClientConstructor) {
     this.pc = new RTCPeerConnection({
@@ -23,6 +25,7 @@ export class WHIPClient {
     });
     if (opts && opts.debug) {
       this.pc.oniceconnectionstatechange = e => console.log(this.pc.iceConnectionState);
+      this.debug = true;
     }
     this.videoElement = element;
     this.whipEndpoint = new URL(endpoint);
@@ -36,6 +39,10 @@ export class WHIPClient {
           },
           body: this.pc.localDescription.sdp
         });
+        this.resource = response.headers.get("Location");
+        if (this.debug) {
+          console.log("WHIP Resource: " + this.resource);
+        }
         const answer = await response.text();
         this.pc.setRemoteDescription({
           type: "answer",

@@ -63,16 +63,34 @@ export class WHIPClient {
     });
     this.pc.setLocalDescription(sdpOffer);
     
+    /*
     this.pc.ontrack = event => {
       const el = this.videoElement;
       el.srcObject = event.streams[0];
       el.autoplay = true;
       el.controls = true;
     }
+    */
   }
 
   async destroy(): Promise<void> {
     // TODO: delete WHIP resource
     // curl -X DELETE this.resource
+  }
+
+  async getResourceUri() {
+    if (this.resource) {
+      return this.resource;
+    }
+    const p: Promise<void> = new Promise((resolve, reject) => {
+      let t = setInterval(() => {
+        if (this.resource) {
+          clearInterval(t);
+          resolve();
+        }
+      }, 1000);
+    })
+    await p;
+    return this.resource;
   }
 }

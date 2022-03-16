@@ -11,6 +11,9 @@ export default function(fastify: FastifyInstance, opts, done) {
       const type = request.params.type;
       const resource = createWHIPResourceFromType(type, <string>request.body);
       opts.instance.addResource(resource);
+      if (opts.broadcaster) {
+        resource.assignBroadcaster(opts.broadcaster);
+      }
 
       const sdpAnswer = await resource.sdpAnswer();
       reply.code(201).headers({
@@ -35,6 +38,18 @@ export default function(fastify: FastifyInstance, opts, done) {
   fastify.delete("/whip/:type/:resourceId", {}, async (request: FastifyRequest, reply: FastifyReply) => {
 
   });
+
+  // Not part of WHIP
+  fastify.get("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+    try {
+      const resource = opts.instance.getResourceById(request.params.resourceId);
+      reply.code(200).send(resource.asObject());
+    } catch (err) {
+      console.error(err);
+      reply.code(500).send(err.message);
+    }
+  });
+
 
   done();
 }

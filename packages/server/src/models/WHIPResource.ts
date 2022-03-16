@@ -1,5 +1,6 @@
 import { RTCPeerConnection } from "wrtc";
 import { v4 as uuidv4 } from 'uuid';
+import { Broadcaster } from "../broadcaster";
 
 // Abstract base class
 
@@ -9,7 +10,11 @@ import { v4 as uuidv4 } from 'uuid';
 export class WHIPResource {
   protected sdpOffer: string;
   protected pc: RTCPeerConnection;
+  protected broadcaster: Broadcaster;
+
   private resourceId: string;
+  private localSdp: string;
+  private remoteSdp: string;
 
   constructor(sdpOffer: string) {
     this.sdpOffer = sdpOffer;
@@ -29,11 +34,17 @@ export class WHIPResource {
       type: "offer",
       sdp: this.sdpOffer
     });
+    this.remoteSdp = this.sdpOffer;
     await this.beforeAnswer();
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
     await this.waitUntilIceGatheringStateComplete();
+    this.localSdp = answer.sdp;
     return answer.sdp;
+  }
+
+  assignBroadcaster(broadcaster: Broadcaster) {
+    this.broadcaster = broadcaster;
   }
 
   private async waitUntilIceGatheringStateComplete() {
@@ -65,5 +76,13 @@ export class WHIPResource {
 
   getType() {
     return "base";
+  }
+
+  asObject(): any {
+    return {
+      id: this.resourceId,
+      localSdp: this.localSdp,
+      remoteSdp: this.remoteSdp,
+    };
   }
 }

@@ -9,5 +9,17 @@ window.addEventListener("DOMContentLoaded", () => {
         opts: { debug: true },
       });
       await client.connect();
+      const resourceUri = await client.getResourceUri();
+      const response = await fetch("http://localhost:8000" + resourceUri);
+      const json = await response.json();
+      console.log(json);
+
+      const channelSection = document.querySelector<HTMLTableSectionElement>("#channels");
+      const channelLink = document.createElement("a");
+      const searchParams = new URLSearchParams({ locator: json.channel });
+      channelLink.href = "/watch.html?" + searchParams.toString();
+      channelLink.innerHTML = "Watch";
+      channelLink.target = "_blank";
+      channelSection.appendChild(channelLink);
     });
 });

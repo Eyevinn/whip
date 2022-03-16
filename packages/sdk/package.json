@@ -2,9 +2,9 @@
   "name": "@eyevinn/whip-web-client",
   "version": "0.0.1",
   "description": "WebRTC HTTP ingestion protocol web client SDK",
-  "main": "dist/index.js",
-  "module": "dist/index.m.js",
-  "esmodule": "dist/index.modern.js",
+  "main": "dist/whip-client.js",
+  "module": "dist/whip-client.m.js",
+  "esmodule": "dist/whip-client.modern.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [

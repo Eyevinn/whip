@@ -31,7 +31,7 @@ export class WHIPClient {
     this.whipEndpoint = new URL(endpoint);
 
     this.pc.onicecandidate = async (event) => {
-      if (event.candidate !== null) {
+      if (event.candidate === null) {
         const response = await fetch(this.whipEndpoint.href, {
           method: "POST",
           headers: {

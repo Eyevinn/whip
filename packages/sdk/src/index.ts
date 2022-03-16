@@ -53,7 +53,7 @@ export class WHIPClient {
   }
 
   async connect(): Promise<void> {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     stream.getTracks().forEach(track => this.pc.addTrack(track, stream));
 
     this.videoElement.srcObject = stream;

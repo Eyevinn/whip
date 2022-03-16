@@ -1,7 +1,7 @@
 import { nonstandard as WRTCNonstandard } from "wrtc";
 import { WHIPResource } from "../models/WHIPResource";
 
-const { RTCVideoSink } = WRTCNonstandard;
+const { RTCVideoSink, RTCAudioSink } = WRTCNonstandard;
 
 export class WRTCDummy extends WHIPResource {
   constructor(sdpOffer: string) {
@@ -9,9 +9,14 @@ export class WRTCDummy extends WHIPResource {
 
   }
 
-  async beforeOffer() {
-    const videoSink = new RTCVideoSink(this.videoTransceiver.receiver.track);    
-    videoSink.addEventListener("frame", ({ frame: { width, height, data }}) => {
+  async beforeAnswer() {
+    this.pc.getReceivers().map(({ track }) => {
+      if (track.kind === "video") {
+        const videoSink = new RTCVideoSink(track);
+        videoSink.addEventListener("frame", ({ frame }) => {
+          // console.log(frame.width, frame.height);
+        }); 
+      }
     });
   }
 

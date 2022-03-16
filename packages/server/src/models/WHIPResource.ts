@@ -3,10 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Abstract base class
 
+// WebRTC signalling workflow
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
+
 export class WHIPResource {
   protected sdpOffer: string;
   protected pc: RTCPeerConnection;
   protected videoTransceiver;
+  protected audioTransceiver;
   private resourceId: string;
 
   constructor(sdpOffer: string) {
@@ -15,22 +19,48 @@ export class WHIPResource {
       sdpSemantics: "unified-plan"
     });
     this.resourceId = uuidv4();
-    this.videoTransceiver = this.pc.addTransceiver("video");
+    this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
   }
 
-  async beforeOffer() {
+  async beforeAnswer() {
 
   }
 
   async sdpAnswer() {
-    await this.beforeOffer();
+    this.videoTransceiver = this.pc.addTransceiver("video");
+    this.audioTransceiver = this.pc.addTransceiver("audio");
     await this.pc.setRemoteDescription({
       type: "offer",
       sdp: this.sdpOffer
     });
+    await this.beforeAnswer();
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
+    await this.waitUntilIceGatheringStateComplete();
     return answer.sdp;
+  }
+
+  private async waitUntilIceGatheringStateComplete() {
+    if (this.pc.iceGatheringState === "complete") {
+      return;
+    }
+
+    const p: Promise<void> = new Promise((resolve, reject) => {
+      const t = setTimeout(() => {
+        this.pc.removeEventListener("icecandidate", onIceCandidate);
+        reject(new Error("Timed out waiting for host candidates"));
+      }, 2000);
+      const onIceCandidate = ({ candidate }) => {
+        if (!candidate) {
+          clearTimeout(t);
+          this.pc.removeEventListener("icecandidate", onIceCandidate);
+          console.log(`[${this.resourceId}]: ICE candidates gathered`);
+          resolve();
+        }  
+      };
+      this.pc.addEventListener("icecandidate", onIceCandidate);
+    });
+    await p;
   }
 
   getId() {

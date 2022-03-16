@@ -31,7 +31,7 @@ export class WHIPClient {
     this.whipEndpoint = new URL(endpoint);
 
     this.pc.onicecandidate = async (event) => {
-      if (event.candidate === null) {
+      if (event.candidate !== null) {
         const response = await fetch(this.whipEndpoint.href, {
           method: "POST",
           headers: {
@@ -62,7 +62,6 @@ export class WHIPClient {
       offerToReceiveVideo: false,
     });
     this.pc.setLocalDescription(sdpOffer);
-    await this.waitUntilIceGatheringStateComplete();
     
     this.pc.ontrack = event => {
       const el = this.videoElement;
@@ -75,27 +74,5 @@ export class WHIPClient {
   async destroy(): Promise<void> {
     // TODO: delete WHIP resource
     // curl -X DELETE this.resource
-  }
-
-  private async waitUntilIceGatheringStateComplete() {
-    if (this.pc.iceGatheringState === "complete") {
-      return;
-    }
-
-    const p: Promise<void> = new Promise((resolve, reject) => {
-      const t = setTimeout(() => {
-        this.pc.removeEventListener("icecandidate", onIceCandidate);
-        reject(new Error("Timed out waiting for host candidates"));
-      }, 2000);
-      const onIceCandidate = ({ candidate }) => {
-        if (!candidate) {
-          clearTimeout(t);
-          this.pc.removeEventListener("icecandidate", onIceCandidate);
-          resolve();
-        }  
-      };
-      this.pc.addEventListener("icecandidate", onIceCandidate);
-    });
-    await p;
   }
 }

@@ -10,14 +10,14 @@ export class WRTCDummy extends WHIPResource {
   }
 
   async beforeAnswer() {
-    const videoSink = new RTCVideoSink(this.videoTransceiver.receiver.track);
-    const audioSink = new RTCAudioSink(this.audioTransceiver.receiver.track);
-    videoSink.addEventListener("frame", ({ frame }) => {
-      console.log(frame.width, frame.height);
+    this.pc.getReceivers().map(({ track }) => {
+      if (track.kind === "video") {
+        const videoSink = new RTCVideoSink(track);
+        videoSink.addEventListener("frame", ({ frame }) => {
+          // console.log(frame.width, frame.height);
+        }); 
+      }
     });
-    audioSink.addEventListener("data", ({ samples: { buffer } }) => {
-
-    });  
   }
 
   getType() {

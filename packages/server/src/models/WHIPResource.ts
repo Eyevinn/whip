@@ -9,8 +9,6 @@ import { v4 as uuidv4 } from 'uuid';
 export class WHIPResource {
   protected sdpOffer: string;
   protected pc: RTCPeerConnection;
-  protected videoTransceiver;
-  protected audioTransceiver;
   private resourceId: string;
 
   constructor(sdpOffer: string) {
@@ -27,8 +25,6 @@ export class WHIPResource {
   }
 
   async sdpAnswer() {
-    this.videoTransceiver = this.pc.addTransceiver("video");
-    this.audioTransceiver = this.pc.addTransceiver("audio");
     await this.pc.setRemoteDescription({
       type: "offer",
       sdp: this.sdpOffer

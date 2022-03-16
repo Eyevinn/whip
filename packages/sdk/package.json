@@ -1,0 +1,25 @@
+{
+  "name": "@eyevinn/whip-web-client",
+  "version": "0.0.1",
+  "description": "WebRTC HTTP ingestion protocol web client SDK",
+  "main": "dist/index.js",
+  "module": "dist/index.m.js",
+  "esmodule": "dist/index.modern.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "microbundle --no-sourcemap --format modern,es,cjs",
+    "dev": "microbundle --watch --format modern,es,cjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "microbundle": "^0.14.2",
+    "typescript": "^4.6.2"
+  }
+}

@@ -9,7 +9,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@eyevinn/whip-web-client": "0.0.1"
+    "@eyevinn/whip-web-client": "^0.0.1"
   },
   "devDependencies": {
     "parcel": "^2.3.2"

@@ -1,17 +1,18 @@
 import fastify, { FastifyInstance } from "fastify";
 import { WHIPResource } from "./models/WHIPResource";
 import api from "./api";
+import { Broadcaster } from "./broadcaster";
 
 export class WHIPEndpoint {
   private server: FastifyInstance;
   private resources: {[id: string]: WHIPResource};
 
-  constructor() {
+  constructor(broadcaster?: Broadcaster) {
     this.server = fastify({ ignoreTrailingSlash: true });
     this.server.register(require("fastify-cors"), {
       exposedHeaders: ["Location"]
     });
-    this.server.register(api, { prefix: "/api/v1", instance: this });
+    this.server.register(api, { prefix: "/api/v1", instance: this, broadcaster: broadcaster });
     this.server.get("/", async () => {
       return "OK\n";
     });
@@ -27,6 +28,10 @@ export class WHIPEndpoint {
       const resource = this.resources[id];
       return { id: resource.getId(), type: resource.getType() };
     });
+  }
+
+  getResourceById(resourceId: string) {
+    return this.resources[resourceId];
   }
 
   listen(port) {

@@ -3,15 +3,39 @@ import { MediaStream } from "wrtc";
 
 import api from "./api";
 
+interface BroadcasterOptions {
+  baseUrl?: string;
+  port?: number;
+  prefix?: string;
+}
+
 export class Broadcaster {
   private server: FastifyInstance;
   private channels: Map<string, MediaStream>;
-  private port: string;
+  private port: number;
+  private baseUrl: string;
+  private prefix: string;
 
-  constructor() {
+  constructor(opts?: BroadcasterOptions) {
+    this.port = 8001;
+    this.prefix = "/broadcaster";
+    this.baseUrl = `http://localhost:${this.port}${this.prefix}`;
+
+    if (opts) {
+      if (opts.baseUrl) {
+        this.baseUrl = opts.baseUrl;
+      }
+      if (opts.prefix) {
+        this.prefix = opts.prefix;
+      }
+      if (opts.port) {
+        this.port = opts.port;
+      }
+    }
+
     this.server = fastify({ ignoreTrailingSlash: true });
     this.server.register(require("fastify-cors"));
-    this.server.register(api, { prefix: "/broadcaster", instance: this });
+    this.server.register(api, { prefix: this.prefix, instance: this });
 
     this.channels = new Map();
   }
@@ -37,11 +61,10 @@ export class Broadcaster {
   }
 
   getBaseUrl() {
-    return process.env.BROADCAST_BASEURL || `http://localhost:${this.port}/broadcaster`;
+    return this.baseUrl;
   }
 
-  listen(port) {
-    this.port = port;
+  listen() {
     this.server.listen(this.port, "0.0.0.0", (err, address) => {
       if (err) throw err;
       console.log(`Broadcaster listening at ${address}`);

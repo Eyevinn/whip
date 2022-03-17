@@ -61,16 +61,7 @@ export class WHIPClient {
       offerToReceiveAudio: false,
       offerToReceiveVideo: false,
     });
-    this.pc.setLocalDescription(sdpOffer);
-    
-    /*
-    this.pc.ontrack = event => {
-      const el = this.videoElement;
-      el.srcObject = event.streams[0];
-      el.autoplay = true;
-      el.controls = true;
-    }
-    */
+    this.pc.setLocalDescription(sdpOffer);    
   }
 
   async destroy(): Promise<void> {

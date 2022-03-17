@@ -1,10 +1,11 @@
 import fastify, { FastifyInstance } from "fastify";
+import { MediaStream } from "wrtc";
 
 import api from "./api";
 
 export class Broadcaster {
   private server: FastifyInstance;
-  private channels: Map<string, RTCPeerConnection>;
+  private channels: Map<string, MediaStream>;
   private port: string;
 
   constructor() {
@@ -15,11 +16,11 @@ export class Broadcaster {
     this.channels = new Map();
   }
 
-  createChannel(channelId: string, peer: RTCPeerConnection) {
-    this.channels.set(channelId, peer);
+  createChannel(channelId: string, stream: MediaStream) {
+    this.channels.set(channelId, stream);
   }
 
-  getPeerForChannel(channelId: string) {
+  getStreamForChannel(channelId: string) {
     return this.channels.get(channelId);
   }
 

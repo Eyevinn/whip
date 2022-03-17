@@ -30,8 +30,6 @@ async function previewChannel(channelUrl) {
     const { sdp } = await response.json();
     peer.setRemoteDescription({ type: "answer", sdp: sdp });
 
-    console.log(peer.getReceivers());
-
     const remoteStream = new MediaStream(peer.getReceivers().map(receiver => receiver.track));
     videoPreview.srcObject = remoteStream;
   }

@@ -16,9 +16,6 @@ export class WHIPEndpoint {
     this.server.get("/", async () => {
       return "OK\n";
     });
-    this.server.get("/api/v1/sessions", async () => {
-      return JSON.stringify(this.listResources(), null, 2);
-    });
     this.resources = {};
   }
 

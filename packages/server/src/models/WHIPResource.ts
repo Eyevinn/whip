@@ -21,7 +21,6 @@ export class WHIPResource {
     this.pc = new RTCPeerConnection({
       sdpSemantics: "unified-plan"
     });
-    this.pc.oniceconnectionstatechange = e => console.log(this.pc.iceConnectionState);
 
     this.resourceId = uuidv4();
     this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);

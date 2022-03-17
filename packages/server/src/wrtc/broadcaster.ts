@@ -1,4 +1,4 @@
-import { RTCPeerConnection, MediaStream } from "wrtc";
+import { MediaStream } from "wrtc";
 import { WHIPResource } from "../models/WHIPResource";
 
 export class WRTCBroadcaster extends WHIPResource {

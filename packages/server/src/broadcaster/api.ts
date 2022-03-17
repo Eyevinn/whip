@@ -9,7 +9,7 @@ export default function(fastify: FastifyInstance, opts, done) {
       await peer.setRemoteDescription({ type: "offer", sdp: remoteSdp });
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
-      reply.code(200).send({ sdp: answer });
+      reply.code(200).send(answer);
     } catch (err) {
       console.error(err);
       reply.code(500).send(err.message);

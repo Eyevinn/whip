@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>WHIP client demo</title>
+    <title>WHIP ingest client</title>
     <script type="module" src="./index.ts"></script>
     <style type="text/css">
-      #sender-receiver-wrapper {
+      #ingest-preview-wrapper {
         display: flex;
         flex-direction: column;
       }
-      #sender-receiver {
+      #ingest-preview {
         display: flex;
         gap: 1rem;
       }
@@ -32,6 +32,9 @@
         color:  yellow;
         padding: 0.5rem;
       }
+      #watch-channel.hidden {
+        display: none; 
+      }
     </style>
     <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
@@ -42,18 +45,20 @@
       <input id="whip-endpoint" type="text" size="50" value=""></input>
       <button id="start-session">Start session</button>
     </section>
-    <section id="sender-receiver-wrapper">
-      <h1>Sender/Receiver</h1>
-      <section id="sender-receiver">
+    <section id="ingest-preview-wrapper">
+      <section id="ingest-preview">
         <div class="video-wrapper">
-          <video id="sender" autoplay controls></video>
-          <h2>Sender</h2>
+          <video id="ingest" autoplay controls></video>
+          <h2>Ingest</h2>
         </div>
 
         <div class="video-wrapper">
-          <video id="receiver" autoplay controls></video>
-          <h2>Receiver</h2>
+          <video id="preview" autoplay controls></video>
+          <h2>Preview</h2>
         </div>
       </section>
+    </section>
+    <section>
+      <a id="watch-channel" class="hidden" href="#" target="_blank">Watch Channel</a>
     </section>
   </body>

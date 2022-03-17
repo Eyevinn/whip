@@ -9,9 +9,23 @@ async function previewChannel(channelUrl) {
         }
       ]
     });
-    peer.oniceconnectionstatechange = e => console.log(`[Preview] ICE connection state: ${e}`);
-
+    peer.oniceconnectionstatechange = () => console.log(`[Preview] ICE connection state: ${peer.iceConnectionState}`);
+    peer.onicecandidate = async (event) => {
+      if (event.candidate === null) {
+        const response = await fetch(channelUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ sdp: peer.localDescription.sdp })
+        });
+        const { sdp } = await response.json();
+        peer.setRemoteDescription({ type: "answer", sdp: sdp });    
+      }
+    }
     const videoPreview = document.querySelector<HTMLVideoElement>("video#preview");
+    const remoteStream = new MediaStream(peer.getReceivers().map(receiver => receiver.track));
+    videoPreview.srcObject = remoteStream;
 
     const sdpOffer = await peer.createOffer({
       offerToReceiveAudio: true,
@@ -19,19 +33,6 @@ async function previewChannel(channelUrl) {
     });
     peer.setLocalDescription(sdpOffer);
 
-    const response = await fetch(channelUrl, { 
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ sdp: sdpOffer.sdp })
-    });
-
-    const { sdp } = await response.json();
-    peer.setRemoteDescription({ type: "answer", sdp: sdp });
-
-    const remoteStream = new MediaStream(peer.getReceivers().map(receiver => receiver.track));
-    videoPreview.srcObject = remoteStream;
   }
 }
 

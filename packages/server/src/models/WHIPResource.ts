@@ -1,4 +1,4 @@
-import { RTCPeerConnection } from "wrtc";
+import { RTCPeerConnection } from "wrtc";
 import { v4 as uuidv4 } from 'uuid';
 import { Broadcaster } from "../broadcaster";
 
@@ -21,6 +21,7 @@ export class WHIPResource {
     this.pc = new RTCPeerConnection({
       sdpSemantics: "unified-plan"
     });
+
     this.resourceId = uuidv4();
     this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
   }

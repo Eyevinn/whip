@@ -1,14 +1,64 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>WHIP client demo</title>
+    <title>WHIP ingest client</title>
     <script type="module" src="./index.ts"></script>
+    <style type="text/css">
+      #ingest-preview-wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+      #ingest-preview {
+        display: flex;
+        gap: 1rem;
+      }
+      .video-wrapper {
+        position: relative;
+        height: 0;
+        width: 100%;
+        padding-bottom: 56.25%;
+      }
+      .video-wrapper video {
+        position: absolute;
+        background: black;
+        top: 0;
+        left: 0;
+        width:  100%;
+        height: 100%;
+      }
+      .video-wrapper h2 {
+        position: relative;
+        border: none;
+        color:  yellow;
+        padding: 0.5rem;
+      }
+      #watch-channel.hidden {
+        display: none; 
+      }
+    </style>
+    <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
   </head>
   <body>
-    <label for="whip-endpoint">WHIP Endpoint</label>
-    <input id="whip-endpoint" type="text" size="50" value="http://localhost:8000/api/v1/whip/broadcaster"></input>
-    <button id="start-session">Start session</button>
-    <video autoplay muted></video>
-    <section id="channels"></section>
+    <section>
+      <label for="whip-endpoint">WHIP Endpoint</label>
+      <input id="whip-endpoint" type="text" size="50" value=""></input>
+      <button id="start-session">Start session</button>
+    </section>
+    <section id="ingest-preview-wrapper">
+      <section id="ingest-preview">
+        <div class="video-wrapper">
+          <video id="ingest" autoplay controls></video>
+          <h2>Ingest</h2>
+        </div>
+
+        <div class="video-wrapper">
+          <video id="preview" autoplay controls></video>
+          <h2>Preview</h2>
+        </div>
+      </section>
+    </section>
+    <section>
+      <a id="watch-channel" class="hidden" href="#" target="_blank">Watch Channel</a>
+    </section>
   </body>
-</html>

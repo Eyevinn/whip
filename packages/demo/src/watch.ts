@@ -27,10 +27,13 @@ window.addEventListener("DOMContentLoaded", async () => {
       },
       body: JSON.stringify({ sdp: sdpOffer.sdp })
     });
+    console.log("bwallberg remoteStream", response);
     const { sdp } = await response.json();
+    console.log("bwallberg sdp");
     peer.setRemoteDescription({ type: "answer", sdp: sdp });
     console.log(peer.getReceivers());
     const remoteStream = new MediaStream(peer.getReceivers().map(receiver => receiver.track));
+    console.log("bwallberg remoteStream", remoteStream);
     remoteVideo.srcObject = remoteStream;
   }
 });

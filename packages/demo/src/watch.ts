@@ -21,8 +21,11 @@ async function watchChannel(channelUrl, video) {
         peer.setRemoteDescription({ type: "answer", sdp: sdp });    
       }
     }
-    const remoteStream = new MediaStream(peer.getReceivers().map(receiver => receiver.track));
-    video.srcObject = remoteStream;
+    peer.ontrack = (ev) => {
+      if (ev.streams && ev.streams[0]) {
+        video.srcObject = ev.streams[0];
+      }
+    };
 
     const sdpOffer = await peer.createOffer({
       offerToReceiveAudio: true,

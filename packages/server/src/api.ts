@@ -11,8 +11,8 @@ export default function(fastify: FastifyInstance, opts, done) {
       const type = request.params.type;
       const resource = createWHIPResourceFromType(type, <string>request.body);
       opts.instance.addResource(resource);
-      if (opts.broadcaster) {
-        resource.assignBroadcaster(opts.broadcaster);
+      if (opts.instance.hasBroadcaster()) {
+        resource.assignBroadcaster(opts.instance.getBroadcaster());
       }
 
       const sdpAnswer = await resource.sdpAnswer();

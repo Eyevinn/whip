@@ -12,6 +12,10 @@
     "Benjamin Wallberg <benjamin.wallberg@eyevinn.se> (Eyevinn Technology AB)"
   ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eyevinn/whip.git"
+  },
   "dependencies": {
     "@eyevinn/whip-web-client": "^0.1.1"
   },

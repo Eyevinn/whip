@@ -21,6 +21,10 @@
     "Jonas Birmé <jonas.birme@eyevinn.se> (Eyevinn Technology AB)",
     "Benjamin Wallberg <benjamin.wallberg@eyevinn.se> (Eyevinn Technology AB)"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eyevinn/whip.git"
+  },
   "license": "Apache-2.0",
   "devDependencies": {
     "microbundle": "^0.14.2",

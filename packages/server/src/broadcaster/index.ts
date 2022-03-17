@@ -32,6 +32,10 @@ export class Broadcaster {
     return channelIds;
   }
 
+  removeChannel(channelId: string) {
+    this.channels.delete(channelId);
+  }
+
   getBaseUrl() {
     return process.env.BROADCAST_BASEURL || `http://localhost:${this.port}/broadcaster`;
   }

@@ -1,4 +1,4 @@
-async function watchChannel(channelUrl, video) {
+export async function watch(channelUrl, video) {
   if (channelUrl) {
     const peer = new RTCPeerConnection({
       iceServers: [
@@ -35,12 +35,3 @@ async function watchChannel(channelUrl, video) {
 
   }
 }
-
-window.addEventListener("DOMContentLoaded", async () => {
-  const searchParams = new URL(window.location.href).searchParams;
-  const locator = searchParams.get("locator");
-
-  if (locator) {
-    await watchChannel(locator, document.querySelector<HTMLVideoElement>("video"))
-  }
-}); 

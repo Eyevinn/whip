@@ -35,6 +35,10 @@
       #watch-channel.hidden {
         display: none; 
       }
+      #preview-window.hidden {
+        display: none;
+      }
+
     </style>
     <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
@@ -47,12 +51,12 @@
     </section>
     <section id="ingest-preview-wrapper">
       <section id="ingest-preview">
-        <div class="video-wrapper">
+        <div id="ingest-window" class="video-wrapper">
           <video id="ingest" autoplay controls muted></video>
           <h2>Ingest</h2>
         </div>
 
-        <div class="video-wrapper">
+        <div id="preview-window" class="video-wrapper hidden">
           <video id="preview" autoplay controls muted></video>
           <h2>Preview</h2>
         </div>

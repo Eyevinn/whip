@@ -3,11 +3,14 @@
   "version": "0.0.1",
   "description": "Demonstration of a browser based WHIP client",
   "scripts": {
-    "dev": "parcel -p 1234 src/index.html --no-cache",
-    "build": "parcel build --public-url ./ src/index.html  --no-cache"
+    "dev": "parcel -p 1234 src/index.html src/watch.html --no-cache",
+    "build": "parcel build --public-url ./ src/index.html src/watch.html --no-cache"
   },
   "author": "",
   "license": "Apache-2.0",
+  "dependencies": {
+    "@eyevinn/whip-web-client": "^0.0.1"
+  },
   "devDependencies": {
     "parcel": "^2.3.2"
   }

@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": "./packages",
     "paths": {
-      "@eyevinn/whip-endpoint": ["server/src/index.ts"]
+      "@eyevinn/whip-endpoint": ["server/src/index.ts"],
+      "@eyevinn/whip-web-client": ["sdk/src/index.ts"]
     }
   }
 }

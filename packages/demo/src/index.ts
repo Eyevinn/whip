@@ -1,3 +1,5 @@
+import { WHIPClient } from "@eyevinn/whip-web-client";
+
 window.addEventListener("DOMContentLoaded", () => {
   const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
   const videoSender = document.querySelector<HTMLVideoElement>("video#sender");
@@ -7,45 +9,24 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.querySelector<HTMLButtonElement>("#start-session")
     .addEventListener("click", async () => {
-      // This below will be part of a client SDK
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          {
-            urls: 'stun:stun.l.google.com:19302'
-          }
-        ]
+      const client = new WHIPClient({ 
+        endpoint: input.value,
+        element: videoSender,
+        opts: { debug: true },
       });
-      pc.oniceconnectionstatechange = e => console.log(pc.iceConnectionState);
-      pc.onicecandidate = async (event) => {
-        if (event.candidate === null) {
-          const whipEndpointUrl = document.querySelector<HTMLInputElement>("#whip-endpoint").value;
-          const response = await fetch(whipEndpointUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/sdp"
-            },
-            body: pc.localDescription.sdp
-          });
-          const answer = await response.text();
-          pc.setRemoteDescription({
-            type: "answer",
-            sdp: answer,
-          });
-        }
-      }
 
+      await client.connect();
+      const resourceUri = await client.getResourceUri();
+      const response = await fetch("http://localhost:8000" + resourceUri);
+      const json = await response.json();
+      console.log(json.channel);
 
-      const streamSender = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      streamSender.getTracks().forEach(track => pc.addTrack(track, streamSender));
-      videoSender.srcObject = streamSender;
-
-      const streamReceiver = new MediaStream(pc.getReceivers().map(receiver => receiver.track));
-      videoReceiver.srcObject = streamReceiver;
-
-      const sdpOffer = await pc.createOffer({
-        offerToReceiveAudio: false,
-        offerToReceiveVideo: true,
-      });
-      pc.setLocalDescription(sdpOffer);
-    });  
+      // const channelSection = document.querySelector<HTMLTableSectionElement>("#channels");
+      // const channelLink = document.createElement("a");
+      // const searchParams = new URLSearchParams({ locator: json.channel });
+      // channelLink.href = "/watch.html?" + searchParams.toString();
+      // channelLink.innerHTML = "Watch";
+      // channelLink.target = "_blank";
+      // channelSection.appendChild(channelLink);
+    });
 });

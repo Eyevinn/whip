@@ -1,6 +1,6 @@
 import { WHIPClient } from "@eyevinn/whip-web-client";
 
-async function previewChannel(channelUrl) {
+async function previewChannel(channelUrl, video) {
   if (channelUrl) {
     const peer = new RTCPeerConnection({
       iceServers: [
@@ -23,9 +23,8 @@ async function previewChannel(channelUrl) {
         peer.setRemoteDescription({ type: "answer", sdp: sdp });    
       }
     }
-    const videoPreview = document.querySelector<HTMLVideoElement>("video#preview");
     const remoteStream = new MediaStream(peer.getReceivers().map(receiver => receiver.track));
-    videoPreview.srcObject = remoteStream;
+    video.srcObject = remoteStream;
 
     const sdpOffer = await peer.createOffer({
       offerToReceiveAudio: true,
@@ -36,7 +35,7 @@ async function previewChannel(channelUrl) {
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
   const videoIngest = document.querySelector<HTMLVideoElement>("video#ingest");
   const watchChannel = document.querySelector<HTMLAnchorElement>("a#watch-channel");
@@ -56,7 +55,8 @@ window.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("http://localhost:8000" + resourceUri);
       const json = await response.json();
 
-      previewChannel(json.channel);
+      await previewChannel(json.channel, document.querySelector<HTMLVideoElement>("video#preview"));
+
       watchChannel.href = `watch.html?locator=${encodeURIComponent(json.channel)}`;
       watchChannel.classList.remove("hidden");
     });

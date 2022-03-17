@@ -16,10 +16,17 @@
     "dev": "microbundle --watch --format modern,es,cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "MIT",
+  "author": "Eyevinn Technology <work@eyevinn.se>",
+  "contributors": [
+    "Jonas Birmé <jonas.birme@eyevinn.se> (Eyevinn Technology AB)",
+    "Benjamin Wallberg <benjamin.wallberg@eyevinn.se> (Eyevinn Technology AB)"
+  ],
+  "license": "Apache-2.0",
   "devDependencies": {
     "microbundle": "^0.14.2",
     "typescript": "^4.6.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

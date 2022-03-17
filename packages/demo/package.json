@@ -6,12 +6,19 @@
     "dev": "parcel -p 1234 src/index.html src/watch.html --no-cache",
     "build": "parcel build --public-url ./ src/index.html src/watch.html --no-cache"
   },
-  "author": "",
+  "author": "Eyevinn Technology <work@eyevinn.se>",
+  "contributors": [
+    "Jonas Birmé <jonas.birme@eyevinn.se> (Eyevinn Technology AB)",
+    "Benjamin Wallberg <benjamin.wallberg@eyevinn.se> (Eyevinn Technology AB)"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
     "@eyevinn/whip-web-client": "^0.1.0"
   },
   "devDependencies": {
     "parcel": "^2.3.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

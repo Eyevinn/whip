@@ -9,7 +9,11 @@
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Eyevinn Technology <work@eyevinn.se>",
+  "contributors": [
+    "Jonas Birmé <jonas.birme@eyevinn.se> (Eyevinn Technology AB)",
+    "Benjamin Wallberg <benjamin.wallberg@eyevinn.se> (Eyevinn Technology AB)"
+  ],
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/node": "^17.0.21",
@@ -23,5 +27,8 @@
     "node-pre-gyp": "^0.17.0",
     "uuid": "^8.3.2",
     "wrtc": "^0.4.7"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

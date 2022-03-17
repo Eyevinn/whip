@@ -1,0 +1,22 @@
+name: CI
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  publish:
+    if: "contains(github.event.head_commit.message, 'chore(release): publish')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
+      - name: publish
+        run: |
+          npm ci
+          npm run publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

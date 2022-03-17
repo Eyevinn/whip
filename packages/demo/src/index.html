@@ -32,7 +32,11 @@
         color:  yellow;
         padding: 0.5rem;
       }
-      #watch-channel.hidden {
+      #channel-window {
+        display: grid;
+      }
+      
+      #channel-window.hidden {
         display: none; 
       }
       #preview-window.hidden {
@@ -62,7 +66,7 @@
         </div>
       </section>
     </section>
-    <section>
-      <a id="watch-channel" class="hidden" href="#" target="_blank">Watch Channel</a>
+    <section id="channel-window" class="hidden">
+      <h2>Channels</h2>
     </section>
   </body>

@@ -56,5 +56,17 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
+  fastify.get("/channel", {}, async (request: any, reply: FastifyReply) => {
+    try {
+      const channels = opts.instance.getChannels();
+      reply.code(200).send(channels.map(channelId => {
+        return { channelId: channelId, resource: opts.instance.getBaseUrl() + "/channel/" + channelId };
+      }));
+    } catch (err) {
+      console.error(err);
+      reply.code(500).send(err.message);
+    }
+  });
+
   done();
 }

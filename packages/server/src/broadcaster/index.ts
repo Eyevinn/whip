@@ -24,6 +24,14 @@ export class Broadcaster {
     return this.channels.get(channelId);
   }
 
+  getChannels() {
+    const channelIds = [];
+    for (const k of this.channels.keys()) {
+      channelIds.push(k);
+    }
+    return channelIds;
+  }
+
   getBaseUrl() {
     return process.env.BROADCAST_BASEURL || `http://localhost:${this.port}/broadcaster`;
   }

@@ -1,12 +1,36 @@
 import { WHIPClient } from "@eyevinn/whip-web-client";
 
-import { watch } from "./watch";
+import { watch } from "./util";
+
+function createWatchLink(channel) {
+  const link = document.createElement("a");
+  link.href = `watch.html?locator=${encodeURIComponent(channel.resource)}`;
+  link.innerText = `Watch Channel`;
+  link.target = "_blank";
+  return link;
+}
+
+async function renderChannelList() {
+  const channelWindow = document.querySelector("#channel-window");
+  const response = await fetch("http://localhost:8001/broadcaster/channel");
+  if (response.ok) {
+    const json = await response.json();
+    if (json.length > 0) {
+      json.map(channel => {
+        channelWindow.appendChild(createWatchLink(channel));
+      });
+      channelWindow.classList.remove("hidden");
+    }
+  }
+}
 
 window.addEventListener("DOMContentLoaded", async () => {
   const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
   const videoIngest = document.querySelector<HTMLVideoElement>("video#ingest");
-  const watchChannel = document.querySelector<HTMLAnchorElement>("a#watch-channel");
   const previewWindow = document.querySelector<HTMLDivElement>("#preview-window");
+  const channelWindow = document.querySelector("#channel-window");
+
+  await renderChannelList();
 
   input.value = `http://${window.location.hostname}:8000/api/v1/whip/broadcaster`
 
@@ -27,9 +51,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (json.channel) {
           await watch(json.channel, document.querySelector<HTMLVideoElement>("video#preview"));
           previewWindow.classList.remove("hidden");
+          channelWindow.appendChild(createWatchLink({ resource: json.channel }));
+          channelWindow.classList.remove("hidden");
         }
-        watchChannel.href = `watch.html?locator=${encodeURIComponent(json.channel)}`;
-        watchChannel.classList.remove("hidden");
       }
     });
 });

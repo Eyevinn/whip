@@ -86,4 +86,8 @@ export class WHIPResource {
       remoteSdp: this.remoteSdp,
     };
   }
+
+  destroy() {
+    this.pc.close();
+  }
 }

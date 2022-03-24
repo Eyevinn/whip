@@ -50,6 +50,14 @@ export class WHIPEndpoint {
     this.resources[resource.getId()] = resource;
   }
 
+  deleteResource(id: string) {
+    const resource = this.resources[id]; 
+    if (resource) {
+      this.resources[id] = null;
+      resource.destroy();
+    }
+  }
+
   listResources() {
     return Object.keys(this.resources).map(id => {
       const resource = this.resources[id];

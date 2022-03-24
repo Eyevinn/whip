@@ -18,7 +18,7 @@ export default function(fastify: FastifyInstance, opts, done) {
       const sdpAnswer = await resource.sdpAnswer();
       reply.code(201).headers({
         "Content-Type": "application/sdp",
-        "Location": opts.prefix + "/whip/" + type + "/" + resource.getId(),
+        "Location": `http://${request.headers.host}${opts.prefix}/whip/${type}/${resource.getId()}`   
       }).send(sdpAnswer);
     } catch (err) {
       console.error(err);
@@ -35,8 +35,10 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
-  fastify.delete("/whip/:type/:resourceId", {}, async (request: FastifyRequest, reply: FastifyReply) => {
-
+  fastify.delete("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+    const { resourceId } = request.params; 
+    await opts.instance.deleteResource(resourceId);
+    reply.code(200).send("OK");
   });
 
   // Not part of WHIP

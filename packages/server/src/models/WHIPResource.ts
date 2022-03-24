@@ -1,5 +1,5 @@
 import { RTCPeerConnection } from "wrtc";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { Broadcaster } from "../broadcaster";
 
 // Abstract base class
@@ -19,21 +19,24 @@ export class WHIPResource {
   constructor(sdpOffer: string) {
     this.sdpOffer = sdpOffer;
     this.pc = new RTCPeerConnection({
-      sdpSemantics: "unified-plan"
+      sdpSemantics: "unified-plan",
     });
 
     this.resourceId = uuidv4();
-    this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
+    this.pc.oniceconnectionstatechange =
+      this.onIceConnectionStateChange.bind(this);
   }
 
-  async beforeAnswer() {
-
+  protected onIceConnectionStateChange(e) {
+    console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
   }
+
+  async beforeAnswer() {}
 
   async sdpAnswer() {
     await this.pc.setRemoteDescription({
       type: "offer",
-      sdp: this.sdpOffer
+      sdp: this.sdpOffer,
     });
     this.remoteSdp = this.sdpOffer;
     await this.beforeAnswer();
@@ -64,7 +67,7 @@ export class WHIPResource {
           this.pc.removeEventListener("icecandidate", onIceCandidate);
           console.log(`[${this.resourceId}]: ICE candidates gathered`);
           resolve();
-        }  
+        }
       };
       this.pc.addEventListener("icecandidate", onIceCandidate);
     });

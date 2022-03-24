@@ -21,6 +21,7 @@ async function createClientItem(client: WHIPClient) {
   deleteBtn.onclick = async () => {
     await client.destroy();
     details.parentNode?.removeChild(details);
+    updateChannelList();
   }
 
   details.appendChild(summary);

@@ -7,6 +7,13 @@ export class WRTCBroadcaster extends WHIPResource {
     super(sdpOffer);
   }
 
+  onIceConnectionStateChange(e) {
+    if (this.pc.iceConnectionState === "closed") {
+      this.destroy();
+      this.broadcaster.removeChannel(this.getId());
+    }
+  }
+
   async beforeAnswer() {
     const stream = new MediaStream(this.pc.getReceivers().map(receiver => receiver.track));
 

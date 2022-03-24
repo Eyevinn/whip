@@ -61,7 +61,7 @@ export class WRTCRTSP extends WHIPResource {
 
   constructor(sdpOffer: string, opts?: WRTCRTSPOptions) {
     super(sdpOffer);
-    this.rtspServer = "rtsp://127.0.0.1";
+    this.rtspServer = "rtsp://127.0.0.1:8554";
     if (opts && opts.server) {
       this.rtspServer = opts.server;
     }
@@ -149,8 +149,8 @@ export class WRTCRTSP extends WHIPResource {
     let stream = null;
 
     videoSink.addEventListener("frame", ({ frame: { width, height, data }}) => {
-      const streamId = width + "x" + height;
       if (!stream) {
+        const streamId = width + "x" + height;
         stream = this.createStream(streamId, audioSink);
       }
       stream.video.push(Buffer.from(data));

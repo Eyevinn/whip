@@ -10,7 +10,12 @@ export const createWHIPResourceFromType = (type: string, sdpOffer: string) => {
     case "broadcaster":
       return new WRTCBroadcaster(sdpOffer);
     case "rtsp":
-      return new WRTCRTSP(sdpOffer);
+      let opts = null;
+      if (process.env.RTSP_SERVER) {
+        opts = {};
+        opts.server = process.env.RTSP_SERVER;
+      }
+      return new WRTCRTSP(sdpOffer, opts);
     default:
       throw new Error(`Failed to create resource, reason: Invalid resource type '${type}'`);
   }

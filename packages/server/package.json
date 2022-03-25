@@ -3,6 +3,9 @@
   "version": "0.1.1",
   "description": "WebRTC HTTP ingestion protocol endpoint",
   "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc --project ./",
     "dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./dist/server.js\"",

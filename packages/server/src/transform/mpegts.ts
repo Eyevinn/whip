@@ -119,6 +119,7 @@ export class MPEGTS {
             item.video.end();
           }
         });
+        this.streams = this.streams.filter(item => !item.end);        
         stream.proc.run();
       }
       this.streams[0].video.push(Buffer.from(data));

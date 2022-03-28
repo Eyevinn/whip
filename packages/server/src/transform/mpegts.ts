@@ -134,8 +134,10 @@ export class MPEGTS {
             audio.end();
           }
           video.end();
+          end = true;
         }
       });
+      this.streams = this.streams.filter(item => !item.end);
       return close.apply(this, arguments);
     }
   }

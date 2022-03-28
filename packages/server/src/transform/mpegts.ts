@@ -53,7 +53,7 @@ function StreamInput(stream, id) {
 
 var MPEGTS_INTER_PORT = 9000;
 
-class MPEGTSResolution {
+export class MPEGTSResolution {
   private width: number;
   private height: number;
 

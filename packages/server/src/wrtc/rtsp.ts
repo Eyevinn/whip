@@ -1,19 +1,27 @@
 import { WHIPResource } from "../models/WHIPResource";
-import { MPEGTS } from "../transform/mpegts";
+import { MPEGTS, MPEGTSResolution } from "../transform/mpegts";
 
 import ffmpeg from "fluent-ffmpeg";
 
 export class RTSPResolution {
-  private width: number;
-  private height: number;
+  private _width: number;
+  private _height: number;
 
   constructor(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+    this._width = width;
+    this._height = height;
   }
 
   toString() {
-    return this.width + "x" + this.height;
+    return this._width + "x" + this._height;
+  }
+
+  get width() {
+    return this._width;
+  }
+
+  get height() {
+    return this._height;
   }
 }
 
@@ -64,7 +72,9 @@ export class WRTCRTSP extends WHIPResource {
   }
 
   async beforeAnswer() {
-    const mpegTsTransform = new MPEGTS(this.pc, this.getId());
+    const mpegTsTransform = new MPEGTS(this.pc, this.getId(), { 
+      outputResolution: new MPEGTSResolution(this.outputResolution.width, this.outputResolution.height) 
+    });
     this.output = this.createOutputStream(mpegTsTransform);
     this.output.run();
   }

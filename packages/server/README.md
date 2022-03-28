@@ -86,6 +86,14 @@ By default it will restream a WHIP stream to an RTSP server (TCP) running on loc
 docker-compose -f rtsp-server.yml up -d
 ```
 
+To play the RTSP stream you can for example use ffplay:
+
+```
+ffplay rtsp://lab.eyevinn:8554/<uuid4>
+```
+
+The complete RTSP URL with the ID can be obtained by issuing an HTTP GET on the WHIP resource.
+
 ## About Eyevinn Technology
 
 Eyevinn Technology is an independent consultant firm specialized in video and streaming. Independent in a way that we are not commercially tied to any platform or technology vendor.

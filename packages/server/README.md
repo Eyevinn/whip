@@ -94,6 +94,8 @@ ffplay rtsp://lab.eyevinn:8554/<uuid4>
 
 The complete RTSP URL with the ID can be obtained by issuing an HTTP GET on the WHIP resource.
 
+Default output resolution is 960x540 but this can be overriden by setting the environment variable `RTSP_RESOLUTION` to for example `RTSP_RESOLUTION=1920x1080`.
+
 ## About Eyevinn Technology
 
 Eyevinn Technology is an independent consultant firm specialized in video and streaming. Independent in a way that we are not commercially tied to any platform or technology vendor.

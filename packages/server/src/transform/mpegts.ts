@@ -53,16 +53,42 @@ function StreamInput(stream, id) {
 
 var MPEGTS_INTER_PORT = 9000;
 
+class MPEGTSResolution {
+  private width: number;
+  private height: number;
+
+  constructor(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+  }
+
+  toString() {
+    return this.width + "x" + this.height;
+  }
+}
+
+interface MPEGTSOptions {
+  outputResolution?: MPEGTSResolution;
+}
+
 export class MPEGTS {
   private pc: RTCPeerConnection;
   private interPort: number;
   private streams;
   private id: string;
+  private outputResolution: MPEGTSResolution;
 
-  constructor(pc: RTCPeerConnection, id) {
+  constructor(pc: RTCPeerConnection, id, opts?: MPEGTSOptions) {
     this.pc = pc;
     this.interPort = MPEGTS_INTER_PORT++;
     this.id = id;
+    this.outputResolution = new MPEGTSResolution(960, 540);
+
+    if (opts) {
+      if (opts.outputResolution) {
+        this.outputResolution = opts.outputResolution;
+      }
+    }
 
     let videoSink;
     let audioSink;
@@ -166,7 +192,7 @@ export class MPEGTS {
       .on("error", (err) => {
         console.log(stream.streamId + `Failed to process video for ${this.interPort}: ` + err.message);
       })
-      .size("960x540")
+      .size(this.outputResolution.toString())
       .output(this.getInput())
       .videoCodec("libx264")
       .audioCodec("aac")

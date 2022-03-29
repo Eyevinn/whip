@@ -5,6 +5,7 @@ An NPM library containing a WebRTC ingest server that implements the WebRTC HTTP
 The library includes the following WHIP destinations:
 - A dummy receiver
 - A WebRTC broadcaster (SFU)
+- An RTSP restreaming output
 
 ## Setup
 
@@ -32,6 +33,8 @@ endpoint.listen();
 ```
 
 The WHIP endpoint for the broadcaster is then available on `http://<host>:8000/api/v1/whip/broadcaster` and you will point your WHIP compatible producer to this endpoint.
+
+And the WHIP endpoint for the RTSP output is available on `http://<host>:8000/api/v1/whip/rtsp`.
 
 Included is also a dummy endpoint if you just want to test the connectivity. Use `http://<host>:8000/api/v1/whip/dummy` in that case.
 
@@ -74,6 +77,24 @@ Example code given that `channelUrl` has already been obtained:
   });
   peer.setLocalDescription(offer);
 ```
+
+## RTSP output
+
+By default it will restream a WHIP stream to an RTSP server (TCP) running on localhost. If you want to change this you can override this setting by setting the environment variable `RTSP_SERVER` to for example `RTSP_SERVER=rtsp://lab.eyevinn:8554`. If you want to run an RTSP server locally you can use the provided docker-compose file `rtsp-server.yml`.
+
+```
+docker-compose -f rtsp-server.yml up -d
+```
+
+To play the RTSP stream you can for example use ffplay:
+
+```
+ffplay rtsp://lab.eyevinn:8554/<uuid4>
+```
+
+The complete RTSP URL with the ID can be obtained by issuing an HTTP GET on the WHIP resource.
+
+Default output resolution is 960x540 but this can be overriden by setting the environment variable `RTSP_RESOLUTION` to for example `RTSP_RESOLUTION=1920x1080`.
 
 ## About Eyevinn Technology
 

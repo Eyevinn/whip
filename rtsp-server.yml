@@ -1,0 +1,12 @@
+version: "3.7"
+
+services:
+  rtsp:
+    image: aler9/rtsp-simple-server
+    restart: always
+    ports:
+      - "8554:8554"
+    environment:
+      - RTSP_PROTOCOLS=tcp
+      - RTSP_RTSPADDRESS=0.0.0.0:8554
+

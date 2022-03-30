@@ -27,7 +27,7 @@ npm run dev
 To run a TURN server locally you can use the Docker container of [coturn](https://hub.docker.com/r/instrumentisto/coturn).
 
 ```
-docker run -d -p 3478:3478 -p 49152-65535:49152-65535/udp instrumentisto/coturn
+docker run -d -p 3478:3478 -p 49160-49200:49160-49200/udp instrumentisto/coturn -n --log-file=stdout --min-port=49160 --max-port=49200
 ```
 
 ## License (Apache-2.0)

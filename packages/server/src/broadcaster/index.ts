@@ -5,8 +5,8 @@ import api from "./api";
 
 interface BroadcasterICEServer {
   urls: string;
-  username: string;
-  credentials: string;
+  username?: string;
+  credential?: string;
 }
 
 interface BroadcasterOptions {

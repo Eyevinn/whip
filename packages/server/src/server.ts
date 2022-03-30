@@ -7,11 +7,11 @@ if (process.env.ICE_SERVERS) {
     // stun:stun.l.google.com:19302@<username>:<credentials>
     const [ url, auth ] = server.split("@");
     let username = null;
-    let credentials = null;
+    let credential = null;
     if (auth) {
-      [ username, credentials ] = auth.split(":");
+      [ username, credential ] = auth.split(":");
     }
-    iceServers.push({ urls: url, username: username, credentials: credentials });
+    iceServers.push({ urls: url, username: username, credential: credential });
   });
 }
 if (iceServers) {

@@ -7,7 +7,7 @@ import { Broadcaster } from "../broadcaster";
 export interface WHIPResourceICEServer {
   urls: string;
   username?: string;
-  credentials?: string;
+  credential?: string;
 }
 
 // WebRTC signalling workflow

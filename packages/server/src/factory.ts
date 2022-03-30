@@ -1,14 +1,14 @@
-import { WHIPResource } from "./models/WHIPResource";
+import { WHIPResourceICEServer } from "./models/WHIPResource";
 import { WRTCBroadcaster } from "./wrtc/broadcaster";
 import { WRTCDummy } from "./wrtc/dummy";
 import { WRTCRTSP, RTSPResolution } from "./wrtc/rtsp";
 
-export const createWHIPResourceFromType = (type: string, sdpOffer: string) => {
+export const createWHIPResourceFromType = (type: string, sdpOffer: string, iceServers?: WHIPResourceICEServer[]) => {
   switch (type) {
     case "dummy":
-      return new WRTCDummy(sdpOffer);
+      return new WRTCDummy(sdpOffer, iceServers);
     case "broadcaster":
-      return new WRTCBroadcaster(sdpOffer);
+      return new WRTCBroadcaster(sdpOffer, iceServers);
     case "rtsp":
       let opts = null;
       if (process.env.RTSP_SERVER || process.env.RTSP_RESOLUTION) {
@@ -25,7 +25,7 @@ export const createWHIPResourceFromType = (type: string, sdpOffer: string) => {
           console.error("Invalid format for RTSP_RESOLUTION, will be using default");
         }
       }
-      return new WRTCRTSP(sdpOffer, opts);
+      return new WRTCRTSP(sdpOffer, iceServers, opts);
     default:
       throw new Error(`Failed to create resource, reason: Invalid resource type '${type}'`);
   }

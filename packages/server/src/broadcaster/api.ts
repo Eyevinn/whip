@@ -28,8 +28,10 @@ export default function(fastify: FastifyInstance, opts, done) {
 
   fastify.post("/channel/:channelId", {}, async (request: any, reply: FastifyReply) => {
     try {
+      const iceServers = opts.instance.getIceServers();
       const peer = new RTCPeerConnection({
-        sdpSemantics: "unified-plan"
+        sdpSemantics: "unified-plan",
+        iceServers: iceServers,
       });
       peer.oniceconnectionstatechange = () => console.log("SFU PEER: " + peer.iceConnectionState);
 

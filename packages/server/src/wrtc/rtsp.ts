@@ -1,4 +1,4 @@
-import { WHIPResource } from "../models/WHIPResource";
+import { WHIPResource, WHIPResourceICEServer } from "../models/WHIPResource";
 import { MPEGTS, MPEGTSResolution } from "../transform/mpegts";
 
 import ffmpeg from "fluent-ffmpeg";
@@ -35,8 +35,8 @@ export class WRTCRTSP extends WHIPResource {
   private output;
   private outputResolution: RTSPResolution;
 
-  constructor(sdpOffer: string, opts?: WRTCRTSPOptions) {
-    super(sdpOffer);
+  constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[], opts?: WRTCRTSPOptions) {
+    super(sdpOffer, iceServers);
     this.rtspServer = "rtsp://127.0.0.1:8554";
     this.outputResolution = new RTSPResolution(960, 540);
     if (opts && opts.server) {

@@ -3,10 +3,17 @@ import { MediaStream } from "wrtc";
 
 import api from "./api";
 
+interface BroadcasterICEServer {
+  urls: string;
+  username: string;
+  credentials: string;
+}
+
 interface BroadcasterOptions {
   baseUrl?: string;
   port?: number;
   prefix?: string;
+  iceServers?: BroadcasterICEServer[];
 }
 
 export class Broadcaster {
@@ -15,6 +22,7 @@ export class Broadcaster {
   private port: number;
   private baseUrl: string;
   private prefix: string;
+  private iceServers?: BroadcasterICEServer[];
 
   constructor(opts?: BroadcasterOptions) {
     this.port = 8001;
@@ -30,6 +38,9 @@ export class Broadcaster {
       }
       if (opts.port) {
         this.port = opts.port;
+      }
+      if (opts.iceServers) {
+        this.iceServers = opts.iceServers;
       }
     }
 
@@ -62,6 +73,10 @@ export class Broadcaster {
 
   getBaseUrl() {
     return this.baseUrl;
+  }
+
+  getIceServers(): BroadcasterICEServer[]|null {
+    return this.iceServers;
   }
 
   listen() {

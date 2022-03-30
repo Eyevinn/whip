@@ -23,11 +23,12 @@ import { WHIPEndpoint, Broadcaster } from "@eyevinn/whip-endpoint";
 const broadcaster = new Broadcaster({ 
   port: 8001,
   baseUrl: "http://<broadcasthost>:8001/broadcaster",
-  prefix: "/broadcaster", 
+  prefix: "/broadcaster",
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }] 
 });
 broadcaster.listen();
 
-const endpoint = new WHIPEndpoint({ port: 8000 });
+const endpoint = new WHIPEndpoint({ port: 8000, iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
 endpoint.registerBroadcaster(broadcaster);
 endpoint.listen();
 ```

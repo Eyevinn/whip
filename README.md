@@ -22,6 +22,14 @@ Run development environment which will launch a demo / test page at http://local
 npm run dev
 ```
 
+## TURN server
+
+To run a TURN server locally you can use the Docker container of [coturn](https://hub.docker.com/r/instrumentisto/coturn).
+
+```
+docker run -d -p 3478:3478 -p 49152-65535:49152-65535/udp instrumentisto/coturn
+```
+
 ## License (Apache-2.0)
 
 ```

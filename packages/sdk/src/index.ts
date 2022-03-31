@@ -39,15 +39,21 @@ export class WHIPClient {
           },
           body: this.pc.localDescription.sdp
         });
-        this.resource = response.headers.get("Location");
-        if (this.debug) {
-          console.log("WHIP Resource: " + this.resource);
+        if (response.ok) {
+          this.resource = response.headers.get("Location");
+          if (this.debug) {
+            console.log("WHIP Resource: " + this.resource);
+          }
+          const answer = await response.text();
+          this.pc.setRemoteDescription({
+            type: "answer",
+            sdp: answer,
+          });
+        } else {
+          console.error("Failed to setup stream connection with endpoint");
+          const message = await response.text();
+          console.error(response.status + ": " + message);
         }
-        const answer = await response.text();
-        this.pc.setRemoteDescription({
-          type: "answer",
-          sdp: answer,
-        });
       }
     }
   }

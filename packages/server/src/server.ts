@@ -17,6 +17,9 @@ if (iceServers) {
   iceServers.forEach(server => {
     console.log(server);
   });
+} else {
+  console.log("Using default ICE servers");
+  iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
 }
 
 const broadcaster = new Broadcaster({ 

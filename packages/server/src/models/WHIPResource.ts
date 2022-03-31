@@ -33,9 +33,9 @@ export class WHIPResource {
     });
 
     this.resourceId = uuidv4();
-    this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
-    this.pc.onicegatheringstatechange = e => console.log(`[${this.resourceId}]: ${e.target.iceGatheringState}`);
-    this.pc.onicecandidateerror = e => console.error(`[${this.resourceId}]: ${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
+    this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: connection=${this.pc.iceConnectionState}`);
+    this.pc.onicegatheringstatechange = e => console.log(`[${this.resourceId}]: icegathering=${e.target.iceGatheringState}`);
+    this.pc.onicecandidateerror = e => console.error(`[${this.resourceId}]: icecanddiate=${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
     this.iceCount = 0;
   }
 

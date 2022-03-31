@@ -33,7 +33,7 @@ async function createClientItem(client: WHIPClient) {
 async function updateChannelList() {
   const channels = document.querySelector("#channels");
   channels.innerHTML = ""
-  const response = await fetch("http://localhost:8001/broadcaster/channel");
+  const response = await fetch(`http://${window.location.hostname}:8001/broadcaster/channel`);
   if (response.ok) {
     const json = await response.json();
     if (json.length > 0) {

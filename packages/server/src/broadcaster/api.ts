@@ -1,6 +1,8 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { RTCPeerConnection } from "wrtc";
 
+const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 4000;
+
 const waitUntilIceGatheringStateComplete = async (peer: RTCPeerConnection) => {
   if (peer.iceGatheringState === "complete") {
     return;
@@ -10,7 +12,7 @@ const waitUntilIceGatheringStateComplete = async (peer: RTCPeerConnection) => {
     const t = setTimeout(() => {
       peer.removeEventListener("icecandidate", onIceCandidate);
       reject(new Error("Timed out waiting for host candidates"));
-    }, 2000);
+    }, ICE_TRICKLE_TIMEOUT);
     const onIceCandidate = ({ candidate }) => {
       if (!candidate) {
         clearTimeout(t);

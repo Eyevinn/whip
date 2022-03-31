@@ -23,6 +23,7 @@ export class WHIPResource {
   private resourceId: string;
   private localSdp: string;
   private remoteSdp: string;
+  private iceCount: number;
 
   constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
     this.sdpOffer = sdpOffer;
@@ -35,6 +36,7 @@ export class WHIPResource {
     this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
     this.pc.onicegatheringstatechange = e => console.log(`[${this.resourceId}]: ${e.target.iceGatheringState}`);
     this.pc.onicecandidateerror = e => console.error(`[${this.resourceId}]: ${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
+    this.iceCount = 0;
   }
 
   async beforeAnswer() {
@@ -67,7 +69,12 @@ export class WHIPResource {
     const p: Promise<void> = new Promise((resolve, reject) => {
       const t = setTimeout(() => {
         this.pc.removeEventListener("icecandidate", onIceCandidate);
-        reject(new Error("Timed out waiting for host candidates"));
+        if (this.iceCount > 0) {
+          console.log(`ICE gathering timed out but we have ${this.iceCount} so send what we have.`);
+          resolve();
+        } else {
+          reject(new Error("Timed out waiting for host candidates"));
+        }
       }, ICE_TRICKLE_TIMEOUT);
       const onIceCandidate = ({ candidate }) => {
         if (!candidate) {
@@ -77,6 +84,7 @@ export class WHIPResource {
           resolve();
         } else {
           console.log(`[${this.resourceId}]: ${candidate.candidate}`);
+          this.iceCount++;
         }
       };
       this.pc.addEventListener("icecandidate", onIceCandidate);

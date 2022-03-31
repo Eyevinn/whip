@@ -11,7 +11,9 @@ const waitUntilIceGatheringStateComplete = async (peer: RTCPeerConnection) => {
   const p: Promise<void> = new Promise((resolve, reject) => {
     const t = setTimeout(() => {
       peer.removeEventListener("icecandidate", onIceCandidate);
-      reject(new Error("Timed out waiting for host candidates"));
+      console.log("ICE gathering timed out, send what we have");
+      resolve();
+      //reject(new Error("Timed out waiting for host candidates"));
     }, ICE_TRICKLE_TIMEOUT);
     const onIceCandidate = ({ candidate }) => {
       if (!candidate) {

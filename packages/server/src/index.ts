@@ -58,7 +58,7 @@ export class WHIPEndpoint {
   deleteResource(id: string) {
     const resource = this.resources[id]; 
     if (resource) {
-      this.resources[id] = null;
+      delete this.resources[id];
       resource.destroy();
     }
   }

@@ -31,7 +31,9 @@ export class WHIPClient {
       iceServers: iceServers,
     });
     if (opts && opts.debug) {
-      this.pc.oniceconnectionstatechange = e => console.log(this.pc.iceConnectionState);
+      this.pc.oniceconnectionstatechange = e => console.log(`connection=${this.pc.iceConnectionState}`);
+      this.pc.onicegatheringstatechange = e => console.log(`icegathering=${this.pc.iceGatheringState}`);
+      this.pc.onicecandidateerror = e => console.error(e);
       this.debug = true;
     }
     this.videoElement = element;
@@ -60,6 +62,10 @@ export class WHIPClient {
           console.error("Failed to setup stream connection with endpoint");
           const message = await response.text();
           console.error(response.status + ": " + message);
+        }
+      } else {
+        if (this.debug) {
+          console.log(`candidate=${event.candidate.candidate}`);
         }
       }
     }

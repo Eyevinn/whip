@@ -31,6 +31,8 @@ export class WHIPResource {
 
     this.resourceId = uuidv4();
     this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
+    this.pc.onicegatheringstatechange = e => console.log(`[${this.resourceId}]: ${e.target.iceGatheringState}`);
+    this.pc.onicecandidateerror = e => console.error(`[${this.resourceId}]: ${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
   }
 
   async beforeAnswer() {
@@ -71,7 +73,9 @@ export class WHIPResource {
           this.pc.removeEventListener("icecandidate", onIceCandidate);
           console.log(`[${this.resourceId}]: ICE candidates gathered`);
           resolve();
-        }  
+        } else {
+          console.log(`[${this.resourceId}]: ${candidate.candidate}`);
+        }
       };
       this.pc.addEventListener("icecandidate", onIceCandidate);
     });

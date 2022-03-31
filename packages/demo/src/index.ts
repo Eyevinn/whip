@@ -11,8 +11,9 @@ function createWatchLink(channel) {
 }
 
 async function renderChannelList() {
+  const broadcasterUrl = process.env.NODE_ENV === "development" ? "http://localhost:8001/broadcaster/channel" : "https://broadcaster-wrtc.prod.eyevinn.technology/broadcaster/channel";
   const channelWindow = document.querySelector("#channel-window");
-  const response = await fetch("http://localhost:8001/broadcaster/channel");
+  const response = await fetch(broadcasterUrl);
   if (response.ok) {
     const json = await response.json();
     if (json.length > 0) {
@@ -49,7 +50,10 @@ window.addEventListener("DOMContentLoaded", async () => {
 
       await client.connect();
       const resourceUri = await client.getResourceUri();
-      const response = await fetch("http://localhost:8000" + resourceUri);
+      // Workaround until we get the full URI above
+      const url = new URL(input.value);
+      url.pathname = resourceUri;
+      const response = await fetch(url.href);
       if (response.ok) {
         const json = await response.json();
 

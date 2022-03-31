@@ -1,6 +1,6 @@
-import { WHIPClient, WHIPClientIceServer } from "@eyevinn/whip-web-client";
+import { WHIPClient } from "@eyevinn/whip-web-client";
 
-import { watch } from "./util";
+import { watch, getIceServers } from "./util";
 
 function createWatchLink(channel) {
   const link = document.createElement("a");
@@ -31,24 +31,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   const channelWindow = document.querySelector("#channel-window");
 
   await renderChannelList();
-  let iceServers: WHIPClientIceServer[] = [{ urls: "stun:stun.l.google.com:19320" }];
+  let iceServers = getIceServers();
 
   if (process.env.NODE_ENV === "development") {
     input.value = `http://${window.location.hostname}:8000/api/v1/whip/broadcaster`
   } else {
     input.value = "https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster";
-  }
-
-  if (process.env.ICE_SERVERS) {
-    iceServers = [];
-    process.env.ICE_SERVERS.split(",").forEach(server => {
-      // turn:<username>:<password>@turn.eyevinn.technology:3478
-      const m = server.match(/^turn:(\S+):(\S+)@(\S+):(\d+)/);
-      if (m) {
-        const [ _, username, credential, host, port ] = m;
-        iceServers.push({ urls: "turn:" + host + ":" + port, username: username, credential: credential });
-      }
-    });
   }
 
   document.querySelector<HTMLButtonElement>("#start-session")

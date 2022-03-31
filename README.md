@@ -36,7 +36,7 @@ docker run -d -p 3478:3478 -p 3478:3478/udp -p 5349:5349 -p 5349:5349/udp -p 491
 And to use the above STUN/TURN server when developing
 
 ```
-ICE_SERVERS=turn:localhost:3478@<username>:<credentials> npm run dev
+ICE_SERVERS=turn:<username>:<credential>@localhost:3478 npm run dev
 ```
 
 ## License (Apache-2.0)

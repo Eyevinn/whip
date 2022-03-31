@@ -1,4 +1,4 @@
-import { WHIPClient } from "@eyevinn/whip-web-client";
+import { WHIPClient, WHIPClientIceServer } from "@eyevinn/whip-web-client";
 
 import { watch } from "./util";
 
@@ -31,6 +31,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const channelWindow = document.querySelector("#channel-window");
 
   await renderChannelList();
+  let iceServers: WHIPClientIceServer[] = [{ urls: "stun:stun.l.google.com:19320" }];
 
   if (process.env.NODE_ENV === "development") {
     input.value = `http://${window.location.hostname}:8000/api/v1/whip/broadcaster`
@@ -38,12 +39,24 @@ window.addEventListener("DOMContentLoaded", async () => {
     input.value = "https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster";
   }
 
+  if (process.env.ICE_SERVERS) {
+    iceServers = [];
+    process.env.ICE_SERVERS.split(",").forEach(server => {
+      // turn:<username>:<password>@turn.eyevinn.technology:3478
+      const m = server.match(/^turn:(\S+):(\S+)@(\S+):(\d+)/);
+      if (m) {
+        const [ _, username, credential, host, port ] = m;
+        iceServers.push({ urls: "turn:" + host + ":" + port, username: username, credential: credential });
+      }
+    });
+  }
+
   document.querySelector<HTMLButtonElement>("#start-session")
     .addEventListener("click", async () => {
       const client = new WHIPClient({ 
         endpoint: input.value,
         element: videoIngest,
-        opts: { debug: true },
+        opts: { debug: true, iceServers: iceServers },
       });
 
       await client.connect();

@@ -14,7 +14,7 @@ import { WHIPClient } from "@eyevinn/whip-web-client"
 const client = new WHIPClient({
   endpoint: "http://<host>/whip/broadcaster",
   element: document.querySelector("video"),
-  opts: { debug: true }
+  opts: { debug: true, iceServers: [{ urls: "stun:stun.l.google.com:19320" }] }
 });
 await client.connect();
 ```

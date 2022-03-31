@@ -59,7 +59,7 @@ export default function(fastify: FastifyInstance, opts, done) {
       await peer.setLocalDescription(answer);
       await waitUntilIceGatheringStateComplete(peer, channelId);
 
-      reply.code(200).send(answer);
+      reply.code(200).send({ type: "answer", sdp: peer.localDescription.sdp });
     } catch (err) {
       console.error(err);
       reply.code(500).send(err.message);

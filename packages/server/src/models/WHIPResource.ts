@@ -53,8 +53,8 @@ export class WHIPResource {
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
     await this.waitUntilIceGatheringStateComplete();
-    this.localSdp = answer.sdp;
-    return answer.sdp;
+    this.localSdp = this.pc.localDescription.sdp;
+    return this.localSdp;
   }
 
   assignBroadcaster(broadcaster: Broadcaster) {

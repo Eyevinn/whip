@@ -1,10 +1,10 @@
 import { MediaStream } from "wrtc";
-import { WHIPResource } from "../models/WHIPResource";
+import { WHIPResource, WHIPResourceICEServer } from "../models/WHIPResource";
 
 export class WRTCBroadcaster extends WHIPResource {
 
-  constructor(sdpOffer: string) {
-    super(sdpOffer);
+  constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
+    super(sdpOffer, iceServers);
   }
 
   onIceConnectionStateChange(e) {

@@ -1,5 +1,5 @@
 import fastify, { FastifyInstance } from "fastify";
-import { WHIPResource } from "./models/WHIPResource";
+import { WHIPResource, WHIPResourceICEServer } from "./models/WHIPResource";
 import api from "./api";
 import { Broadcaster } from "./broadcaster";
 
@@ -7,6 +7,7 @@ export { Broadcaster };
 
 interface WHIPEndpointOptions {
   port?: number;
+  iceServers?: WHIPResourceICEServer[]
 }
 
 export class WHIPEndpoint {
@@ -14,6 +15,7 @@ export class WHIPEndpoint {
   private resources: {[id: string]: WHIPResource};
   private broadcaster: Broadcaster;
   private port: number;
+  private iceServers?: WHIPResourceICEServer[];
 
   constructor(opts?: WHIPEndpointOptions) {
     this.server = fastify({ ignoreTrailingSlash: true });
@@ -30,7 +32,10 @@ export class WHIPEndpoint {
     if (opts) {
       if (opts.port) {
         this.port = opts.port;
-      }      
+      }
+      if (opts.iceServers) {
+        this.iceServers = opts.iceServers;
+      }
     }
   }
 
@@ -67,6 +72,10 @@ export class WHIPEndpoint {
 
   getResourceById(resourceId: string) {
     return this.resources[resourceId];
+  }
+
+  getIceServers(): WHIPResourceICEServer[]|null {
+    return this.iceServers;
   }
 
   listen() {

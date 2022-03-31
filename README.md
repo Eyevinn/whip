@@ -22,6 +22,23 @@ Run development environment which will launch a demo / test page at http://local
 npm run dev
 ```
 
+## TURN server
+
+To run a TURN server locally you can use the Docker container of [coturn](https://hub.docker.com/r/coturn/coturn).
+
+```
+docker run -d -p 3478:3478 -p 3478:3478/udp -p 5349:5349 -p 5349:5349/udp -p 49160-49200:49160-49200/udp \
+       coturn/coturn -n --log-file=stdout \
+                        --external-ip='$(detect-external-ip)' \
+                        --min-port=49160 --max-port=49200
+```
+
+And to use the above STUN/TURN server when developing
+
+```
+ICE_SERVERS=turn:localhost:3478@<username>:<credentials> npm run dev
+```
+
 ## License (Apache-2.0)
 
 ```

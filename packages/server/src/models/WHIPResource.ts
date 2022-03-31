@@ -4,6 +4,12 @@ import { Broadcaster } from "../broadcaster";
 
 // Abstract base class
 
+export interface WHIPResourceICEServer {
+  urls: string;
+  username?: string;
+  credential?: string;
+}
+
 // WebRTC signalling workflow
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
 
@@ -16,10 +22,11 @@ export class WHIPResource {
   private localSdp: string;
   private remoteSdp: string;
 
-  constructor(sdpOffer: string) {
+  constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
     this.sdpOffer = sdpOffer;
     this.pc = new RTCPeerConnection({
       sdpSemantics: "unified-plan",
+      iceServers: iceServers,
     });
 
     this.resourceId = uuidv4();

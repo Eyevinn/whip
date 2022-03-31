@@ -39,6 +39,11 @@ And the WHIP endpoint for the RTSP output is available on `http://<host>:8000/ap
 
 Included is also a dummy endpoint if you just want to test the connectivity. Use `http://<host>:8000/api/v1/whip/dummy` in that case.
 
+### Environment variables
+
+The following environment variables are read to override default values:
+- `ICE_TRICKLE_TIMEOUT` (default: 4000): Timeout for gathering all ICE candidates
+
 ## Broadcaster
 
 To access a channel you follow this (non standard) procedure:

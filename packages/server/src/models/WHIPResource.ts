@@ -2,6 +2,8 @@ import { RTCPeerConnection } from "wrtc";
 import { v4 as uuidv4 } from 'uuid';
 import { Broadcaster } from "../broadcaster";
 
+const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 4000;
+
 // Abstract base class
 
 export interface WHIPResourceICEServer {
@@ -66,7 +68,7 @@ export class WHIPResource {
       const t = setTimeout(() => {
         this.pc.removeEventListener("icecandidate", onIceCandidate);
         reject(new Error("Timed out waiting for host candidates"));
-      }, 2000);
+      }, ICE_TRICKLE_TIMEOUT);
       const onIceCandidate = ({ candidate }) => {
         if (!candidate) {
           clearTimeout(t);

@@ -20,6 +20,7 @@
     "@eyevinn/whip-web-client": "^0.1.2"
   },
   "devDependencies": {
+    "@types/node": "^17.0.23",
     "parcel": "^2.3.2"
   },
   "publishConfig": {

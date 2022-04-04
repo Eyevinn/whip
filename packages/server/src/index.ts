@@ -7,7 +7,8 @@ export { Broadcaster };
 
 interface WHIPEndpointOptions {
   port?: number;
-  iceServers?: WHIPResourceICEServer[]
+  iceServers?: WHIPResourceICEServer[];
+  serverAddress?: string;
 }
 
 export class WHIPEndpoint {
@@ -16,15 +17,20 @@ export class WHIPEndpoint {
   private broadcaster: Broadcaster;
   private port: number;
   private iceServers?: WHIPResourceICEServer[];
+  private serverAddress: string;
 
   constructor(opts?: WHIPEndpointOptions) {
     this.port = 8000;
+    this.serverAddress = "http://localhost" + ":" + this.port;
     if (opts) {
       if (opts.port) {
         this.port = opts.port;
       }
       if (opts.iceServers) {
         this.iceServers = opts.iceServers;
+      }
+      if (opts.serverAddress) {
+        this.serverAddress = opts.serverAddress + ":" + this.port;
       }
     }
 
@@ -71,6 +77,10 @@ export class WHIPEndpoint {
 
   getIceServers(): WHIPResourceICEServer[]|null {
     return this.iceServers;
+  }
+
+  getServerAddress(): string {
+    return this.serverAddress;
   }
 
   listen() {

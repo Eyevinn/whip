@@ -30,7 +30,11 @@ const broadcaster = new Broadcaster({
 });
 broadcaster.listen();
 
-const endpoint = new WHIPEndpoint({ port: parseInt(process.env.PORT || "8000"), iceServers: iceServers });
+const endpoint = new WHIPEndpoint({ 
+  port: parseInt(process.env.PORT || "8000"), 
+  iceServers: iceServers,
+  serverAddress: process.env.SERVER_ADDRESS, 
+});
 endpoint.registerBroadcaster(broadcaster);
 endpoint.listen();
 

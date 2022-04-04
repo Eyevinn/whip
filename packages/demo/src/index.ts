@@ -53,10 +53,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
       await client.connect();
       const resourceUri = await client.getResourceUri();
-      // Workaround until we get the full URI above
-      const url = new URL(input.value);
-      url.pathname = resourceUri;
-      const response = await fetch(url.href);
+      const response = await fetch(resourceUri);
       if (response.ok) {
         const json = await response.json();
 

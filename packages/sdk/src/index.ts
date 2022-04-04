@@ -29,7 +29,7 @@ export class WHIPClient {
   private fetchIceFromEndpoint: boolean;
 
   constructor({ endpoint, element, opts }: WHIPClientConstructor) {
-    let iceServers = [{ urls: "stun:stun.l.google.com:19320" }];
+    let iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
     if (opts && opts.iceServers) {
       iceServers = opts.iceServers;
     }

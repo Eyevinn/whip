@@ -18,16 +18,6 @@ export class WHIPEndpoint {
   private iceServers?: WHIPResourceICEServer[];
 
   constructor(opts?: WHIPEndpointOptions) {
-    this.server = fastify({ ignoreTrailingSlash: true });
-    this.server.register(require("fastify-cors"), {
-      exposedHeaders: ["Location"]
-    });
-    this.server.register(api, { prefix: "/api/v1", instance: this });
-    this.server.get("/", async () => {
-      return "OK\n";
-    });
-    this.resources = {};
-
     this.port = 8000;
     if (opts) {
       if (opts.port) {
@@ -37,6 +27,17 @@ export class WHIPEndpoint {
         this.iceServers = opts.iceServers;
       }
     }
+
+    this.server = fastify({ ignoreTrailingSlash: true });
+    this.server.register(require("fastify-cors"), {
+      exposedHeaders: ["Location", "Link"],
+      preflightContinue: true,
+    });
+    this.server.register(api, { prefix: "/api/v1", instance: this });
+    this.server.get("/", async () => {
+      return "OK\n";
+    });
+    this.resources = {};
   }
 
   registerBroadcaster(broadcaster: Broadcaster) {

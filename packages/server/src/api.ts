@@ -7,7 +7,7 @@ export default function(fastify: FastifyInstance, opts, done) {
 
   const addIceLinks = (iceServers: WHIPResourceICEServer[], request: any, reply: FastifyReply) => {
     if (API_KEY && iceServers.length > 0 && request.headers["authorization"] === API_KEY) {
-      // Only include ICE server config if OPTIONS request is authorized
+      // Only include ICE server config when provided authorization key is correct
       iceServers.forEach((ice) => {
         let iceLink = ice.urls + ";";
         iceLink += ` rel="ice-server";`;
@@ -38,7 +38,7 @@ export default function(fastify: FastifyInstance, opts, done) {
       const sdpAnswer = await resource.sdpAnswer();
       reply.headers({
         "Content-Type": "application/sdp",
-        "Location": opts.prefix + "/whip/" + type + "/" + resource.getId(),
+        "Location": opts.instance.getServerAddress() + opts.prefix + "/whip/" + type + "/" + resource.getId(),
       });
       addIceLinks(resource.getIceServers(), request, reply);
       reply.code(201).send(sdpAnswer);

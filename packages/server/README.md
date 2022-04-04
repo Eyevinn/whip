@@ -39,7 +39,7 @@ Available WHIP endpoint options are:
 {
   port: number, // port to bind to
   iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
-  serverAddress: string, // address, port excluded, of WHIP endpoint (default http://localhost:<port>)
+  serverAddress: string, // address (port included) of WHIP endpoint (default http://localhost:<port>)
 }
 ```
 

@@ -30,7 +30,7 @@ export class WHIPEndpoint {
         this.iceServers = opts.iceServers;
       }
       if (opts.serverAddress) {
-        this.serverAddress = opts.serverAddress + ":" + this.port;
+        this.serverAddress = opts.serverAddress;
       }
     }
 

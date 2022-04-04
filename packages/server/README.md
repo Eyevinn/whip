@@ -43,6 +43,7 @@ Included is also a dummy endpoint if you just want to test the connectivity. Use
 
 The following environment variables are read to override default values:
 - `ICE_TRICKLE_TIMEOUT` (default: 4000 ms): Timeout for gathering all ICE candidates
+- `API_KEY`: Authorization key that clients must use to get ICE server config on OPTIONS request
 
 ## Broadcaster
 

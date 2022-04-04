@@ -23,13 +23,15 @@ export class WHIPResource {
   private resourceId: string;
   private localSdp: string;
   private remoteSdp: string;
+  private iceServers: WHIPResourceICEServer[];
   private iceCount: number;
 
   constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
     this.sdpOffer = sdpOffer;
+    this.iceServers = iceServers || [];
     this.pc = new RTCPeerConnection({
       sdpSemantics: "unified-plan",
-      iceServers: iceServers,
+      iceServers: this.iceServers,
     });
 
     this.resourceId = uuidv4();
@@ -68,6 +70,10 @@ export class WHIPResource {
 
   assignBroadcaster(broadcaster: Broadcaster) {
     this.broadcaster = broadcaster;
+  }
+
+  getIceServers(): WHIPResourceICEServer[] {
+    return this.iceServers;
   }
 
   private async handleConnectionStateChange() {

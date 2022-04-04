@@ -16,10 +16,46 @@ export default function(fastify: FastifyInstance, opts, done) {
       }
 
       const sdpAnswer = await resource.sdpAnswer();
-      reply.code(201).headers({
+      reply.headers({
         "Content-Type": "application/sdp",
         "Location": opts.prefix + "/whip/" + type + "/" + resource.getId(),
-      }).send(sdpAnswer);
+      });
+      if (resource.getIceServers()) {
+        resource.getIceServers().forEach((ice) => {
+          let iceLink = ice.urls + ";";
+          iceLink += ` rel="ice-server";`;
+          if (ice.username) {
+            iceLink += ` username="${ice.username}";`;
+          }
+          if (ice.credential) {
+            iceLink += ` credential: "${ice.credential}"; credential-type: "password";`;
+          }
+          reply.header("Link", iceLink);
+        });
+      }
+      reply.code(201).send(sdpAnswer);
+    } catch (err) {
+      console.error(err);
+      reply.code(500).send(err.message);
+    }
+  });
+
+  fastify.options("/whip/:type", {}, async (request: any, reply: FastifyReply) => {
+    try {
+      if (opts.instance.getIceServers()) {
+        opts.instance.getIceServers().forEach((ice) => {
+          let iceLink = ice.urls + ";";
+          iceLink += ` rel="ice-server";`;
+          if (ice.username) {
+            iceLink += ` username="${ice.username}";`;
+          }
+          if (ice.credential) {
+            iceLink += ` credential: "${ice.credential}"; credential-type: "password";`;
+          }
+          reply.header("Link", iceLink);
+        });
+      }
+      reply.code(201).send();            
     } catch (err) {
       console.error(err);
       reply.code(500).send(err.message);

@@ -33,9 +33,10 @@ export class WHIPResource {
     });
 
     this.resourceId = uuidv4();
-    this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: connection=${this.pc.iceConnectionState}`);
+    this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: iceconnection=${this.pc.iceConnectionState}`);
     this.pc.onicegatheringstatechange = e => console.log(`[${this.resourceId}]: icegathering=${e.target.iceGatheringState}`);
     this.pc.onicecandidateerror = e => console.error(`[${this.resourceId}]: icecanddiate=${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
+    this.pc.onconnectionstatechange = async (e) => await this.handleConnectionStateChange();
     this.iceCount = 0;
   }
 
@@ -57,8 +58,30 @@ export class WHIPResource {
     return this.localSdp;
   }
 
+  async onconnect(state) {
+
+  }
+
+  async ondisconnect(state) {
+
+  }
+
   assignBroadcaster(broadcaster: Broadcaster) {
     this.broadcaster = broadcaster;
+  }
+
+  private async handleConnectionStateChange() {
+    console.log(`[${this.resourceId}]: peerconnection=${this.pc.connectionState}`);
+    switch(this.pc.connectionState) {
+      case "connected":
+        await this.onconnect(this.pc.connectionState);
+        break;
+      case "disconnected":
+      case "closed":
+      case "failed":
+        await this.ondisconnect(this.pc.connectionState);
+        break;
+    }
   }
 
   private async waitUntilIceGatheringStateComplete() {

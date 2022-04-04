@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.4.1...@eyevinn/whip-endpoint@0.4.2) (2022-04-04)
+
+
+### Bug Fixes
+
+* do not append port on server address ([5b85854](https://github.com/Eyevinn/whip/commit/5b8585490a88cf57555890f9df9923b784d046bb))
+
+
+
+
+
 ## [0.4.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.4.0...@eyevinn/whip-endpoint@0.4.1) (2022-04-04)
 
 **Note:** Version bump only for package @eyevinn/whip-endpoint

@@ -1,6 +1,6 @@
 {
   "name": "@eyevinn/whip-web-client-demo",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Demonstration of a browser based WHIP client",
   "scripts": {
     "dev": "parcel -p 1234 src/index.html src/watch.html --no-cache",
@@ -17,7 +17,7 @@
     "url": "git+https://github.com/Eyevinn/whip.git"
   },
   "dependencies": {
-    "@eyevinn/whip-web-client": "^0.3.1"
+    "@eyevinn/whip-web-client": "^0.3.2"
   },
   "devDependencies": {
     "@types/node": "^17.0.23",

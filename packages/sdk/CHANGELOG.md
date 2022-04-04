@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.3.1...@eyevinn/whip-web-client@0.3.2) (2022-04-04)
+
+
+### Bug Fixes
+
+* wrong default STUN address ([f5d3142](https://github.com/Eyevinn/whip/commit/f5d3142e97813d3c54aa19a59e54bbf058702405))
+
+
+
+
+
 ## [0.3.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.3.0...@eyevinn/whip-web-client@0.3.1) (2022-04-04)
 
 

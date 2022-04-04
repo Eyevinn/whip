@@ -1,3 +1,5 @@
+import { parseWHIPIceLinkHeader } from "./util";
+
 export interface WHIPClientIceServer {
   urls: string;
   username?: string;
@@ -6,7 +8,9 @@ export interface WHIPClientIceServer {
 
 export interface WHIPClientOptions {
   debug?: boolean;
-  iceServers?: WHIPClientIceServer[]
+  iceServers?: WHIPClientIceServer[],
+  authkey?: string;
+  iceConfigFromEndpoint?: boolean,
 }
 
 export interface WHIPClientConstructor {
@@ -21,12 +25,19 @@ export class WHIPClient {
   private videoElement: HTMLVideoElement;
   private resource: string;
   private debug: boolean;
+  private authkey?: string;
+  private fetchIceFromEndpoint: boolean;
 
   constructor({ endpoint, element, opts }: WHIPClientConstructor) {
     let iceServers = [{ urls: "stun:stun.l.google.com:19320" }];
     if (opts && opts.iceServers) {
       iceServers = opts.iceServers;
     }
+    if (opts && opts.authkey) {
+      this.authkey = opts.authkey;
+    }
+    this.fetchIceFromEndpoint = !!(opts && opts.iceConfigFromEndpoint && this.authkey);
+
     this.pc = new RTCPeerConnection({
       iceServers: iceServers,
     });
@@ -72,6 +83,10 @@ export class WHIPClient {
   }
 
   async connect(): Promise<void> {
+    if (this.fetchIceFromEndpoint) {
+      const iceServers: WHIPClientIceServer[] = await this.doFetchICEFromEndpoint();
+      this.pc.setConfiguration({ iceServers: iceServers });
+    }
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     stream.getTracks().forEach(track => this.pc.addTrack(track, stream));
 
@@ -102,5 +117,26 @@ export class WHIPClient {
     })
     await p;
     return this.resource;
+  }
+
+  private async doFetchICEFromEndpoint(): Promise<WHIPClientIceServer[]> {
+    let iceServers: WHIPClientIceServer[] = [];
+    const response = await fetch(this.whipEndpoint.href, {
+      method: "OPTIONS",
+      headers: {
+        "Authorization": this.authkey,
+      }
+    });
+    if (response.ok) {
+      response.headers.forEach((v, k) => {
+        if (k == "link") {
+          const ice = parseWHIPIceLinkHeader(v);
+          if (ice) {
+            iceServers.push(ice);
+          }
+        }
+      });
+    }
+    return iceServers;
   }
 }

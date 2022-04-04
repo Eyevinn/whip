@@ -52,11 +52,15 @@ export class WHIPClient {
 
     this.pc.onicecandidate = async (event) => {
       if (event.candidate === null) {
+        const headers = {
+          "Content-Type": "application/sdp"
+        };
+        if (this.authkey) {
+          headers["Authorization"] = this.authkey;
+        }
         const response = await fetch(this.whipEndpoint.href, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/sdp"
-          },
+          headers: headers,
           body: this.pc.localDescription.sdp
         });
         if (response.ok) {

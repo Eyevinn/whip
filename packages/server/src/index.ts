@@ -37,7 +37,7 @@ export class WHIPEndpoint {
     this.server = fastify({ ignoreTrailingSlash: true });
     this.server.register(require("fastify-cors"), {
       exposedHeaders: ["Location", "Link"],
-      methods: ["POST", "GET", "OPTIONS"],
+      methods: ["POST", "GET", "OPTIONS", "DELETE"],
       preflightContinue: true,
       strictPreflight: false,
     });
@@ -62,6 +62,14 @@ export class WHIPEndpoint {
 
   addResource(resource: WHIPResource) {
     this.resources[resource.getId()] = resource;
+  }
+
+  deleteResource(id: string) {
+    const resource = this.resources[id]; 
+    if (resource) {
+      delete this.resources[id];
+      resource.destroy();
+    }
   }
 
   listResources() {

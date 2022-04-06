@@ -3,8 +3,8 @@
   "version": "0.3.2",
   "description": "Demonstration of a browser based WHIP client",
   "scripts": {
-    "dev": "parcel -p 1234 src/index.html src/watch.html --no-cache",
-    "build": "parcel build --public-url ./ src/index.html src/watch.html --no-cache"
+    "dev": "parcel -p 1234 --no-cache src/index.html  src/watch.html",
+    "build": "parcel build --no-cache --public-url ./ src/index.html src/watch.html"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",
   "contributors": [

@@ -38,7 +38,7 @@ export default function(fastify: FastifyInstance, opts, done) {
       const sdpAnswer = await resource.sdpAnswer();
       reply.headers({
         "Content-Type": "application/sdp",
-        "Location": opts.instance.getServerAddress() + opts.prefix + "/whip/" + type + "/" + resource.getId(),
+        "Location": `${opts.instance.getServerAddress()}${opts.prefix}/whip/${type}/${resource.getId()}`,
       });
       addIceLinks(resource.getIceServers(), request, reply);
       reply.code(201).send(sdpAnswer);
@@ -67,8 +67,10 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
-  fastify.delete("/whip/:type/:resourceId", {}, async (request: FastifyRequest, reply: FastifyReply) => {
-
+  fastify.delete("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+    const { resourceId } = request.params; 
+    await opts.instance.deleteResource(resourceId);
+    reply.code(200).send("OK");
   });
 
   // Not part of WHIP

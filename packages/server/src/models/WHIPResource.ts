@@ -1,5 +1,5 @@
 import { RTCPeerConnection } from "wrtc";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { Broadcaster } from "../broadcaster";
 
 const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 4000;
@@ -42,14 +42,16 @@ export class WHIPResource {
     this.iceCount = 0;
   }
 
-  async beforeAnswer() {
-
+  protected onIceConnectionStateChange(e) {
+    console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
   }
+
+  async beforeAnswer() {}
 
   async sdpAnswer() {
     await this.pc.setRemoteDescription({
       type: "offer",
-      sdp: this.sdpOffer
+      sdp: this.sdpOffer,
     });
     this.remoteSdp = this.sdpOffer;
     await this.beforeAnswer();
@@ -135,5 +137,9 @@ export class WHIPResource {
       localSdp: this.localSdp,
       remoteSdp: this.remoteSdp,
     };
+  }
+
+  destroy() {
+    this.pc.close();
   }
 }

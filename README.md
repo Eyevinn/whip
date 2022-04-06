@@ -25,7 +25,13 @@ npm run dev
 ### Develop against demo backend
 
 ```
-API_KEY=<secret> NODE_ENV=production npm run dev
+NODE_ENV=production npm run dev
+```
+
+To fetch ICE config from remote
+
+```
+API_KEY=<secret> ICE_CONFIG_REMOTE=1 NODE_ENV=production npm run dev
 ```
 
 ## TURN server

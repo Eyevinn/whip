@@ -77,9 +77,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 
   ingestCamera.addEventListener("click", async () => {
+    const debug = process.env.NODE_ENV === "development" || process.env.DEBUG;
+    const iceConfigRemote = process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE;
+
     const client = new WHIPClient({
       endpoint: input.value,
-      opts: { debug: process.env.NODE_ENV === "development", iceServers: getIceServers(), iceConfigFromEndpoint: true, authkey },
+      opts: { debug: debug, iceServers: getIceServers(), iceConfigFromEndpoint: iceConfigRemote, authkey },
     });
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: true,

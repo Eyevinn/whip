@@ -22,6 +22,12 @@ export class WRTCBroadcaster extends WHIPResource {
     }
   }
 
+  async ondisconnect() {
+    if (this.broadcaster) {
+      this.broadcaster.removeChannel(this.getId());
+    }
+  }
+
   getType() {
     return "broadcaster";
   }

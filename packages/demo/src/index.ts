@@ -1,6 +1,6 @@
 import { WHIPClient } from "../../sdk/src/index";
 
-import { watch } from "./util";
+import {watch, getIceServers } from "./util";
 
 function createWatchLink(channel) {
   const link = document.createElement("a");
@@ -31,9 +31,10 @@ async function createClientItem(client: WHIPClient) {
 }
 
 async function updateChannelList() {
+  const broadcasterUrl = process.env.NODE_ENV === "development" ? "http://localhost:8001/broadcaster/channel" : "https://broadcaster-wrtc.prod.eyevinn.technology/broadcaster/channel";
   const channels = document.querySelector("#channels");
   channels.innerHTML = ""
-  const response = await fetch(`http://${window.location.hostname}:8001/broadcaster/channel`);
+  const response = await fetch(broadcasterUrl);
   if (response.ok) {
     const json = await response.json();
     if (json.length > 0) {
@@ -65,12 +66,20 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   await updateChannelList();
 
-  input.value = `http://${window.location.hostname}:8000/api/v1/whip/broadcaster`;
+  let authkey;
+  if (process.env.NODE_ENV === "development") {
+    input.value = `http://${window.location.hostname}:8000/api/v1/whip/broadcaster`;
+    authkey = "devkey";
+  } else {
+    input.value = "https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster";
+    authkey = process.env.API_KEY;
+  }
+
 
   ingestCamera.addEventListener("click", async () => {
     const client = new WHIPClient({
       endpoint: input.value,
-      opts: { debug: true },
+      opts: { debug: process.env.NODE_ENV === "development", iceServers: getIceServers(), iceConfigFromEndpoint: true, authkey },
     });
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: true,

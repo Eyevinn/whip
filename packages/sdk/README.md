@@ -14,9 +14,24 @@ import { WHIPClient } from "@eyevinn/whip-web-client"
 const client = new WHIPClient({
   endpoint: "http://<host>/whip/broadcaster",
   element: document.querySelector("video"),
-  opts: { debug: true }
+  opts: { debug: true, iceServers: [{ urls: "stun:stun.l.google.com:19320" }] }
 });
 await client.connect();
+```
+
+Available options are:
+
+```
+{
+  endpoint: string, // URL to WHIP endpoint
+  element: HTMLVideoElement, // HTML video element 
+  opts: {
+    debug: boolean, // enable debug console logging
+    iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
+    authkey: string, // authentication key for auth option requests
+    iceConfigFromEndpoint: boolean, // when enabled fetch ICE config from WHIP endpoint, requires authkey to be set
+  }
+}
 ```
 
 ### CDN
@@ -43,6 +58,7 @@ Download the latest release and include the javascript files in your HTML.
   </body>
 </html>
 ```
+
 
 ## About Eyevinn Technology
 

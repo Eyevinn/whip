@@ -4,14 +4,12 @@ let iceServers = null;
 if (process.env.ICE_SERVERS) {
   iceServers = [];
   process.env.ICE_SERVERS.split(",").forEach(server => {
-    // stun:stun.l.google.com:19302@<username>:<credentials>
-    const [ url, auth ] = server.split("@");
-    let username = null;
-    let credential = null;
-    if (auth) {
-      [ username, credential ] = auth.split(":");
+    // turn:<username>:<password>@turn.eyevinn.technology:3478
+    const m = server.match(/^turn:(\S+):(\S+)@(\S+):(\d+)/);
+    if (m) {
+      const [ _, username, credential, host, port ] = m;
+      iceServers.push({ urls: "turn:" + host + ":" + port, username: username, credential: credential });
     }
-    iceServers.push({ urls: url, username: username, credential: credential });
   });
 }
 if (iceServers) {
@@ -19,6 +17,9 @@ if (iceServers) {
   iceServers.forEach(server => {
     console.log(server);
   });
+} else {
+  console.log("Using default ICE servers");
+  iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
 }
 
 const broadcaster = new Broadcaster({ 
@@ -29,7 +30,11 @@ const broadcaster = new Broadcaster({
 });
 broadcaster.listen();
 
-const endpoint = new WHIPEndpoint({ port: parseInt(process.env.PORT || "8000"), iceServers: iceServers });
+const endpoint = new WHIPEndpoint({ 
+  port: parseInt(process.env.PORT || "8000"), 
+  iceServers: iceServers,
+  serverAddress: process.env.SERVER_ADDRESS, 
+});
 endpoint.registerBroadcaster(broadcaster);
 endpoint.listen();
 

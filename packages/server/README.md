@@ -33,11 +33,27 @@ endpoint.registerBroadcaster(broadcaster);
 endpoint.listen();
 ```
 
+Available WHIP endpoint options are:
+
+```
+{
+  port: number, // port to bind to
+  iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
+  serverAddress: string, // address (port included) of WHIP endpoint (default http://localhost:<port>)
+}
+```
+
 The WHIP endpoint for the broadcaster is then available on `http://<host>:8000/api/v1/whip/broadcaster` and you will point your WHIP compatible producer to this endpoint.
 
 And the WHIP endpoint for the RTSP output is available on `http://<host>:8000/api/v1/whip/rtsp`.
 
 Included is also a dummy endpoint if you just want to test the connectivity. Use `http://<host>:8000/api/v1/whip/dummy` in that case.
+
+### Environment variables
+
+The following environment variables are read to override default values:
+- `ICE_TRICKLE_TIMEOUT` (default: 4000 ms): Timeout for gathering all ICE candidates
+- `API_KEY`: Authorization key that clients must use to get ICE server config on OPTIONS request
 
 ## Broadcaster
 

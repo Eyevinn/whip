@@ -7,7 +7,8 @@ export { Broadcaster };
 
 interface WHIPEndpointOptions {
   port?: number;
-  iceServers?: WHIPResourceICEServer[]
+  iceServers?: WHIPResourceICEServer[];
+  serverAddress?: string;
 }
 
 export class WHIPEndpoint {
@@ -16,19 +17,11 @@ export class WHIPEndpoint {
   private broadcaster: Broadcaster;
   private port: number;
   private iceServers?: WHIPResourceICEServer[];
+  private serverAddress: string;
 
   constructor(opts?: WHIPEndpointOptions) {
-    this.server = fastify({ ignoreTrailingSlash: true });
-    this.server.register(require("fastify-cors"), {
-      exposedHeaders: ["Location"]
-    });
-    this.server.register(api, { prefix: "/api/v1", instance: this });
-    this.server.get("/", async () => {
-      return "OK\n";
-    });
-    this.resources = {};
-
     this.port = 8000;
+    this.serverAddress = "http://localhost" + ":" + this.port;
     if (opts) {
       if (opts.port) {
         this.port = opts.port;
@@ -36,7 +29,23 @@ export class WHIPEndpoint {
       if (opts.iceServers) {
         this.iceServers = opts.iceServers;
       }
+      if (opts.serverAddress) {
+        this.serverAddress = opts.serverAddress;
+      }
     }
+
+    this.server = fastify({ ignoreTrailingSlash: true });
+    this.server.register(require("fastify-cors"), {
+      exposedHeaders: ["Location", "Link"],
+      methods: ["POST", "GET", "OPTIONS"],
+      preflightContinue: true,
+      strictPreflight: false,
+    });
+    this.server.register(api, { prefix: "/api/v1", instance: this });
+    this.server.get("/", async () => {
+      return "OK\n";
+    });
+    this.resources = {};
   }
 
   registerBroadcaster(broadcaster: Broadcaster) {
@@ -76,6 +85,10 @@ export class WHIPEndpoint {
 
   getIceServers(): WHIPResourceICEServer[]|null {
     return this.iceServers;
+  }
+
+  getServerAddress(): string {
+    return this.serverAddress;
   }
 
   listen() {

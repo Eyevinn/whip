@@ -22,6 +22,12 @@ Run development environment which will launch a demo / test page at http://local
 npm run dev
 ```
 
+### Develop against demo backend
+
+```
+API_KEY=<secret> NODE_ENV=production npm run dev
+```
+
 ## TURN server
 
 To run a TURN server locally you can use the Docker container of [coturn](https://hub.docker.com/r/coturn/coturn).

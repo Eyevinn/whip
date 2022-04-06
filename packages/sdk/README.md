@@ -13,10 +13,15 @@ import { WHIPClient } from "@eyevinn/whip-web-client"
 
 const client = new WHIPClient({
   endpoint: "http://<host>/whip/broadcaster",
-  element: document.querySelector("video"),
   opts: { debug: true, iceServers: [{ urls: "stun:stun.l.google.com:19320" }] }
 });
-await client.connect();
+const videoIngest = document.querySelector<HTMLVideoElement>("video#ingest");
+const mediaStream = await navigator.mediaDevices.getUserMedia({
+  video: true,
+  audio: true,
+});
+videoIngest.srcObject = mediaStream;
+await client.ingest(mediaStream);
 ```
 
 Available options are:
@@ -24,7 +29,6 @@ Available options are:
 ```
 {
   endpoint: string, // URL to WHIP endpoint
-  element: HTMLVideoElement, // HTML video element 
   opts: {
     debug: boolean, // enable debug console logging
     iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
@@ -48,11 +52,19 @@ Download the latest release and include the javascript files in your HTML.
       document.addEventListener('DOMContentLoaded', function(event) {
         const client = new WHIPClient({
           endpoint: "http://<host>/whip/broadcaster",
-          element: document.querySelector("video"),
         });
-        client.connect().then(function() {
-          console.log("We are connected!");
-        });
+        const videoIngest = document.querySelector("video#ingest");
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          .then(function(mediaStream) {
+            videoIngest.srcObject = mediaStream;
+            return client.ingest(mediaStream);
+          })
+          .then(function() {
+            console.log("Ingesting");
+          })
+          .catch(function(err) {
+            console.error(err);
+          });
       });
     </script>
   </body>

@@ -5,7 +5,7 @@
     "postinstall": "lerna bootstrap",
     "build": "lerna run build",
     "dev": "lerna run dev --stream --parallel",
-    "lerna:version": "lerna version --conventional-commits",
+    "lerna:version": "lerna version --changelog-preset conventionalcommits --conventional-commits",
     "publish": "lerna publish from-package --yes --ignore-scripts --no-verify-access"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",

@@ -1,5 +1,7 @@
 import { parseWHIPIceLinkHeader } from "./util";
 
+const DEFAULT_ICE_GATHERING_TIMEOUT = 2000;
+
 export interface WHIPClientIceServer {
   urls: string;
   username?: string;
@@ -8,9 +10,10 @@ export interface WHIPClientIceServer {
 
 export interface WHIPClientOptions {
   debug?: boolean;
-  iceServers?: WHIPClientIceServer[],
+  iceServers?: WHIPClientIceServer[];
   authkey?: string;
-  iceConfigFromEndpoint?: boolean,
+  iceConfigFromEndpoint?: boolean;
+  iceGatheringTimeout?: number;
 }
 
 export interface WHIPClientConstructor {
@@ -25,6 +28,8 @@ export class WHIPClient {
   private peer: RTCPeerConnection;
   private resource: string;
   private resourceResolve: (resource: string) => void;
+  private iceGatheringTimeout;
+  private iceGatheringComplete: boolean;
 
   constructor({ endpoint, opts }: WHIPClientConstructor) {
     this.whipEndpoint = new URL(endpoint);
@@ -41,7 +46,6 @@ export class WHIPClient {
     this.peer.onicegatheringstatechange = this.onIceGatheringStateChange.bind(this);
     this.peer.oniceconnectionstatechange =
       this.onIceConnectionStateChange.bind(this);
-    this.peer.onicecandidate = this.onIceCandidate.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
   }
 
@@ -65,31 +69,11 @@ export class WHIPClient {
 
   private async onIceCandidate({ candidate }) {
     if (candidate === null) {
-      const response = await fetch(this.whipEndpoint.toString(), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/sdp",
-          "Authorization": this.opts.authkey
-        },
-        body: this.peer.localDescription.sdp,
-      });
+      // ICE gathering is complete
+      clearTimeout(this.iceGatheringTimeout);
 
-      if (response.ok) {
-        this.resource = response.headers.get("Location");
-        this.log("WHIP Resource", this.resource);
-        if (this.resourceResolve) {
-          this.resourceResolve(this.resource);
-          this.resourceResolve = null;
-        }
-
-        const answer = await response.text();
-        this.peer.setRemoteDescription({
-          type: "answer",
-          sdp: answer,
-        });
-      } else {
-        this.error("IceCandidate", "Failed to setup stream connection with endpoint", response.status, await response.text());
-      }
+      this.peer.removeEventListener("icecandidate", this.onIceCandidate.bind(this));
+      this.onIceGatheringComplete();
     } else {
       this.log("IceCandidate", candidate.candidate);
     }
@@ -99,21 +83,75 @@ export class WHIPClient {
     this.log("IceCandidateError", e);
   }
 
-  async ingest(mediaStream: MediaStream): Promise<void> {
-    if (this.opts.iceConfigFromEndpoint) {
-      const iceServers: WHIPClientIceServer[] = await this.doFetchICEFromEndpoint();
-      this.peer.setConfiguration({ iceServers: iceServers });
+  private onIceGatheringTimeout() {
+    this.log("IceGatheringTimeout");
+    clearTimeout(this.iceGatheringTimeout);
+
+    this.peer.removeEventListener("icecandidate", this.onIceCandidate.bind(this));
+    this.onIceGatheringComplete();
+  }
+
+  private async onIceGatheringComplete() {
+    if (this.iceGatheringComplete) {
+      return;
     }
+    this.log("IceGatheringComplete");
 
-    mediaStream
-      .getTracks()
-      .forEach((track) => this.peer.addTrack(track, mediaStream));
+    this.iceGatheringComplete = true;
 
+    const response = await fetch(this.whipEndpoint.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/sdp",
+        "Authorization": this.opts.authkey
+      },
+      body: this.peer.localDescription.sdp,
+    });
+
+    if (response.ok) {
+      this.resource = response.headers.get("Location");
+      this.log("WHIP Resource", this.resource);
+      if (this.resourceResolve) {
+        this.resourceResolve(this.resource);
+        this.resourceResolve = null;
+      }
+
+      const answer = await response.text();
+      this.peer.setRemoteDescription({
+        type: "answer",
+        sdp: answer,
+      });
+    } else {
+      this.error("IceCandidate", "Failed to setup stream connection with endpoint", response.status, await response.text());
+    }
+  }
+
+  private async startSdpExchange(): Promise<void> {
     const sdpOffer = await this.peer.createOffer({
       offerToReceiveAudio: false,
       offerToReceiveVideo: false,
     });
     this.peer.setLocalDescription(sdpOffer);
+
+    this.peer.addEventListener("icecandidate", this.onIceCandidate.bind(this));
+    this.iceGatheringComplete = false;
+    this.iceGatheringTimeout = setTimeout(this.onIceGatheringTimeout.bind(this), this.opts.iceGatheringTimeout || DEFAULT_ICE_GATHERING_TIMEOUT);
+  }
+
+  async init(): Promise<void> {
+    if (this.opts.iceConfigFromEndpoint) {
+      this.log("Fetching ICE config from endpoint");
+      const iceServers: WHIPClientIceServer[] = await this.doFetchICEFromEndpoint();
+      this.peer.setConfiguration({ iceServers: iceServers });
+    }
+  }
+
+  async ingest(mediaStream: MediaStream): Promise<void> {
+    mediaStream
+      .getTracks()
+      .forEach((track) => this.peer.addTrack(track, mediaStream));
+      
+    await this.startSdpExchange();
   }
 
   async destroy(): Promise<void> {

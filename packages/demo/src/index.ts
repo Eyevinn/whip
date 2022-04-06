@@ -75,15 +75,16 @@ window.addEventListener("DOMContentLoaded", async () => {
     authkey = process.env.API_KEY;
   }
 
+  const debug = process.env.NODE_ENV === "development" || process.env.DEBUG;
+  const iceConfigRemote = process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE;
+
+  const client = new WHIPClient({
+    endpoint: input.value,
+    opts: { debug: debug, iceServers: getIceServers(), iceConfigFromEndpoint: iceConfigRemote, authkey },
+  });
+  await client.init();
 
   ingestCamera.addEventListener("click", async () => {
-    const debug = process.env.NODE_ENV === "development" || process.env.DEBUG;
-    const iceConfigRemote = process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE;
-
-    const client = new WHIPClient({
-      endpoint: input.value,
-      opts: { debug: debug, iceServers: getIceServers(), iceConfigFromEndpoint: iceConfigRemote, authkey },
-    });
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio: true,
@@ -92,10 +93,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   ingestScreen.addEventListener("click", async () => {
-    const client = new WHIPClient({
-      endpoint: input.value,
-      opts: { debug: true },
-    });
     const mediaStream = await navigator.mediaDevices.getDisplayMedia();
     ingest(client, mediaStream);
   });

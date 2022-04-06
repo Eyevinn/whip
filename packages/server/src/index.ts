@@ -37,7 +37,7 @@ export class WHIPEndpoint {
     this.server = fastify({ ignoreTrailingSlash: true });
     this.server.register(require("fastify-cors"), {
       exposedHeaders: ["Location", "Link"],
-      methods: ["POST", "GET", "OPTIONS"],
+      methods: ["POST", "GET", "OPTIONS", "DELETE"],
       preflightContinue: true,
       strictPreflight: false,
     });

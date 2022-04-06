@@ -118,7 +118,7 @@ export class WHIPClient {
 
   async destroy(): Promise<void> {
     const resourceUrl = await this.getResourceUrl();
-    await fetch(resourceUrl, { method: "DELETE" });
+    await fetch(resourceUrl, { method: "DELETE" }).catch((e) => this.error("destroy()", e));
   }
 
   getResourceUrl(): Promise<string> {

@@ -86,3 +86,4 @@ export default function(fastify: FastifyInstance, opts, done) {
 
 
   done();
+}

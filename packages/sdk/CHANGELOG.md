@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.3.2...@eyevinn/whip-web-client@0.4.0) (2022-04-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* destroy resource (#14)
+
+### Features
+
+* destroy resource ([#14](https://github.com/Eyevinn/whip/issues/14)) ([7863203](https://github.com/Eyevinn/whip/commit/78632033657c54f3bb4c53067e62edc91d190341))
+
+
+### Bug Fixes
+
+* updated SDK documentation to reflect the new API ([#26](https://github.com/Eyevinn/whip/issues/26)) ([7a52b5f](https://github.com/Eyevinn/whip/commit/7a52b5f37ff5b25dfde0513488226b4aa3d8d30f))
+
+
+
 ## [0.3.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.3.1...@eyevinn/whip-web-client@0.3.2) (2022-04-04)
 
 

@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.4.2...@eyevinn/whip-endpoint@0.5.0) (2022-04-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* destroy resource (#14)
+
+### Features
+
+* destroy resource ([#14](https://github.com/Eyevinn/whip/issues/14)) ([7863203](https://github.com/Eyevinn/whip/commit/78632033657c54f3bb4c53067e62edc91d190341))
+
+
+
 ## [0.4.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.4.1...@eyevinn/whip-endpoint@0.4.2) (2022-04-04)
 
 

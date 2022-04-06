@@ -16,9 +16,6 @@
     "type": "git",
     "url": "git+https://github.com/Eyevinn/whip.git"
   },
-  "dependencies": {
-    "@eyevinn/whip-web-client": "^0.4.1"
-  },
   "devDependencies": {
     "@types/node": "^17.0.23",
     "parcel": "^2.3.2"

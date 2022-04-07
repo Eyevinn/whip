@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.5.0...@eyevinn/whip-web-client-demo@0.6.0) (2022-04-07)
+
+
+### Features
+
+* viewer count per channel ([#30](https://github.com/Eyevinn/whip/issues/30)) and fix of [#31](https://github.com/Eyevinn/whip/issues/31) ([397d378](https://github.com/Eyevinn/whip/commit/397d378892db44f525766d88dbbe35effa707025))
+
+
+
 ## [0.5.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.4.2...@eyevinn/whip-web-client-demo@0.5.0) (2022-04-07)
 
 

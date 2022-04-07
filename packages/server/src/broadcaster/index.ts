@@ -3,7 +3,7 @@ import { MediaStream } from "wrtc";
 
 import api from "./api";
 
-interface BroadcasterICEServer {
+export interface BroadcasterICEServer {
   urls: string;
   username?: string;
   credential?: string;
@@ -19,6 +19,7 @@ interface BroadcasterOptions {
 export class Broadcaster {
   private server: FastifyInstance;
   private channels: Map<string, MediaStream>;
+  private viewers: Map<string, number>;
   private port: number;
   private baseUrl: string;
   private prefix: string;
@@ -46,9 +47,10 @@ export class Broadcaster {
 
     this.server = fastify({ ignoreTrailingSlash: true });
     this.server.register(require("fastify-cors"));
-    this.server.register(api, { prefix: this.prefix, instance: this });
+    this.server.register(api, { prefix: this.prefix, broadcaster: this });
 
     this.channels = new Map();
+    this.viewers = new Map();
   }
 
   createChannel(channelId: string, stream: MediaStream) {
@@ -69,6 +71,24 @@ export class Broadcaster {
 
   removeChannel(channelId: string) {
     this.channels.delete(channelId);
+  }
+
+  incrementViewer(channelId) {
+    if (!this.viewers.get(channelId)) {
+      this.viewers.set(channelId, 0);
+    }
+    this.viewers.set(channelId, this.viewers.get(channelId) + 1);
+  }
+
+  decreaseViewer(channelId) {
+    if (!this.viewers.get(channelId)) {
+      this.viewers.set(channelId, 1);
+    }
+    this.viewers.set(channelId, this.viewers.get(channelId) - 1);
+  }
+
+  getViewers(channelId) {
+    return this.viewers.get(channelId) || 0;
   }
 
   getBaseUrl() {

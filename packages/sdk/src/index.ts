@@ -70,7 +70,8 @@ export class WHIPClient {
 
   private async onIceCandidate({ candidate }) {
     if (candidate === null) {
-      // ICE gathering is complete
+      // ICE gathering is complete we clear the timeout
+      // and send the updated SDP to the server peer.
       clearTimeout(this.iceGatheringTimeout);
 
       this.peer.removeEventListener("icecandidate", this.onIceCandidateFn);
@@ -96,6 +97,8 @@ export class WHIPClient {
     if (this.iceGatheringComplete) {
       return;
     }
+    
+    // We are ready to send an updated SDP to server peer
     this.log("IceGatheringComplete");
 
     this.iceGatheringComplete = true;
@@ -128,13 +131,26 @@ export class WHIPClient {
   }
 
   private async startSdpExchange(): Promise<void> {
+    // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
+    // 
+    // Client peer creates an offer
     const sdpOffer = await this.peer.createOffer({
       offerToReceiveAudio: false,
       offerToReceiveVideo: false,
     });
+    // We store the offer as the local SDP. This will trigger the ICE candidate gathering
+    // process. The client will ask the STUN/TURN servers (iceServers) for a set of candidates
     this.peer.setLocalDescription(sdpOffer);
 
+    // When we get an ICE candidate we get an 'icecandidate' event with
+    // an RTCIceCandidate. When this candidate is null we know we have
+    // gathered all candidates
     this.peer.addEventListener("icecandidate", this.onIceCandidateFn);
+
+    // As part of the ICE gathering process the client will test connection for each candidate
+    // which can take some time if some of the candidates are slow to timeout. We need to
+    // set a timeout where we will send what we have. We might have all candidates but the
+    // 'null' candidate does not arrive until we all candidate checks are completed.
     this.iceGatheringComplete = false;
     this.iceGatheringTimeout = setTimeout(this.onIceGatheringTimeout.bind(this), this.opts.iceGatheringTimeout || DEFAULT_ICE_GATHERING_TIMEOUT);
   }

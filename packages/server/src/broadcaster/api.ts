@@ -39,9 +39,16 @@ export default function(fastify: FastifyInstance, opts, done) {
         sdpSemantics: "unified-plan",
         iceServers: iceServers,
       });
-      peer.oniceconnectionstatechange = () => console.log(`SFU ${channelId}: connection=` + peer.iceConnectionState);
-      peer.onicegatheringstatechange = e => console.log(`SFU ${channelId}: gathering=${e.target.iceGatheringState}`);
+      peer.oniceconnectionstatechange = () => console.log(`SFU ${channelId}: connection=${peer.iceConnectionState}`);
+      peer.onicegatheringstatechange = e => console.log(`SFU ${channelId}: gathering=${peer.iceGatheringState}`);
       peer.onicecandidateerror = e => console.error(`SFU ${channelId}: ${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
+      peer.onconnectionstatechange = async (e) => {
+        console.log(`SFU ${channelId}: peerconnection=${peer.connectionState}`);
+        if (["disconnected", "closed", "failed"].includes(peer.connectionState)) {
+          console.log(`SFU ${channelId}: watcher closed connection, remove track from senders`);
+          peer.getSenders().map(sender => peer.removeTrack(sender));
+        }
+      };
   
       const remoteSdp = request.body.sdp;
       await peer.setRemoteDescription({ 

@@ -11,9 +11,8 @@ export interface WHIPClientIceServer {
 export interface WHIPClientOptions {
   debug?: boolean;
   iceServers?: WHIPClientIceServer[];
-  authkey?: string;
-  iceConfigFromEndpoint?: boolean;
   iceGatheringTimeout?: number;
+  authkey?: string;
 }
 
 export interface WHIPClientConstructor {
@@ -30,6 +29,7 @@ export class WHIPClient {
   private resourceResolve: (resource: string) => void;
   private iceGatheringTimeout;
   private iceGatheringComplete: boolean;
+  private onIceCandidateFn: ({ candidate: RTCIceCandidate }) => void;
 
   constructor({ endpoint, opts }: WHIPClientConstructor) {
     this.whipEndpoint = new URL(endpoint);
@@ -47,6 +47,7 @@ export class WHIPClient {
     this.peer.oniceconnectionstatechange =
       this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
+    this.onIceCandidateFn = this.onIceCandidate.bind(this);
   }
 
   private log(...args: any[]) {
@@ -72,7 +73,7 @@ export class WHIPClient {
       // ICE gathering is complete
       clearTimeout(this.iceGatheringTimeout);
 
-      this.peer.removeEventListener("icecandidate", this.onIceCandidate.bind(this));
+      this.peer.removeEventListener("icecandidate", this.onIceCandidateFn);
       this.onIceGatheringComplete();
     } else {
       this.log("IceCandidate", candidate.candidate);
@@ -87,7 +88,7 @@ export class WHIPClient {
     this.log("IceGatheringTimeout");
     clearTimeout(this.iceGatheringTimeout);
 
-    this.peer.removeEventListener("icecandidate", this.onIceCandidate.bind(this));
+    this.peer.removeEventListener("icecandidate", this.onIceCandidateFn);
     this.onIceGatheringComplete();
   }
 
@@ -133,16 +134,39 @@ export class WHIPClient {
     });
     this.peer.setLocalDescription(sdpOffer);
 
-    this.peer.addEventListener("icecandidate", this.onIceCandidate.bind(this));
+    this.peer.addEventListener("icecandidate", this.onIceCandidateFn);
     this.iceGatheringComplete = false;
     this.iceGatheringTimeout = setTimeout(this.onIceGatheringTimeout.bind(this), this.opts.iceGatheringTimeout || DEFAULT_ICE_GATHERING_TIMEOUT);
   }
 
-  async init(): Promise<void> {
-    if (this.opts.iceConfigFromEndpoint) {
+  private async doFetchICEFromEndpoint(): Promise<WHIPClientIceServer[]> {
+    let iceServers: WHIPClientIceServer[] = [];
+    const response = await fetch(this.whipEndpoint.toString(), {
+      method: "OPTIONS",
+      headers: {
+        "Authorization": this.opts.authkey,
+      }
+    });
+    if (response.ok) {
+      response.headers.forEach((v, k) => {
+        if (k == "link") {
+          const ice = parseWHIPIceLinkHeader(v);
+          if (ice) {
+            iceServers.push(ice);
+          }
+        }
+      });
+    }
+    return iceServers;
+  }  
+
+  async setIceServersFromEndpoint(): Promise<void> {
+    if (this.opts.authkey) {
       this.log("Fetching ICE config from endpoint");
       const iceServers: WHIPClientIceServer[] = await this.doFetchICEFromEndpoint();
       this.peer.setConfiguration({ iceServers: iceServers });
+    } else {
+      this.error("No authkey is provided so cannot fetch ICE config from endpoint.");
     }
   }
 
@@ -167,26 +191,5 @@ export class WHIPClient {
       // resolved in onIceCandidate`
       this.resourceResolve = resolve;
     });
-  }
-
-  private async doFetchICEFromEndpoint(): Promise<WHIPClientIceServer[]> {
-    let iceServers: WHIPClientIceServer[] = [];
-    const response = await fetch(this.whipEndpoint.href, {
-      method: "OPTIONS",
-      headers: {
-        "Authorization": this.opts.authkey,
-      }
-    });
-    if (response.ok) {
-      response.headers.forEach((v, k) => {
-        if (k == "link") {
-          const ice = parseWHIPIceLinkHeader(v);
-          if (ice) {
-            iceServers.push(ice);
-          }
-        }
-      });
-    }
-    return iceServers;
   }
 }

@@ -80,9 +80,11 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const client = new WHIPClient({
     endpoint: input.value,
-    opts: { debug: debug, iceServers: getIceServers(), iceConfigFromEndpoint: iceConfigRemote, authkey },
+    opts: { debug: debug, iceServers: getIceServers(), authkey: authkey },
   });
-  await client.init();
+  if (iceConfigRemote) {
+    await client.setIceServersFromEndpoint();
+  }
 
   ingestCamera.addEventListener("click", async () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({

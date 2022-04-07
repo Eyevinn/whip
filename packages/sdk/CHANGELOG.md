@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.4.2...@eyevinn/whip-web-client@0.5.0) (2022-04-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* ICE gathering timeout (#27)
+
+### Features
+
+* ICE gathering timeout ([#27](https://github.com/Eyevinn/whip/issues/27)) ([4823b29](https://github.com/Eyevinn/whip/commit/4823b29d2c8874c9decbf95a9b508efc23d67451))
+
+
+
 ### [0.4.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.4.1...@eyevinn/whip-web-client@0.4.2) (2022-04-06)
 
 **Note:** Version bump only for package @eyevinn/whip-web-client

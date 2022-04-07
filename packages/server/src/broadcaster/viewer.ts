@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import { BroadcasterICEServer } from ".";
 import { EventEmitter } from "events";
 
-const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 4000;
+const ICE_GATHERING_TIMEOUT = process.env.ICE_GATHERING_TIMEOUT ? parseInt(process.env.ICE_GATHERING_TIMEOUT) : 4000;
+const CONNECTION_TIMEOUT = 60 * 1000;
 
 export interface ViewerOptions {
   iceServers?: BroadcasterICEServer[];
@@ -14,6 +15,7 @@ export class Viewer extends EventEmitter {
   private channelId: string;
   private viewerId: string;
   private peer: RTCPeerConnection;
+  private connectionTimeout: any;
 
   constructor(channelId: string, opts) {
     super();
@@ -29,7 +31,7 @@ export class Viewer extends EventEmitter {
     this.peer.oniceconnectionstatechange = this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
 
-    this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
+    this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);    
   }
 
   private onIceGatheringStateChange(e) {
@@ -61,22 +63,23 @@ export class Viewer extends EventEmitter {
   
     const p: Promise<void> = new Promise((resolve, reject) => {
       const t = setTimeout(() => {
-        this.peer.removeEventListener("icecandidate", onIceCandidate);
-        console.log("SFU PEER: ICE gathering timed out, send what we have");
+        this.peer.removeEventListener("icecandidate", onIceCandidateFn);
+        this.log("ICE gathering timed out, send what we have");
         resolve();
-      }, ICE_TRICKLE_TIMEOUT);
+      }, ICE_GATHERING_TIMEOUT);
 
       const onIceCandidate = ({ candidate }) => {
         if (!candidate) {
           clearTimeout(t);
-          this.peer.removeEventListener("icecandidate", onIceCandidate);
+          this.peer.removeEventListener("icecandidate", onIceCandidateFn);
           this.log("ICE candidates gathered");
           resolve();
         } else {
           this.log(candidate.candidate);
         }
-      };
-      this.peer.addEventListener("icecandidate", onIceCandidate);
+      }
+      const onIceCandidateFn = onIceCandidate.bind(this);
+      this.peer.addEventListener("icecandidate", onIceCandidateFn);
     });
     await p;
   }
@@ -99,6 +102,12 @@ export class Viewer extends EventEmitter {
     const answer = await this.peer.createAnswer();
     await this.peer.setLocalDescription(answer);
     await this.waitUntilIceGatheringStateComplete();
+
+    this.connectionTimeout = setTimeout(() => {
+      clearTimeout(this.connectionTimeout);
+      this.log("Connection timeout");
+      this.peer.close();
+    }, CONNECTION_TIMEOUT);
 
     this.emit("connect");
     return this.peer.localDescription.sdp;

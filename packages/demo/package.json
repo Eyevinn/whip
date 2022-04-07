@@ -22,5 +22,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@eyevinn/webrtc-player": "^0.2.2"
   }
 }

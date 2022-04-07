@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.5.3](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.5.2...@eyevinn/whip-endpoint@0.5.3) (2022-04-07)
+
+
+### Bug Fixes
+
+* must remove track from senders when watcher disconnects ([#29](https://github.com/Eyevinn/whip/issues/29)) ([ccaad86](https://github.com/Eyevinn/whip/commit/ccaad86b6c73d0d04e407aa36095719eeb49b28b))
+
+
+
 ### [0.5.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.5.1...@eyevinn/whip-endpoint@0.5.2) (2022-04-06)
 
 **Note:** Version bump only for package @eyevinn/whip-endpoint

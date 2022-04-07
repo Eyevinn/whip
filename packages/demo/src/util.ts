@@ -8,6 +8,15 @@ export async function watch(channelUrl, video) {
   }
 }
 
+export async function getViewerCount(channelUrl): Promise<number> {
+  const response = await fetch(channelUrl);
+  if (response.ok) {
+    const json = await response.json();
+    return json.viewers;
+  }
+  return -1;
+}
+
 export function getIceServers(): WHIPClientIceServer[] {
   let iceServers: WHIPClientIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
 

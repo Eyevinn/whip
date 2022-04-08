@@ -62,6 +62,9 @@ export class Viewer extends EventEmitter {
         console.error(err);
       }
       this.emit("disconnect");
+    } else if (this.peer.connectionState === "connected") {
+      this.log(`watcher connected, clear connection timer`);
+      clearTimeout(this.connectionTimeout);
     }
   }
 

@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.6.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.6.1...@eyevinn/whip-endpoint@0.6.2) (2022-04-08)
+
+
+### Bug Fixes
+
+* need to clear connection timer when viewer has connected ([#32](https://github.com/Eyevinn/whip/issues/32)) ([6bcf85a](https://github.com/Eyevinn/whip/commit/6bcf85a2b756f3894156ffd455311289c1c14365))
+
+
+
 ### [0.6.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.6.0...@eyevinn/whip-endpoint@0.6.1) (2022-04-08)
 
 

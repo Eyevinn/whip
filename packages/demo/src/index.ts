@@ -12,21 +12,41 @@ function createWatchLink(channel) {
   return link;
 }
 
+async function getChannelUrl(client: WHIPClient): Promise<string> {
+  let channelListUrl: string;
+  (await client.getResourceExtensions()).forEach(link => {
+    if (link.match(/rel=urn:ietf:params:whip:eyevinn-wrtc-channel-list/)) {
+      channelListUrl = link.split(";")[0];      
+    }
+  });
+  return channelListUrl;
+}
+
 async function createClientItem(client: WHIPClient) {
   const details = document.createElement("details");
   const summary = document.createElement("summary");
+  const extensions = document.createElement("ul");
   const deleteBtn = document.createElement("button");
 
   summary.innerText = await client.getResourceUrl();
+
+  const links = await client.getResourceExtensions();
+  links.filter(v => v.match(/urn:ietf:params:whip:/)).forEach(l => {
+    const link = document.createElement("li");
+    const [url, rel, ..._] = l.split(";");
+    link.innerHTML = `<a target="_blank" href="${url}">${url}</a> (${rel})`;
+    extensions.appendChild(link);
+  });
 
   deleteBtn.innerText = "Delete";
   deleteBtn.onclick = async () => {
     await client.destroy();
     details.parentNode?.removeChild(details);
-    updateChannelList();
+    updateChannelList(await getChannelUrl(client));
   }
 
   details.appendChild(summary);
+  details.appendChild(extensions);
   details.appendChild(deleteBtn);
 
   return details;
@@ -59,14 +79,8 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   await client.ingest(mediaStream);
 
   resources.appendChild(await createClientItem(client));
-  let channelListUrl: string;
-  (await client.getResourceExtensions()).forEach(link => {
-    if (link.match(/rel=urn:ietf:params:whip:eyevinn-wrtc-channel-list/)) {
-      channelListUrl = link.split(";")[0];      
-    }
-  });
 
-  updateChannelList(channelListUrl);
+  updateChannelList(await getChannelUrl(client));
 }
 
 function updateViewerCount(count) {

@@ -28,6 +28,7 @@ export class WHIPClient extends EventEmitter {
 
   private peer: RTCPeerConnection;
   private resource: string;
+  private extensions: string[];
   private resourceResolve: (resource: string) => void;
   private iceGatheringTimeout;
   private iceGatheringComplete: boolean;
@@ -118,6 +119,10 @@ export class WHIPClient extends EventEmitter {
     if (response.ok) {
       this.resource = response.headers.get("Location");
       this.log("WHIP Resource", this.resource);
+
+      this.extensions = response.headers.get("Link").split(",").map(v => v.trimStart());
+      this.log("WHIP Resource Extensions", this.extensions);
+
       if (this.resourceResolve) {
         this.resourceResolve(this.resource);
         this.resourceResolve = null;
@@ -214,8 +219,13 @@ export class WHIPClient extends EventEmitter {
       return Promise.resolve(this.resource);
     }
     return new Promise((resolve) => {
-      // resolved in onIceCandidate`
+      // resolved in onIceCandidate
       this.resourceResolve = resolve;
     });
+  }
+
+  async getResourceExtensions(): Promise<string[]> {
+    await this.getResourceUrl();
+    return this.extensions;
   }
 }

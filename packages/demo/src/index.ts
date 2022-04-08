@@ -30,11 +30,14 @@ async function createClientItem(client: WHIPClient) {
   return details;
 }
 
-async function updateChannelList() {
-  const broadcasterUrl = process.env.NODE_ENV === "development" ? "http://localhost:8001/broadcaster/channel" : "https://broadcaster-wrtc.prod.eyevinn.technology/broadcaster/channel";
+async function updateChannelList(channelListUrl?: string) {
+  if (!channelListUrl) {
+    return;
+  }
+
   const channels = document.querySelector("#channels");
   channels.innerHTML = ""
-  const response = await fetch(broadcasterUrl);
+  const response = await fetch(channelListUrl);
   if (response.ok) {
     const json = await response.json();
     if (json.length > 0) {
@@ -54,7 +57,14 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   await client.ingest(mediaStream);
 
   resources.appendChild(await createClientItem(client));
-  updateChannelList();
+  let channelListUrl: string;
+  (await client.getResourceExtensions()).forEach(link => {
+    if (link.match(/rel=urn:ietf:params:whip:eyevinn-wrtc-channel-list/)) {
+      channelListUrl = link.split(";")[0];      
+    }
+  });
+
+  updateChannelList(channelListUrl);
 }
 
 function updateViewerCount(count) {
@@ -71,8 +81,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.querySelector<HTMLButtonElement>("#ingest-camera");
   const ingestScreen =
     document.querySelector<HTMLButtonElement>("#ingest-screen");
-
-  await updateChannelList();
 
   let authkey;
   if (process.env.NODE_ENV === "development") {

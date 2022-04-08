@@ -1,5 +1,5 @@
 import { MediaStream } from "wrtc";
-import { WHIPResource, WHIPResourceICEServer } from "../models/WHIPResource";
+import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
 
 export class WRTCBroadcaster extends WHIPResource {
 
@@ -36,6 +36,13 @@ export class WRTCBroadcaster extends WHIPResource {
 
   getType() {
     return "broadcaster";
+  }
+
+  getProtocolExtensions(): string[] {
+    return [
+      `${this.broadcaster.getBaseUrl()}/channel;rel=${IANA_PREFIX}eyevinn-wrtc-channel-list`,
+      `${this.broadcaster.getBaseUrl()}/channel/${this.getId()};rel=${IANA_PREFIX}eyevinn-wrtc-channel`,
+    ]
   }
 
   asObject(): any {

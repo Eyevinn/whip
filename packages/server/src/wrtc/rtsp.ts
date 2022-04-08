@@ -1,4 +1,4 @@
-import { WHIPResource, WHIPResourceICEServer } from "../models/WHIPResource";
+import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
 import { MPEGTS, MPEGTSResolution } from "../transform/mpegts";
 
 import ffmpeg from "fluent-ffmpeg";
@@ -81,6 +81,12 @@ export class WRTCRTSP extends WHIPResource {
 
   getType() {
     return "rtsp";
+  }
+
+  getProtocolExtensions(): string[] {
+    return [
+      `${this.getOutputPath()};rel=${IANA_PREFIX}eyevinn-wrtc-rtsp`,
+    ]
   }
 
   asObject(): any {

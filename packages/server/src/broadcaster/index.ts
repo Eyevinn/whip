@@ -56,20 +56,6 @@ export class Broadcaster {
     this.viewers = new Map();
   }
 
-  private incrementViewerCount(channelId: string) {
-    if (!this.viewerCount.get(channelId)) {
-      this.viewerCount.set(channelId, 0);
-    }
-    this.viewerCount.set(channelId, this.viewerCount.get(channelId) + 1);
-  }
-
-  private decreaseViewerCount(channelId: string) {
-    if (!this.viewerCount.get(channelId)) {
-      this.viewerCount.set(channelId, 1);
-    }
-    this.viewerCount.set(channelId, this.viewerCount.get(channelId) - 1);
-  }
-
   createChannel(channelId: string, stream: MediaStream) {
     this.channels.set(channelId, stream);
   }
@@ -91,7 +77,6 @@ export class Broadcaster {
   }
 
   addViewer(channelId: string, newViewer: Viewer) {
-    this.incrementViewerCount(channelId);
     let viewers = this.viewers.get(channelId);
 
     if (!viewers) {
@@ -100,20 +85,17 @@ export class Broadcaster {
       viewers.push(newViewer);
     }
     this.viewers.set(channelId, viewers);
-    console.log(channelId, viewers.map(v => v.getId()));
   }
 
   removeViewer(channelId: string, viewerToRemove: Viewer) {
-    this.decreaseViewerCount(channelId);
     let viewers = this.viewers.get(channelId);
     if (viewers) {
       this.viewers.set(channelId, viewers.filter(v => v.getId() !== viewerToRemove.getId()));
-      console.log(channelId, viewers.map(v => v.getId()));
     }
   }
 
   getViewerCount(channelId) {
-    return this.viewerCount.get(channelId) || 0;
+    return this.viewers.get(channelId) && this.viewers.get(channelId).length || 0;
   }
 
   getBaseUrl() {

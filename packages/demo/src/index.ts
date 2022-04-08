@@ -2,6 +2,8 @@ import { WHIPClient } from "../../sdk/src/index";
 
 import { getIceServers } from "./util";
 
+let viewers = 0;
+
 function createWatchLink(channel) {
   const link = document.createElement("a");
   link.href = `watch.html?locator=${encodeURIComponent(channel.resource)}`;
@@ -68,13 +70,30 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
 }
 
 function updateViewerCount(count) {
+  count = count < 0 ? 0 : count;
+  
   const viewers =
     document.querySelector<HTMLSpanElement>("#viewers");
   viewers.innerHTML = `${count} viewer(s)`;
 }
 
+function onMessage(data) {
+  const json = JSON.parse(data);
+  if (!json.message && !json.message.event) {
+    return;
+  }
+  switch (json.message.event) {
+    case "vieweradd":
+      viewers++;
+      break;
+    case "viewerremove":
+      viewers--;
+      break;
+  }
+  updateViewerCount(viewers);
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
-  let viewers = 0;
 
   const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
   const ingestCamera =
@@ -103,21 +122,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   client.setupBackChannel();
-  client.on("message", (data) => {
-    const json = JSON.parse(data);
-    if (!json.message && !json.message.event) {
-      return;
-    }
-    switch (json.message.event) {
-      case "vieweradd":
-        viewers++;
-        break;
-      case "viewerremove":
-        viewers--;
-        break;
-    }
-    updateViewerCount(viewers);
-  });
+  client.on("message", onMessage);
 
   ingestCamera.addEventListener("click", async () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({

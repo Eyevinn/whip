@@ -16,7 +16,6 @@ export class Viewer extends EventEmitter {
   private viewerId: string;
   private peer: RTCPeerConnection;
   private connectionTimeout: any;
-  private eventDataChannel: RTCDataChannel;
 
   constructor(channelId: string, opts) {
     super();
@@ -27,16 +26,14 @@ export class Viewer extends EventEmitter {
       sdpSemantics: "unified-plan",
       iceServers: opts.iceServers,
     });
-    this.eventDataChannel = this.peer.createDataChannel("events");
 
     this.peer.onicegatheringstatechange = this.onIceGatheringStateChange.bind(this);
     this.peer.oniceconnectionstatechange = this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
 
     this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
-    
-    this.eventDataChannel.onopen = this.onEventDataChannelOpen.bind(this);
-    this.eventDataChannel.onmessage = this.onEventDataChannelMessage.bind(this);
+
+    this.peer.ondatachannel = this.onEventDataChannel.bind(this);
   }
 
   private onIceGatheringStateChange(e) {
@@ -68,13 +65,15 @@ export class Viewer extends EventEmitter {
     }
   }
 
-  private onEventDataChannelOpen(e) {
+  private onEventDataChannel(e) {
     this.log(`Event data channel established`);
+    const channel = e.channel;
+    channel.onmessage = this.onEventDataChannelMessage.bind(this);
   }
 
   private onEventDataChannelMessage(e) {
-    this.log(`Received message from viewer`, e.data);
-    this.emit("event", e.data);
+    this.log(`Received message from viewer on channel ${e.channel}`, e.data);
+    this.emit("message", e.data);
   }
 
   private async waitUntilIceGatheringStateComplete(): Promise<void> {

@@ -1,6 +1,6 @@
 import { WHIPClient } from "../../sdk/src/index";
 
-import {watch, getIceServers } from "./util";
+import { getIceServers } from "./util";
 
 function createWatchLink(channel) {
   const link = document.createElement("a");
@@ -57,7 +57,15 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   updateChannelList();
 }
 
+function updateViewerCount(count) {
+  const viewers =
+    document.querySelector<HTMLSpanElement>("#viewers");
+  viewers.innerHTML = `${count} viewer(s)`;
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
+  let viewers = 0;
+
   const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
   const ingestCamera =
     document.querySelector<HTMLButtonElement>("#ingest-camera");
@@ -75,7 +83,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     authkey = process.env.API_KEY;
   }
 
-  const debug = process.env.NODE_ENV === "development" || process.env.DEBUG;
+  const debug = process.env.NODE_ENV === "development" || !!process.env.DEBUG;
   const iceConfigRemote = process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE;
 
   const client = new WHIPClient({
@@ -85,6 +93,23 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (iceConfigRemote) {
     await client.setIceServersFromEndpoint();
   }
+
+  client.setupBackChannel();
+  client.on("message", (data) => {
+    const json = JSON.parse(data);
+    if (!json.message && !json.message.event) {
+      return;
+    }
+    switch (json.message.event) {
+      case "vieweradd":
+        viewers++;
+        break;
+      case "viewerremove":
+        viewers--;
+        break;
+    }
+    updateViewerCount(viewers);
+  });
 
   ingestCamera.addEventListener("click", async () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({

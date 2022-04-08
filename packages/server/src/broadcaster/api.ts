@@ -16,8 +16,8 @@ export default function(fastify: FastifyInstance, opts, done) {
       viewer.on("disconnect", () => { 
         broadcaster.removeViewer(channelId, viewer);
       });
-      viewer.on("event", (message) => {
-        broadcaster.onEventFromViewer(channelId, viewer, message);
+      viewer.on("message", (message) => {
+        broadcaster.onMessageFromViewer(channelId, viewer, message);
       });
       
       const remoteSdp = request.body.sdp;

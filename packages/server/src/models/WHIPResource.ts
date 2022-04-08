@@ -40,6 +40,13 @@ export class WHIPResource {
     this.pc.onicecandidateerror = e => console.error(`[${this.resourceId}]: icecanddiate=${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
     this.pc.onconnectionstatechange = async (e) => await this.handleConnectionStateChange();
     this.iceCount = 0;
+
+    this.pc.ondatachannel = (e) => {
+      console.log(`[${this.resourceId}]: datachannel=${e.channel.label}`);
+      if (e.channel.label === "backchannel") {
+        this.ondatachannel(e.channel);
+      }
+    }
   }
 
   protected onIceConnectionStateChange(e) {
@@ -67,6 +74,10 @@ export class WHIPResource {
   }
 
   async ondisconnect(state) {
+
+  }
+
+  async ondatachannel(datachannel) {
 
   }
 

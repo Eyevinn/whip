@@ -1,5 +1,7 @@
 import { parseWHIPIceLinkHeader } from "./util";
 
+import { EventEmitter } from "events";
+
 const DEFAULT_ICE_GATHERING_TIMEOUT = 2000;
 
 export interface WHIPClientIceServer {
@@ -20,7 +22,7 @@ export interface WHIPClientConstructor {
   opts?: WHIPClientOptions;
 }
 
-export class WHIPClient {
+export class WHIPClient extends EventEmitter {
   private whipEndpoint: URL;
   private opts: WHIPClientOptions;
 
@@ -32,6 +34,7 @@ export class WHIPClient {
   private onIceCandidateFn: ({ candidate: RTCIceCandidate }) => void;
 
   constructor({ endpoint, opts }: WHIPClientConstructor) {
+    super();
     this.whipEndpoint = new URL(endpoint);
     this.opts = opts;
 
@@ -174,8 +177,8 @@ export class WHIPClient {
       });
     }
     return iceServers;
-  }  
-
+  }
+  
   async setIceServersFromEndpoint(): Promise<void> {
     if (this.opts.authkey) {
       this.log("Fetching ICE config from endpoint");
@@ -186,11 +189,18 @@ export class WHIPClient {
     }
   }
 
+  setupBackChannel() {
+    const channel = this.peer.createDataChannel("backchannel");
+    channel.onmessage = (ev) => {
+      this.emit("message", ev.data);
+    };
+  }
+
   async ingest(mediaStream: MediaStream): Promise<void> {
     mediaStream
       .getTracks()
       .forEach((track) => this.peer.addTrack(track, mediaStream));
-      
+    
     await this.startSdpExchange();
   }
 

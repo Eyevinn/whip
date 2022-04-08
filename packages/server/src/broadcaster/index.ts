@@ -1,5 +1,5 @@
 import fastify, { FastifyInstance } from "fastify";
-import { MediaStream } from "wrtc";
+import { MediaStream, RTCDataChannel } from "wrtc";
 
 import api from "./api";
 import { Viewer } from "./viewer";
@@ -58,6 +58,14 @@ export class Broadcaster {
     this.channels.set(channelId, channel);
   }
 
+  assignBackChannel(channelId: string, dataChannel: RTCDataChannel) {
+    const channel = this.channels.get(channelId);
+    if (!channel) {
+      return;
+    }
+    channel.assignBackChannel(dataChannel);
+  }
+
   getStreamForChannel(channelId: string): MediaStream {
     const channel = this.channels.get(channelId);
     if (channel) {
@@ -80,16 +88,27 @@ export class Broadcaster {
 
   addViewer(channelId: string, newViewer: Viewer) {
     const channel = this.channels.get(channelId);
-    if (channel) {
-      channel.addViewer(newViewer);
+    if (!channel) {
+      return;
     }
+    channel.addViewer(newViewer);
+    channel.sendMessageOnBackChannel({
+      viewerId: newViewer.getId(),
+      message: { event: "vieweradd" },
+    });
   }
 
   removeViewer(channelId: string, viewerToRemove: Viewer) {
     const channel = this.channels.get(channelId);
-    if (channel) {
-      channel.removeViewer(viewerToRemove);
+    if (!channel) {
+      return;
     }
+    
+    channel.removeViewer(viewerToRemove);
+    channel.sendMessageOnBackChannel({
+      viewerId: viewerToRemove.getId(),
+      message: { event: "viewerremove" }
+    });
   }
 
   getViewerCount(channelId: string): number {
@@ -105,8 +124,16 @@ export class Broadcaster {
     return this.iceServers;
   }
 
-  onEventFromViewer(channelId: string, viewer: Viewer, message) {
+  onMessageFromViewer(channelId: string, viewer: Viewer, message: string) {
+    const channel = this.channels.get(channelId);
+    if (!channel) {
+      return;
+    }
 
+    channel.sendMessageOnBackChannel({
+      viewerId: viewer.getId(),
+      message: message,
+    });
   }
 
   listen() {

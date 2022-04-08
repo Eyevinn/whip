@@ -51,7 +51,11 @@ export class Viewer extends EventEmitter {
 
     if (["disconnected", "closed", "failed"].includes(this.peer.connectionState)) {
       this.log(`watcher closed connection, remove track from senders`);
-      this.peer.getSenders().map(sender => this.peer.removeTrack(sender));
+      try {
+        this.peer.getSenders().map(sender => this.peer.removeTrack(sender));
+      } catch (err) {
+        console.error(err);
+      }
       this.emit("disconnect");
     }
   }

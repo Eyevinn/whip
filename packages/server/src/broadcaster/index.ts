@@ -2,6 +2,7 @@ import fastify, { FastifyInstance } from "fastify";
 import { MediaStream } from "wrtc";
 
 import api from "./api";
+import { Viewer } from "./viewer";
 
 export interface BroadcasterICEServer {
   urls: string;
@@ -19,7 +20,8 @@ interface BroadcasterOptions {
 export class Broadcaster {
   private server: FastifyInstance;
   private channels: Map<string, MediaStream>;
-  private viewers: Map<string, number>;
+  private viewerCount: Map<string, number>;
+  private viewers: Map<string, Viewer[]>;
   private port: number;
   private baseUrl: string;
   private prefix: string;
@@ -50,7 +52,22 @@ export class Broadcaster {
     this.server.register(api, { prefix: this.prefix, broadcaster: this });
 
     this.channels = new Map();
+    this.viewerCount = new Map();
     this.viewers = new Map();
+  }
+
+  private incrementViewerCount(channelId: string) {
+    if (!this.viewerCount.get(channelId)) {
+      this.viewerCount.set(channelId, 0);
+    }
+    this.viewerCount.set(channelId, this.viewerCount.get(channelId) + 1);
+  }
+
+  private decreaseViewerCount(channelId: string) {
+    if (!this.viewerCount.get(channelId)) {
+      this.viewerCount.set(channelId, 1);
+    }
+    this.viewerCount.set(channelId, this.viewerCount.get(channelId) - 1);
   }
 
   createChannel(channelId: string, stream: MediaStream) {
@@ -73,22 +90,30 @@ export class Broadcaster {
     this.channels.delete(channelId);
   }
 
-  incrementViewer(channelId) {
-    if (!this.viewers.get(channelId)) {
-      this.viewers.set(channelId, 0);
+  addViewer(channelId: string, newViewer: Viewer) {
+    this.incrementViewerCount(channelId);
+    let viewers = this.viewers.get(channelId);
+
+    if (!viewers) {
+      viewers = [ newViewer ];
+    } else {
+      viewers.push(newViewer);
     }
-    this.viewers.set(channelId, this.viewers.get(channelId) + 1);
+    this.viewers.set(channelId, viewers);
+    console.log(channelId, viewers.map(v => v.getId()));
   }
 
-  decreaseViewer(channelId) {
-    if (!this.viewers.get(channelId)) {
-      this.viewers.set(channelId, 1);
+  removeViewer(channelId: string, viewerToRemove: Viewer) {
+    this.decreaseViewerCount(channelId);
+    let viewers = this.viewers.get(channelId);
+    if (viewers) {
+      this.viewers.set(channelId, viewers.filter(v => v.getId() !== viewerToRemove.getId()));
+      console.log(channelId, viewers.map(v => v.getId()));
     }
-    this.viewers.set(channelId, this.viewers.get(channelId) - 1);
   }
 
-  getViewers(channelId) {
-    return this.viewers.get(channelId) || 0;
+  getViewerCount(channelId) {
+    return this.viewerCount.get(channelId) || 0;
   }
 
   getBaseUrl() {

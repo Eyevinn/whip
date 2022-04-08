@@ -1,4 +1,4 @@
-import { RTCPeerConnection } from "wrtc";
+import { RTCPeerConnection, RTCDataChannel } from "wrtc";
 import { v4 as uuidv4 } from "uuid";
 
 import { BroadcasterICEServer } from ".";
@@ -16,6 +16,7 @@ export class Viewer extends EventEmitter {
   private viewerId: string;
   private peer: RTCPeerConnection;
   private connectionTimeout: any;
+  private eventDataChannel: RTCDataChannel;
 
   constructor(channelId: string, opts) {
     super();
@@ -26,12 +27,16 @@ export class Viewer extends EventEmitter {
       sdpSemantics: "unified-plan",
       iceServers: opts.iceServers,
     });
+    this.eventDataChannel = this.peer.createDataChannel("events");
 
     this.peer.onicegatheringstatechange = this.onIceGatheringStateChange.bind(this);
     this.peer.oniceconnectionstatechange = this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
 
-    this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);    
+    this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
+    
+    this.eventDataChannel.onopen = this.onEventDataChannelOpen.bind(this);
+    this.eventDataChannel.onmessage = this.onEventDataChannelMessage.bind(this);
   }
 
   private onIceGatheringStateChange(e) {
@@ -58,6 +63,15 @@ export class Viewer extends EventEmitter {
       }
       this.emit("disconnect");
     }
+  }
+
+  private onEventDataChannelOpen(e) {
+    this.log(`Event data channel established`);
+  }
+
+  private onEventDataChannelMessage(e) {
+    this.log(`Received message from viewer`, e.data);
+    this.emit("event", e.data);
   }
 
   private async waitUntilIceGatheringStateComplete(): Promise<void> {
@@ -92,7 +106,11 @@ export class Viewer extends EventEmitter {
     console.log(`SFU ${this.viewerId}`, ...args);
   }
 
-  async handleOffer(offer: string, stream) {
+  getId() {
+    return this.viewerId;
+  }
+
+  async handleOffer(offer: string, stream) {    
     await this.peer.setRemoteDescription({ 
       type: "offer", 
       sdp: offer 

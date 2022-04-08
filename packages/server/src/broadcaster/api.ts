@@ -10,11 +10,14 @@ export default function(fastify: FastifyInstance, opts, done) {
       const iceServers = broadcaster.getIceServers();
 
       const viewer = new Viewer(channelId, { iceServers: iceServers });
-      viewer.on("connect", () => { 
+      viewer.on("connect", () => {
         broadcaster.addViewer(channelId, viewer);
       });
       viewer.on("disconnect", () => { 
         broadcaster.removeViewer(channelId, viewer);
+      });
+      viewer.on("event", (message) => {
+        broadcaster.onEventFromViewer(channelId, viewer, message);
       });
       
       const remoteSdp = request.body.sdp;

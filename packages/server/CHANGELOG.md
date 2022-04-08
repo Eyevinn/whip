@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.6.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.6.0...@eyevinn/whip-endpoint@0.6.1) (2022-04-08)
+
+
+### Bug Fixes
+
+* do not crasch when sender is no longer available ([f4b1a52](https://github.com/Eyevinn/whip/commit/f4b1a528a777378aa8d20c088ee002d29b601be4))
+
+
+
 ## [0.6.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.5.3...@eyevinn/whip-endpoint@0.6.0) (2022-04-07)
 
 

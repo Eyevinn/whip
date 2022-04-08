@@ -1,13 +1,14 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { createWHIPResourceFromType } from "./factory";
-import { WHIPResourceICEServer } from "./models/WHIPResource";
+import { WHIPResource, WHIPResourceICEServer } from "./models/WHIPResource";
 
 export default function(fastify: FastifyInstance, opts, done) {
   const API_KEY = process.env.NODE_ENV === "development" ? "devkey" : process.env.API_KEY;
 
-  const addIceLinks = (iceServers: WHIPResourceICEServer[], request: any, reply: FastifyReply) => {
-    if (API_KEY && iceServers.length > 0 && request.headers["authorization"] === API_KEY) {
+  const addIceLinks = (iceServers: WHIPResourceICEServer[], auth): string[] => {
+    if (API_KEY && iceServers.length > 0 && auth === API_KEY) {
       // Only include ICE server config when provided authorization key is correct
+      let iceLinks = [];
       iceServers.forEach((ice) => {
         let iceLink = ice.urls + ";";
         iceLink += ` rel="ice-server";`;
@@ -17,9 +18,16 @@ export default function(fastify: FastifyInstance, opts, done) {
         if (ice.credential) {
           iceLink += ` credential: "${ice.credential}"; credential-type: "password";`;
         }
-        reply.header("Link", iceLink);
+        iceLinks.push(iceLink);
       });
+      return iceLinks;
     }
+    return [];
+  };
+
+  const addProtocolExtensions = (resource: WHIPResource): string[] => {
+    let extensions = resource.getProtocolExtensions();
+    return extensions;
   };
 
   fastify.addContentTypeParser('application/sdp', { parseAs: "string" }, (req, body, done) => {
@@ -40,7 +48,9 @@ export default function(fastify: FastifyInstance, opts, done) {
         "Content-Type": "application/sdp",
         "Location": `${opts.instance.getServerAddress()}${opts.prefix}/whip/${type}/${resource.getId()}`,
       });
-      addIceLinks(resource.getIceServers(), request, reply);
+      const links = addIceLinks(resource.getIceServers(), request.headers["authorization"])
+        .concat(addProtocolExtensions(resource));
+      reply.header("Link", links);
       reply.code(201).send(sdpAnswer);
     } catch (err) {
       console.error(err);
@@ -50,7 +60,8 @@ export default function(fastify: FastifyInstance, opts, done) {
 
   fastify.options("/whip/:type", {}, async (request: any, reply: FastifyReply) => {
     try {
-      addIceLinks(opts.instance.getIceServers(), request, reply);
+      reply.header("Link", 
+        addIceLinks(opts.instance.getIceServers(), request.headers["authorization"]));
       reply.code(204).send();            
     } catch (err) {
       console.error(err);
@@ -73,17 +84,21 @@ export default function(fastify: FastifyInstance, opts, done) {
     reply.code(200).send("OK");
   });
 
-  // Not part of WHIP
   fastify.get("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
-    try {
-      const resource = opts.instance.getResourceById(request.params.resourceId);
-      reply.code(200).send(resource.asObject());
-    } catch (err) {
-      console.error(err);
-      reply.code(500).send(err.message);
-    }
+    reply.code(405).send("reserved");
   });
 
+  fastify.head("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+    reply.code(405).send("reserved");
+  });
+
+  fastify.post("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+    reply.code(405).send("reserved");
+  });
+
+  fastify.put("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+    reply.code(405).send("reserved");
+  });
 
   done();
 }

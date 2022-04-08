@@ -4,6 +4,8 @@ import { Broadcaster } from "../broadcaster";
 
 const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 4000;
 
+export const IANA_PREFIX = "urn:ietf:params:whip:";
+
 // Abstract base class
 
 export interface WHIPResourceICEServer {
@@ -76,6 +78,10 @@ export class WHIPResource {
 
   getIceServers(): WHIPResourceICEServer[] {
     return this.iceServers;
+  }
+
+  getProtocolExtensions(): string[] {
+    return [];
   }
 
   private async handleConnectionStateChange() {

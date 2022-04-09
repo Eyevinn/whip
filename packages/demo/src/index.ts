@@ -14,7 +14,8 @@ async function getChannelUrl(client: WHIPClient): Promise<string> {
   let channelListUrl: string;
   (await client.getResourceExtensions()).forEach(link => {
     if (link.match(/rel=urn:ietf:params:whip:eyevinn-wrtc-channel-list/)) {
-      channelListUrl = link.split(";")[0];      
+      const m = link.match(/<?([^>]*)>/);
+      channelListUrl = m[1];
     }
   });
   return channelListUrl;
@@ -30,10 +31,14 @@ async function createClientItem(client: WHIPClient) {
 
   const links = await client.getResourceExtensions();
   links.filter(v => v.match(/urn:ietf:params:whip:/)).forEach(l => {
-    const link = document.createElement("li");
-    const [url, rel, ..._] = l.split(";");
-    link.innerHTML = `<a target="_blank" href="${url}">${url}</a> (${rel})`;
-    extensions.appendChild(link);
+    const m = l.match(/<?([^>]*)>;\s*rel=([^;]*)/);
+    if (m) {
+      const [_, url, rel] = m;
+
+      const link = document.createElement("li");
+      link.innerHTML = `<a target="_blank" href="${url}">${url}</a> (${rel})`;
+      extensions.appendChild(link);
+    }
   });
 
   deleteBtn.innerText = "Delete";

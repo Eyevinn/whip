@@ -85,7 +85,7 @@ export class WRTCRTSP extends WHIPResource {
 
   getProtocolExtensions(): string[] {
     return [
-      `${this.getOutputPath()};rel=${IANA_PREFIX}eyevinn-wrtc-rtsp`,
+      `<${this.getOutputPath()}>;rel=${IANA_PREFIX}eyevinn-wrtc-rtsp`,
     ]
   }
 

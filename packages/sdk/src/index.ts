@@ -67,6 +67,12 @@ export class WHIPClient {
 
   private onConnectionStateChange(e) {
     this.log("PeerConnectionState", this.peer.connectionState);
+
+    switch (this.peer.connectionState) {
+      case "disconnected":
+        this.destroy();
+        break;
+    }
   }
 
   private onIceGatheringStateChange(e) {

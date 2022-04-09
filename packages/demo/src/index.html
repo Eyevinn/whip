@@ -1,9 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>WHIP ingest client</title>
+    <title>WHIP Client SDK Demo</title>
+    <meta charset="UTF-8" />
+    <meta
+      name="description"
+      content="Demonstration of the WHIP Client SDK for Web by Eyevinn Technology AB"
+    />
     <script type="module" src="./index.ts"></script>
     <style type="text/css">
+      header {
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        flex-wrap: wrap;        
+      }
+      header>*,
+      header>:last-child {
+        padding-top: 0;
+        margin-bottom: 1rem;
+      }
       #ingest video {
         margin-top:  1rem;
         background: black;
@@ -12,15 +28,29 @@
       #channels {
         display: grid;
       }
+      #whip-endpoint {
+        width: 100%;
+      }
+      footer {
+        text-align: center;
+        font-size: 0.8em;
+      }
     </style>
     <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
   </head>
   <body>
+    <header>
+      <picture>
+        <source srcset="./logo-darkmode.png" media="(prefers-color-scheme: dark)">
+        <img src="./logo-lightmode.png" />
+      </picture>
+      <h1>WHIP Client SDK Demo</h1>
+    </header>
     <section>
       <h2>WHIP Endpoint</h2>
       <!-- https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster -->
-      <input id="whip-endpoint" type="text" size="50" value=""></input>
+      <input id="whip-endpoint" type="text" value=""></input>
     </section>
     <section id="ingest">
       <h2>Ingest</h2>
@@ -37,4 +67,7 @@
       <div id="channels">
       </div>
     </section>
+    <footer>
+      <p>By <a target="_blank" href="https://www.eyevinn.se">Eyevinn Technology AB</a> and it is <a target="_blank" href="https://github.com/Eyevinn/whip">open source</a></p>
+    </footer>
   </body>

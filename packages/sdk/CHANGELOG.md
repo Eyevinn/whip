@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.6.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.6.0...@eyevinn/whip-web-client@0.6.1) (2022-04-09)
+
+
+### Bug Fixes
+
+* free up resources on destroy and disconnect ([#36](https://github.com/Eyevinn/whip/issues/36)) ([33b0953](https://github.com/Eyevinn/whip/commit/33b09534c950628ec2584846ae2ea34b964c5aa7))
+
+
+
 ## [0.6.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.5.0...@eyevinn/whip-web-client@0.6.0) (2022-04-09)
 
 

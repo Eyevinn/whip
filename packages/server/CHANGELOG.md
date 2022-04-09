@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.6.2...@eyevinn/whip-endpoint@0.7.0) (2022-04-09)
+
+
+### Features
+
+* support for handling protocol extensions ([#35](https://github.com/Eyevinn/whip/issues/35)) ([f5b0d66](https://github.com/Eyevinn/whip/commit/f5b0d6642f142f90222d8a16b8cc32e9636b2504))
+
+
+
 ### [0.6.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.6.1...@eyevinn/whip-endpoint@0.6.2) (2022-04-08)
 
 

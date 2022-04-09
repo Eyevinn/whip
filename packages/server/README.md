@@ -59,7 +59,7 @@ The following environment variables are read to override default values:
 
 To access a channel you follow this procedure:
 
-1. Obtain the channel locator from the `Link` (`rel=urn:ietf:params:whip:eyevinn-wrtc-channel`) header in the `201` response when creating the WHIP resource.
+1. Obtain the channel locator from the `Link` header of type `rel=urn:ietf:params:whip:eyevinn-wrtc-channel` in the `201` response when creating the WHIP resource.
 2. Create an RTC peer and an offer that can receive video and audio.
 3. Send the SDP to the broadcaster using the channel locator obtained in 1: `curl -d '{ sdp: <localSdp> }' http://<broadcasthost>:8001/broadcaster/channel/<uuid4>`.
 4. Connect the RTC peer's stream to your HTML video element.

@@ -15,6 +15,8 @@ const client = new WHIPClient({
   endpoint: "http://<host>/whip/broadcaster",
   opts: { debug: true, iceServers: [{ urls: "stun:stun.l.google.com:19320" }] }
 });
+await client.setIceServersFromEndpoint();
+
 const videoIngest = document.querySelector<HTMLVideoElement>("video#ingest");
 const mediaStream = await navigator.mediaDevices.getUserMedia({
   video: true,
@@ -33,7 +35,6 @@ Available options are:
     debug: boolean, // enable debug console logging
     iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
     authkey: string, // authentication key for auth option requests
-    iceConfigFromEndpoint: boolean, // when enabled fetch ICE config from WHIP endpoint, requires authkey to be set
   }
 }
 ```

@@ -1,0 +1,32 @@
+name: Deploy demo
+on: 
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    if: "contains(github.event.head_commit.message, 'chore(release): publish')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
+      - name: build 
+        run: |
+          npm ci
+          npm run build
+        env:
+          API_KEY: ${{ secrets.WHIP_API_KEY }}
+      - name: deploy demo site
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: origin-web-whip
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-north-1'
+          SOURCE_DIR: 'packages/demo/dist/'

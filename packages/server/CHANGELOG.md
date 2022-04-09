@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.7.0...@eyevinn/whip-endpoint@0.8.0) (2022-04-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* format of Link header is now more standard compliant
+
+### Bug Fixes
+
+* format of Link header is now more standard compliant ([fc7189f](https://github.com/Eyevinn/whip/commit/fc7189f32e86ba36dd8230bcd0b2018c996023df))
+
+
+
 ## [0.7.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.6.2...@eyevinn/whip-endpoint@0.7.0) (2022-04-09)
 
 

@@ -40,8 +40,8 @@ export class WRTCBroadcaster extends WHIPResource {
 
   getProtocolExtensions(): string[] {
     return [
-      `${this.broadcaster.getBaseUrl()}/channel;rel=${IANA_PREFIX}eyevinn-wrtc-channel-list`,
-      `${this.broadcaster.getBaseUrl()}/channel/${this.getId()};rel=${IANA_PREFIX}eyevinn-wrtc-channel`,
+      `<${this.broadcaster.getBaseUrl()}/channel>;rel=${IANA_PREFIX}eyevinn-wrtc-channel-list`,
+      `<${this.broadcaster.getBaseUrl()}/channel/${this.getId()}>;rel=${IANA_PREFIX}eyevinn-wrtc-channel`,
     ]
   }
 

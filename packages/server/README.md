@@ -59,7 +59,7 @@ The following environment variables are read to override default values:
 
 To access a channel you follow this procedure:
 
-1. Obtain the channel locator from the `Link` (`rel=urn:ietf:params:whip:eyevinn-wrtc-channel`) header in the `201` response when creating the WHIP resource.
+1. Obtain the channel locator from the `Link` header of type `rel=urn:ietf:params:whip:eyevinn-wrtc-channel` in the `201` response when creating the WHIP resource.
 2. Create an RTC peer and an offer that can receive video and audio.
 3. Send the SDP to the broadcaster using the channel locator obtained in 1: `curl -d '{ sdp: <localSdp> }' http://<broadcasthost>:8001/broadcaster/channel/<uuid4>`.
 4. Connect the RTC peer's stream to your HTML video element.
@@ -112,7 +112,7 @@ To play the RTSP stream you can for example use ffplay:
 ffplay rtsp://lab.eyevinn:8554/<uuid4>
 ```
 
-The complete RTSP URL with the ID can be obtained by issuing an HTTP GET on the WHIP resource.
+The complete RTSP URL with the ID can be identified by the `Link` header of rel `rel=urn:ietf:params:whip:eyevinn-wrtc-rtsp`.
 
 Default output resolution is 960x540 but this can be overriden by setting the environment variable `RTSP_RESOLUTION` to for example `RTSP_RESOLUTION=1920x1080`.
 

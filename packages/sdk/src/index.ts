@@ -38,9 +38,12 @@ export class WHIPClient extends EventEmitter {
     super();
     this.whipEndpoint = new URL(endpoint);
     this.opts = opts;
+    this.initPeer();
+  }
 
+  private initPeer() {
     this.peer = new RTCPeerConnection({
-      iceServers: opts.iceServers || [
+      iceServers: this.opts.iceServers || [
         {
           urls: "stun:stun.l.google.com:19302",
         },
@@ -52,6 +55,7 @@ export class WHIPClient extends EventEmitter {
       this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
     this.onIceCandidateFn = this.onIceCandidate.bind(this);
+    this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
   }
 
   private log(...args: any[]) {
@@ -62,6 +66,16 @@ export class WHIPClient extends EventEmitter {
 
   private error(...args: any[]) {
     console.error("WHIPClient", ...args); 
+  }
+
+  private onConnectionStateChange(e) {
+    this.log("PeerConnectionState", this.peer.connectionState);
+
+    switch (this.peer.connectionState) {
+      case "disconnected":
+        this.destroy();
+        break;
+    }
   }
 
   private onIceGatheringStateChange(e) {
@@ -202,6 +216,9 @@ export class WHIPClient extends EventEmitter {
   }
 
   async ingest(mediaStream: MediaStream): Promise<void> {
+    if (!this.peer) {
+      this.initPeer();
+    }
     mediaStream
       .getTracks()
       .forEach((track) => this.peer.addTrack(track, mediaStream));
@@ -212,6 +229,17 @@ export class WHIPClient extends EventEmitter {
   async destroy(): Promise<void> {
     const resourceUrl = await this.getResourceUrl();
     await fetch(resourceUrl, { method: "DELETE" }).catch((e) => this.error("destroy()", e));
+
+    const senders = this.peer.getSenders();
+    if (senders) {
+      senders.forEach(sender => {
+        sender.track.stop();
+      });
+    }
+
+    this.peer.close();
+    this.resource = null;
+    this.peer = null;
   }
 
   getResourceUrl(): Promise<string> {

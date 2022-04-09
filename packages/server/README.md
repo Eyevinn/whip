@@ -112,7 +112,7 @@ To play the RTSP stream you can for example use ffplay:
 ffplay rtsp://lab.eyevinn:8554/<uuid4>
 ```
 
-The complete RTSP URL with the ID can be obtained by issuing an HTTP GET on the WHIP resource.
+The complete RTSP URL with the ID can be identified by the `Link` header of rel `rel=urn:ietf:params:whip:eyevinn-wrtc-rtsp`.
 
 Default output resolution is 960x540 but this can be overriden by setting the environment variable `RTSP_RESOLUTION` to for example `RTSP_RESOLUTION=1920x1080`.
 

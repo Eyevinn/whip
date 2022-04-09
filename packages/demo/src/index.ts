@@ -29,6 +29,8 @@ async function createClientItem(client: WHIPClient) {
 
   summary.innerText = await client.getResourceUrl();
 
+  const channelListUrl = await getChannelUrl(client);
+
   const links = await client.getResourceExtensions();
   links.filter(v => v.match(/urn:ietf:params:whip:/)).forEach(l => {
     const m = l.match(/<?([^>]*)>;\s*rel=([^;]*)/);
@@ -42,10 +44,10 @@ async function createClientItem(client: WHIPClient) {
   });
 
   deleteBtn.innerText = "Delete";
-  deleteBtn.onclick = async () => {
+  deleteBtn.onclick = async () => { 
     await client.destroy();
     details.parentNode?.removeChild(details);
-    updateChannelList(await getChannelUrl(client));
+    updateChannelList(channelListUrl);
   }
 
   details.appendChild(summary);

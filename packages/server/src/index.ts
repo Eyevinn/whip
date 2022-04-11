@@ -9,6 +9,7 @@ interface WHIPEndpointOptions {
   port?: number;
   iceServers?: WHIPResourceICEServer[];
   serverAddress?: string;
+  enabledWrtcPlugins?: string[];
 }
 
 export class WHIPEndpoint {
@@ -18,10 +19,12 @@ export class WHIPEndpoint {
   private port: number;
   private iceServers?: WHIPResourceICEServer[];
   private serverAddress: string;
+  private enabledWrtcPlugins: string[];
 
   constructor(opts?: WHIPEndpointOptions) {
     this.port = 8000;
     this.serverAddress = "http://localhost" + ":" + this.port;
+    this.enabledWrtcPlugins = [];
     if (opts) {
       if (opts.port) {
         this.port = opts.port;
@@ -32,9 +35,12 @@ export class WHIPEndpoint {
       if (opts.serverAddress) {
         this.serverAddress = opts.serverAddress;
       }
+      if (opts.enabledWrtcPlugins) {
+        this.enabledWrtcPlugins = opts.enabledWrtcPlugins;
+      }
     }
 
-    this.server = fastify({ ignoreTrailingSlash: true });
+    this.server = fastify({ ignoreTrailingSlash: true, logger: { level: "info" } });
     this.server.register(require("fastify-cors"), {
       exposedHeaders: ["Location", "Link"],
       methods: ["POST", "GET", "OPTIONS", "DELETE"],
@@ -77,6 +83,10 @@ export class WHIPEndpoint {
       const resource = this.resources[id];
       return { id: resource.getId(), type: resource.getType() };
     });
+  }
+
+  getEnabledPlugins() {
+    return this.enabledWrtcPlugins;
   }
 
   getResourceById(resourceId: string) {

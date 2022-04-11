@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.9.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.8.0...@eyevinn/whip-endpoint@0.9.0) (2022-04-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* must explicitly specify which wrtc plugins to enable. And added some more logging
+
+### Features
+
+* must explicitly specify which wrtc plugins to enable. And added some more logging ([015c618](https://github.com/Eyevinn/whip/commit/015c618fc5845edf1122683c8c92414d4d31ddf7))
+
+
+
 ## [0.8.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.7.0...@eyevinn/whip-endpoint@0.8.0) (2022-04-09)
 
 

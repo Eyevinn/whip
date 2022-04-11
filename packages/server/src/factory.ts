@@ -3,7 +3,13 @@ import { WRTCBroadcaster } from "./wrtc/broadcaster";
 import { WRTCDummy } from "./wrtc/dummy";
 import { WRTCRTSP, RTSPResolution } from "./wrtc/rtsp";
 
-export const createWHIPResourceFromType = (type: string, sdpOffer: string, iceServers?: WHIPResourceICEServer[]) => {
+export const createWHIPResourceFromType = (type: string, sdpOffer: string, enabledPlugins: string[], iceServers?: WHIPResourceICEServer[]) => {
+  if (!enabledPlugins.includes(type)) {
+    console.error(`Requested plugin '${type}' that is not enabled`);
+    throw new Error(`Requested plugin '${type}' that is not enabled`);
+    return;
+  }
+
   switch (type) {
     case "dummy":
       return new WRTCDummy(sdpOffer, iceServers);

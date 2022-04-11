@@ -28,7 +28,11 @@ const broadcaster = new Broadcaster({
 });
 broadcaster.listen();
 
-const endpoint = new WHIPEndpoint({ port: 8000, iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+const endpoint = new WHIPEndpoint({ 
+  port: 8000, 
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  enabledWrtcPlugins: [ "broadcaster" ] 
+});
 endpoint.registerBroadcaster(broadcaster);
 endpoint.listen();
 ```
@@ -40,6 +44,7 @@ Available WHIP endpoint options are:
   port: number, // port to bind to
   iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
   serverAddress: string, // address (port included) of WHIP endpoint (default http://localhost:<port>)
+  enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "broadcaster", "rtsp"
 }
 ```
 

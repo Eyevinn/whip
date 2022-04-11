@@ -34,7 +34,7 @@ const endpoint = new WHIPEndpoint({
   port: parseInt(process.env.PORT || "8000"), 
   iceServers: iceServers,
   serverAddress: process.env.SERVER_ADDRESS,
-  enabledWrtcPlugins: [ "broadcaster",/*"dummy", "rtsp"*/ ], 
+  enabledWrtcPlugins: [ "broadcaster", "dummy", "rtsp" ], 
 });
 endpoint.registerBroadcaster(broadcaster);
 endpoint.listen();

@@ -92,10 +92,6 @@ export class Broadcaster {
       return;
     }
     channel.addViewer(newViewer);
-    channel.sendMessageOnBackChannel({
-      viewerId: newViewer.getId(),
-      message: { event: "vieweradd" },
-    });
   }
 
   removeViewer(channelId: string, viewerToRemove: Viewer) {
@@ -105,10 +101,6 @@ export class Broadcaster {
     }
     
     channel.removeViewer(viewerToRemove);
-    channel.sendMessageOnBackChannel({
-      viewerId: viewerToRemove.getId(),
-      message: { event: "viewerremove" }
-    });
   }
 
   getViewerCount(channelId: string): number {

@@ -2,8 +2,6 @@ import { WHIPClient } from "../../sdk/src/index";
 
 import { getIceServers } from "./util";
 
-let viewers = 0;
-
 function createWatchLink(channel) {
   const link = document.createElement("a");
   link.href = `watch.html?locator=${encodeURIComponent(channel.resource)}`;
@@ -103,15 +101,13 @@ function onMessage(data) {
   if (!json.message && !json.message.event) {
     return;
   }
+  console.log(json.message);
   switch (json.message.event) {
-    case "vieweradd":
-      viewers++;
-      break;
-    case "viewerremove":
-      viewers--;
+    case "viewerschange":
+      const viewers = json.message.viewers;
+      updateViewerCount(viewers);
       break;
   }
-  updateViewerCount(viewers);
 }
 
 window.addEventListener("DOMContentLoaded", async () => {

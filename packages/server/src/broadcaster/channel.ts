@@ -4,7 +4,7 @@ import { EventEmitter } from "events";
 import { Viewer } from "./viewer";
 
 interface BackChannelMessage {
-  viewerId: string;
+  viewerId?: string;
   message: any;
 }
 
@@ -32,10 +32,18 @@ export class Channel extends EventEmitter {
 
   addViewer(newViewer: Viewer) {
     this.viewers.push(newViewer);
+    this.onViewersChange();
   }
 
   removeViewer(viewerToRemove: Viewer) {
     this.viewers = this.viewers.filter(v => v.getId() !== viewerToRemove.getId());
+    this.onViewersChange();
+  }
+
+  onViewersChange() {
+    this.sendMessageOnBackChannel({
+      message: { event: "viewerschange", viewercount: this.viewers.length },
+    });
   }
 
   sendMessageOnBackChannel(message: BackChannelMessage) {

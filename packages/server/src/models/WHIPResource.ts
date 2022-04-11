@@ -101,6 +101,7 @@ export class WHIPResource {
       case "closed":
       case "failed":
         await this.ondisconnect(this.pc.connectionState);
+        this.pc = null;
         break;
     }
   }
@@ -155,5 +156,6 @@ export class WHIPResource {
   destroy() {
     this.log("Destroy requested and closing peer");
     this.pc.close();
+    this.pc = null;
   }
 }

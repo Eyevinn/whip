@@ -121,10 +121,12 @@ export class Broadcaster {
     if (!channel) {
       return;
     }
+    const json = JSON.parse(message);
+    console.log(`Received message from viewer ${viewer.getId()}`, json);
 
     channel.sendMessageOnBackChannel({
       viewerId: viewer.getId(),
-      message: message,
+      message: json,
     });
   }
 

@@ -8,6 +8,10 @@ interface BackChannelMessage {
   message: any;
 }
 
+interface BroadcastMessage {
+  message: any;
+}
+
 export class Channel extends EventEmitter {
   private channelId: string;
   private mediaStream: MediaStream;
@@ -44,18 +48,28 @@ export class Channel extends EventEmitter {
     this.sendMessageOnBackChannel({
       message: { event: "viewerschange", viewercount: this.viewers.length },
     });
+    this.broadcastMessage("broadcaster", {
+      message: { event: "viewerschange", viewercount: this.viewers.length },
+    })
   }
 
   sendMessageOnBackChannel(message: BackChannelMessage) {
-    this.log(this.dataChannel);
     if (!this.dataChannel) {
+      this.log(`No backchannel found, not sending`);
       return;
     }    
     if (this.dataChannel.readyState !== "open") {
+      this.log(`Backchannel not ready to receive, not sending`);
       return;
     }
 
     this.dataChannel.send(JSON.stringify(message));
+  }
+
+  broadcastMessage(channelLabel: string, message: BroadcastMessage) {
+    this.viewers.forEach(viewer => {
+      viewer.send(channelLabel, message);
+    });
   }
 
   getViewers(): Viewer[] {

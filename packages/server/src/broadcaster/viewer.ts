@@ -16,6 +16,7 @@ export class Viewer extends EventEmitter {
   private viewerId: string;
   private peer: RTCPeerConnection;
   private connectionTimeout: any;
+  private dataChannels: RTCDataChannel[];
 
   constructor(channelId: string, opts) {
     super();
@@ -26,6 +27,8 @@ export class Viewer extends EventEmitter {
       sdpSemantics: "unified-plan",
       iceServers: opts.iceServers,
     });
+
+    this.dataChannels = <RTCDataChannel>[];
 
     this.peer.onicegatheringstatechange = this.onIceGatheringStateChange.bind(this);
     this.peer.oniceconnectionstatechange = this.onIceConnectionStateChange.bind(this);
@@ -66,9 +69,10 @@ export class Viewer extends EventEmitter {
   }
 
   private onEventDataChannel(e) {
-    this.log(`Event data channel established`);
+    this.log(`Event data channel established ${e.channel.label}`);
     const channel = e.channel;
     channel.onmessage = this.onEventDataChannelMessage.bind(this);
+    this.dataChannels.push(channel);
   }
 
   private onEventDataChannelMessage(e) {
@@ -135,5 +139,19 @@ export class Viewer extends EventEmitter {
 
     this.emit("connect");
     return this.peer.localDescription.sdp;
+  }
+
+  send(channelLabel: string, message: any) {
+    const channel = this.dataChannels.find(ch => ch.label === channelLabel);
+    if (!channel) {
+      this.log(`No channel with label ${channelLabel} found, not sending`);
+      return;
+    }
+
+    if (channel.readyState !== "open") {
+      this.log(`Channel with label ${channelLabel} is not open, not sending`);
+      return;
+    }
+    channel.send(JSON.stringify(message));    
   }
 }

@@ -72,7 +72,7 @@ export class Viewer extends EventEmitter {
   }
 
   private onEventDataChannelMessage(e) {
-    this.log(`Received message from viewer on channel ${e.channel}`, e.data);
+    this.log(`Received message from viewer on channel`, e.data);
     this.emit("message", e.data);
   }
 

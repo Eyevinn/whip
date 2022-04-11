@@ -3,8 +3,18 @@ import { WebRTCPlayer } from "@eyevinn/webrtc-player";
 
 export async function watch(channelUrl, video) {
   if (channelUrl) {
-    const player = new WebRTCPlayer({ video: video, type: "se.eyevinn.webrtc", iceServers: getIceServers() });
+    const player = new WebRTCPlayer({ 
+      video: video, 
+      type: "se.eyevinn.webrtc", 
+      iceServers: getIceServers(), 
+      createDataChannels: [ "reactions" ],
+    });
     await player.load(new URL(channelUrl));
+
+    player.on("message", (message) => {
+      console.log(message);
+    });
+    return player;
   }
 }
 

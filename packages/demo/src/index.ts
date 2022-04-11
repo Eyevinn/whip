@@ -2,6 +2,8 @@ import { WHIPClient } from "../../sdk/src/index";
 
 import { getIceServers } from "./util";
 
+let likesCount = 0;
+
 function createWatchLink(channel) {
   const link = document.createElement("a");
   link.href = `watch.html?locator=${encodeURIComponent(channel.resource)}`;
@@ -86,6 +88,7 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   resources.appendChild(await createClientItem(client));
 
   updateChannelList(await getChannelUrl(client));
+  likesCount = 0;
 }
 
 function updateViewerCount(count) {  
@@ -94,16 +97,31 @@ function updateViewerCount(count) {
   viewers.innerHTML = `${count} viewer${count > 1 ? "s" : ""}`;
 }
 
+function updateLikesCount(count) {
+  const likes =
+    document.querySelector<HTMLSpanElement>("#likes");
+  likes.innerHTML = `${count} likes`;
+}
+
 function onMessage(data) {
   const json = JSON.parse(data);
   if (!json.message && !json.message.event) {
     return;
   }
 
+  console.log(json.message);
+
   switch (json.message.event) {
     case "viewerschange":
       const viewers = json.message.viewercount;
       updateViewerCount(viewers);
+      break;
+    case "reaction":
+      const reaction = json.message.reaction;
+      if (reaction === "like") {
+        likesCount++;
+        updateLikesCount(likesCount);
+      }
       break;
   }
 }

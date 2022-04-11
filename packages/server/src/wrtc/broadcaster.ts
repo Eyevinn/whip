@@ -9,21 +9,28 @@ export class WRTCBroadcaster extends WHIPResource {
 
   onIceConnectionStateChange(e) {
     if (this.pc.iceConnectionState === "closed") {
+      this.log(`ICE connection stats is closed`);
       this.destroy();
-      this.broadcaster.removeChannel(this.getId());
+      if (this.broadcaster) {
+        this.log(`Removing channel with ID ${this.getId()}`);
+        this.broadcaster.removeChannel(this.getId());
+      }
     }
   }
 
   async beforeAnswer() {
     const stream = new MediaStream(this.pc.getReceivers().map(receiver => receiver.track));
+    this.log("Created MediaStream from receivers");
 
     if (this.broadcaster) {
+      this.log(`Creating channel with ID ${this.getId()}`);
       this.broadcaster.createChannel(this.getId(), stream);
     }
   }
 
   async ondisconnect() {
     if (this.broadcaster) {
+      this.log(`Removing channel with ID ${this.getId()} on disconnect`);
       this.broadcaster.removeChannel(this.getId());
     }
   }

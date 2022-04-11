@@ -45,7 +45,7 @@ export class Broadcaster {
       }
     }
 
-    this.server = fastify({ ignoreTrailingSlash: true });
+    this.server = fastify({ ignoreTrailingSlash: true, logger: { level: "info" } });
     this.server.register(require("fastify-cors"));
     this.server.register(api, { prefix: this.prefix, broadcaster: this });
 

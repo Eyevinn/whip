@@ -37,13 +37,17 @@ export default function(fastify: FastifyInstance, opts, done) {
   fastify.post("/whip/:type", {}, async (request: any, reply: FastifyReply) => {
     try {
       const type = request.params.type;
-      const resource = createWHIPResourceFromType(type, <string>request.body, opts.instance.getIceServers());
+      
+      const resource = createWHIPResourceFromType(type, 
+        <string>request.body, opts.instance.getEnabledPlugins(), 
+        opts.instance.getIceServers());
       opts.instance.addResource(resource);
       if (opts.instance.hasBroadcaster()) {
         resource.assignBroadcaster(opts.instance.getBroadcaster());
       }
 
       const sdpAnswer = await resource.sdpAnswer();
+
       reply.headers({
         "Content-Type": "application/sdp",
         "Location": `${opts.instance.getServerAddress()}${opts.prefix}/whip/${type}/${resource.getId()}`,

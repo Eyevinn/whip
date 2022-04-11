@@ -37,20 +37,25 @@ export class WHIPResource {
     });
 
     this.resourceId = uuidv4();
-    this.pc.oniceconnectionstatechange = e => console.log(`[${this.resourceId}]: iceconnection=${this.pc.iceConnectionState}`);
-    this.pc.onicegatheringstatechange = e => console.log(`[${this.resourceId}]: icegathering=${e.target.iceGatheringState}`);
-    this.pc.onicecandidateerror = e => console.error(`[${this.resourceId}]: icecanddiate=${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
+    this.pc.oniceconnectionstatechange = e => this.log(`iceconnection=${this.pc.iceConnectionState}`);
+    this.pc.onicegatheringstatechange = e => this.log(`icegathering=${e.target.iceGatheringState}`);
+    this.pc.onicecandidateerror = e => this.log(`icecandidate=${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
     this.pc.onconnectionstatechange = async (e) => await this.handleConnectionStateChange();
     this.iceCount = 0;
   }
 
+  protected log(...args: any[]) {
+    console.log(`[${this.resourceId}]:`, ...args);
+  }
+
   protected onIceConnectionStateChange(e) {
-    console.log(`[${this.resourceId}]: ${this.pc.iceConnectionState}`);
+    this.log(`${this.pc.iceConnectionState}`);
   }
 
   async beforeAnswer() {}
 
   async sdpAnswer() {
+    this.log("Received offer from sender");
     await this.pc.setRemoteDescription({
       type: "offer",
       sdp: this.sdpOffer,
@@ -61,6 +66,8 @@ export class WHIPResource {
     await this.pc.setLocalDescription(answer);
     await this.waitUntilIceGatheringStateComplete();
     this.localSdp = this.pc.localDescription.sdp;
+
+    this.log("Returning answer back to sender");
     return this.localSdp;
   }
 
@@ -85,7 +92,7 @@ export class WHIPResource {
   }
 
   private async handleConnectionStateChange() {
-    console.log(`[${this.resourceId}]: peerconnection=${this.pc.connectionState}`);
+    this.log(`peerconnection=${this.pc.connectionState}`);
     switch(this.pc.connectionState) {
       case "connected":
         await this.onconnect(this.pc.connectionState);
@@ -107,7 +114,7 @@ export class WHIPResource {
       const t = setTimeout(() => {
         this.pc.removeEventListener("icecandidate", onIceCandidate);
         if (this.iceCount > 0) {
-          console.log(`ICE gathering timed out but we have ${this.iceCount} so send what we have.`);
+          this.log(`ICE gathering timed out but we have ${this.iceCount} so send what we have.`);
           resolve();
         } else {
           reject(new Error("Timed out waiting for host candidates"));
@@ -117,10 +124,10 @@ export class WHIPResource {
         if (!candidate) {
           clearTimeout(t);
           this.pc.removeEventListener("icecandidate", onIceCandidate);
-          console.log(`[${this.resourceId}]: ICE candidates gathered`);
+          this.log(`ICE candidates gathered`);
           resolve();
         } else {
-          console.log(`[${this.resourceId}]: ${candidate.candidate}`);
+          this.log(`Got candidate=${candidate.candidate}`);
           this.iceCount++;
         }
       };
@@ -146,6 +153,7 @@ export class WHIPResource {
   }
 
   destroy() {
+    this.log("Destroy requested and closing peer");
     this.pc.close();
   }
 }

@@ -7,13 +7,9 @@ export async function watch(channelUrl, video) {
       video: video, 
       type: "se.eyevinn.webrtc", 
       iceServers: getIceServers(), 
-      createDataChannels: [ "reactions" ],
+      createDataChannels: [ "reactions", "broadcaster" ],
     });
     await player.load(new URL(channelUrl));
-
-    player.on("message", (message) => {
-      console.log(message);
-    });
     return player;
   }
 }

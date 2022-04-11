@@ -88,12 +88,10 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   updateChannelList(await getChannelUrl(client));
 }
 
-function updateViewerCount(count) {
-  count = count < 0 ? 0 : count;
-  
+function updateViewerCount(count) {  
   const viewers =
     document.querySelector<HTMLSpanElement>("#viewers");
-  viewers.innerHTML = `${count} viewer(s)`;
+  viewers.innerHTML = `${count} viewer${count > 1 ? "s" : ""}`;
 }
 
 function onMessage(data) {
@@ -101,10 +99,10 @@ function onMessage(data) {
   if (!json.message && !json.message.event) {
     return;
   }
-  console.log(json.message);
+
   switch (json.message.event) {
     case "viewerschange":
-      const viewers = json.message.viewers;
+      const viewers = json.message.viewercount;
       updateViewerCount(viewers);
       break;
   }

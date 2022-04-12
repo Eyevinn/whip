@@ -24,7 +24,8 @@ if (iceServers) {
 
 const broadcaster = new Broadcaster({ 
   port: parseInt(process.env.BROADCAST_PORT || "8001"),
-  baseUrl: process.env.BROADCAST_BASEURL,
+  hostname: process.env.BROADCAST_HOSTNAME,
+  https: !!process.env.BROADCAST_USE_HTTPS,
   prefix: process.env.BROADCAST_PREFIX,
   iceServers: iceServers,
 });
@@ -32,8 +33,9 @@ broadcaster.listen();
 
 const endpoint = new WHIPEndpoint({ 
   port: parseInt(process.env.PORT || "8000"), 
+  hostname: process.env.WHIP_ENDPOINT_HOSTNAME,
+  https: !!process.env.WHIP_ENDPOINT_USE_HTTPS,
   iceServers: iceServers,
-  serverAddress: process.env.SERVER_ADDRESS,
   enabledWrtcPlugins: [ "broadcaster", "dummy", "rtsp" ], 
 });
 endpoint.registerBroadcaster(broadcaster);

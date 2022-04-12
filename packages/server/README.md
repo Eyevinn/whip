@@ -22,14 +22,19 @@ import { WHIPEndpoint, Broadcaster } from "@eyevinn/whip-endpoint";
 
 const broadcaster = new Broadcaster({ 
   port: 8001,
-  baseUrl: "http://<broadcasthost>:8001/broadcaster",
+  hostname: "<broadcasthost>",
+  interfaceIp: "0.0.0.0",
+  https: false,
   prefix: "/broadcaster",
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }] 
 });
 broadcaster.listen();
 
 const endpoint = new WHIPEndpoint({ 
-  port: 8000, 
+  port: 8000,
+  hostname: "<whiphost>", 
+  https: false,
+  interfaceIp: "0.0.0.0",
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
   enabledWrtcPlugins: [ "broadcaster" ] 
 });
@@ -42,8 +47,10 @@ Available WHIP endpoint options are:
 ```
 {
   port: number, // port to bind to
+  interfaceIp: string, // ip to bind and listen on
+  hostname: string, // hostname or public IP
+  https: boolean, // use https
   iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
-  serverAddress: string, // address (port included) of WHIP endpoint (default http://localhost:<port>)
   enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "broadcaster", "rtsp"
 }
 ```

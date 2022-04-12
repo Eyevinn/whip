@@ -85,6 +85,8 @@ export class Channel extends EventEmitter {
   }
 
   destroy() {
-    this.dataChannel.close();
+    if (this.dataChannel) {
+      this.dataChannel.close();
+    }
   }
 }

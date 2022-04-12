@@ -18,12 +18,13 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.23",
+    "events": "^3.3.0",
     "parcel": "^2.3.2"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@eyevinn/webrtc-player": "^0.2.5"
+    "@eyevinn/webrtc-player": "^0.3.0"
   }
 }

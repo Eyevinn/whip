@@ -28,6 +28,12 @@ export class WRTCBroadcaster extends WHIPResource {
     }
   }
 
+  async ondatachannel(datachannel) {
+    if (datachannel.label === "backchannel") {
+      this.broadcaster.assignBackChannel(this.getId(), datachannel);
+    }
+  }
+
   async ondisconnect() {
     if (this.broadcaster) {
       this.log(`Removing channel with ID ${this.getId()} on disconnect`);

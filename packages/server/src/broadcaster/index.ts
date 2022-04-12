@@ -1,7 +1,9 @@
 import fastify, { FastifyInstance } from "fastify";
-import { MediaStream } from "wrtc";
+import { MediaStream, RTCDataChannel } from "wrtc";
 
 import api from "./api";
+import { Viewer } from "./viewer";
+import { Channel } from "./channel";
 
 export interface BroadcasterICEServer {
   urls: string;
@@ -18,8 +20,7 @@ interface BroadcasterOptions {
 
 export class Broadcaster {
   private server: FastifyInstance;
-  private channels: Map<string, MediaStream>;
-  private viewers: Map<string, number>;
+  private channels: Map<string, Channel>;
   private port: number;
   private baseUrl: string;
   private prefix: string;
@@ -50,18 +51,30 @@ export class Broadcaster {
     this.server.register(api, { prefix: this.prefix, broadcaster: this });
 
     this.channels = new Map();
-    this.viewers = new Map();
   }
 
   createChannel(channelId: string, stream: MediaStream) {
-    this.channels.set(channelId, stream);
+    const channel = new Channel(channelId, stream);
+    this.channels.set(channelId, channel);
   }
 
-  getStreamForChannel(channelId: string) {
-    return this.channels.get(channelId);
+  assignBackChannel(channelId: string, dataChannel: RTCDataChannel) {
+    const channel = this.channels.get(channelId);
+    if (!channel) {
+      return;
+    }
+    channel.assignBackChannel(dataChannel);
   }
 
-  getChannels() {
+  getStreamForChannel(channelId: string): MediaStream {
+    const channel = this.channels.get(channelId);
+    if (channel) {
+      return channel.getStream();
+    }
+    return undefined;
+  }
+
+  getChannels(): string[] {
     const channelIds = [];
     for (const k of this.channels.keys()) {
       channelIds.push(k);
@@ -73,30 +86,48 @@ export class Broadcaster {
     this.channels.delete(channelId);
   }
 
-  incrementViewer(channelId) {
-    if (!this.viewers.get(channelId)) {
-      this.viewers.set(channelId, 0);
+  addViewer(channelId: string, newViewer: Viewer) {
+    const channel = this.channels.get(channelId);
+    if (!channel) {
+      return;
     }
-    this.viewers.set(channelId, this.viewers.get(channelId) + 1);
+    channel.addViewer(newViewer);
   }
 
-  decreaseViewer(channelId) {
-    if (!this.viewers.get(channelId)) {
-      this.viewers.set(channelId, 1);
+  removeViewer(channelId: string, viewerToRemove: Viewer) {
+    const channel = this.channels.get(channelId);
+    if (!channel) {
+      return;
     }
-    this.viewers.set(channelId, this.viewers.get(channelId) - 1);
+    
+    channel.removeViewer(viewerToRemove);
   }
 
-  getViewers(channelId) {
-    return this.viewers.get(channelId) || 0;
+  getViewerCount(channelId: string): number {
+    const channel = this.channels.get(channelId);
+    return channel.getViewers().length;
   }
 
-  getBaseUrl() {
+  getBaseUrl(): string {
     return this.baseUrl;
   }
 
   getIceServers(): BroadcasterICEServer[]|null {
     return this.iceServers;
+  }
+
+  onMessageFromViewer(channelId: string, viewer: Viewer, message: string) {
+    const channel = this.channels.get(channelId);
+    if (!channel) {
+      return;
+    }
+    const json = JSON.parse(message);
+    console.log(`Received message from viewer ${viewer.getId()}`, json);
+
+    channel.sendMessageOnBackChannel({
+      viewerId: viewer.getId(),
+      message: json,
+    });
   }
 
   listen() {

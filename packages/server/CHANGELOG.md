@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.11.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.11.0...@eyevinn/whip-endpoint@0.11.1) (2022-04-12)
+
+
+### Bug Fixes
+
+* support having different external port ([bebef93](https://github.com/Eyevinn/whip/commit/bebef935537a57fcb7d836762ac51f5ab65071cd))
+
+
+
 ## [0.11.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.10.1...@eyevinn/whip-endpoint@0.11.0) (2022-04-12)
 
 

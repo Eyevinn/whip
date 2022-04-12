@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.10.1...@eyevinn/whip-endpoint@0.11.0) (2022-04-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* ability to set hostname and interface IP (#39)
+
+### Features
+
+* ability to set hostname and interface IP ([#39](https://github.com/Eyevinn/whip/issues/39)) ([718d6d9](https://github.com/Eyevinn/whip/commit/718d6d9981b20b41c7fc1ebfd3ccdeaeef3ccdd5))
+
+
+
 ### [0.10.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.10.0...@eyevinn/whip-endpoint@0.10.1) (2022-04-12)
 
 

@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.6.1...@eyevinn/whip-web-client@0.7.0) (2022-04-12)
+
+
+### Features
+
+* backchannel from viewer to sender using RTC DataChannel ([#33](https://github.com/Eyevinn/whip/issues/33)) ([a90b913](https://github.com/Eyevinn/whip/commit/a90b913587a612c22388f9c2e89d905054fb9440))
+
+
+### Reverts
+
+* Revert "Using ICE gathering state change to detect gathering complete" ([f206b62](https://github.com/Eyevinn/whip/commit/f206b6210e06afd820e02fcbbcf472bf36d2b8d0))
+
+
+
 ### [0.6.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.6.0...@eyevinn/whip-web-client@0.6.1) (2022-04-09)
 
 

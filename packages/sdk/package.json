@@ -1,6 +1,6 @@
 {
   "name": "@eyevinn/whip-web-client",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "WebRTC HTTP ingestion protocol web client SDK",
   "main": "dist/whip-client.js",
   "module": "dist/whip-client.m.js",

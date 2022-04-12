@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.9.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.8.1...@eyevinn/whip-web-client-demo@0.9.0) (2022-04-12)
+
+
+### Features
+
+* backchannel from viewer to sender using RTC DataChannel ([#33](https://github.com/Eyevinn/whip/issues/33)) ([a90b913](https://github.com/Eyevinn/whip/commit/a90b913587a612c22388f9c2e89d905054fb9440))
+
+
+
 ### [0.8.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.8.0...@eyevinn/whip-web-client-demo@0.8.1) (2022-04-09)
 
 

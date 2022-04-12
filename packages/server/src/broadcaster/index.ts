@@ -13,6 +13,7 @@ export interface BroadcasterICEServer {
 
 interface BroadcasterOptions {
   port?: number;
+  extPort?: number;
   interfaceIp?: string;
   hostname?: string;
   https?: boolean;
@@ -24,6 +25,7 @@ export class Broadcaster {
   private server: FastifyInstance;
   private channels: Map<string, Channel>;
   private port: number;
+  private extPort: number;
   private interfaceIp: string;
   private hostname: string;
   private useHttps: boolean;
@@ -32,6 +34,7 @@ export class Broadcaster {
 
   constructor(opts?: BroadcasterOptions) {
     this.port = opts?.port || 8001;
+    this.extPort = opts?.extPort || this.port;
     this.interfaceIp = opts?.interfaceIp || "0.0.0.0";
     this.useHttps = !!(opts?.https);
     this.hostname = opts?.hostname || "localhost";
@@ -105,7 +108,7 @@ export class Broadcaster {
   }
  
   getBaseUrl(): string {
-    return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.port + this.prefix;
+    return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.extPort + this.prefix;
   }
 
   getIceServers(): BroadcasterICEServer[]|null {

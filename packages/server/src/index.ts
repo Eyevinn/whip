@@ -7,6 +7,7 @@ export { Broadcaster };
 
 interface WHIPEndpointOptions {
   port?: number;
+  extPort?: number;
   interfaceIp?: string;
   hostname?: string;
   https?: boolean;
@@ -19,6 +20,7 @@ export class WHIPEndpoint {
   private resources: {[id: string]: WHIPResource};
   private broadcaster: Broadcaster;
   private port: number;
+  private extPort: number;
   private interfaceIp: string;
   private hostname: string;
   private useHttps: boolean;
@@ -27,6 +29,7 @@ export class WHIPEndpoint {
 
   constructor(opts?: WHIPEndpointOptions) {
     this.port = opts?.port || 8000;
+    this.extPort = opts?.extPort || this.port;
     this.interfaceIp = opts?.interfaceIp || "0.0.0.0";
     this.useHttps = !!(opts?.https);
     this.hostname = opts?.hostname || "localhost";
@@ -91,7 +94,7 @@ export class WHIPEndpoint {
   }
 
   getServerAddress(): string {
-    return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.port;
+    return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.extPort;
   }
 
   listen() {

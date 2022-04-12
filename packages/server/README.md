@@ -47,6 +47,7 @@ Available WHIP endpoint options are:
 ```
 {
   port: number, // port to bind to
+  extPort: number, // port that is exposed in public (default same as port)
   interfaceIp: string, // ip to bind and listen on
   hostname: string, // hostname or public IP
   https: boolean, // use https

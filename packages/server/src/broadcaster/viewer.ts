@@ -1,4 +1,4 @@
-import { RTCPeerConnection } from "wrtc";
+import { RTCPeerConnection, RTCDataChannel } from "wrtc";
 import { v4 as uuidv4 } from "uuid";
 
 import { BroadcasterICEServer } from ".";
@@ -16,6 +16,7 @@ export class Viewer extends EventEmitter {
   private viewerId: string;
   private peer: RTCPeerConnection;
   private connectionTimeout: any;
+  private dataChannels: RTCDataChannel[];
 
   constructor(channelId: string, opts) {
     super();
@@ -27,11 +28,15 @@ export class Viewer extends EventEmitter {
       iceServers: opts.iceServers,
     });
 
+    this.dataChannels = <RTCDataChannel>[];
+
     this.peer.onicegatheringstatechange = this.onIceGatheringStateChange.bind(this);
     this.peer.oniceconnectionstatechange = this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
 
-    this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);    
+    this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
+
+    this.peer.ondatachannel = this.onEventDataChannel.bind(this);
   }
 
   private onIceGatheringStateChange(e) {
@@ -62,6 +67,18 @@ export class Viewer extends EventEmitter {
       this.log(`watcher connected, clear connection timer`);
       clearTimeout(this.connectionTimeout);
     }
+  }
+
+  private onEventDataChannel(e) {
+    this.log(`Event data channel established ${e.channel.label}`);
+    const channel = e.channel;
+    channel.onmessage = this.onEventDataChannelMessage.bind(this);
+    this.dataChannels.push(channel);
+  }
+
+  private onEventDataChannelMessage(e) {
+    this.log(`Received message from viewer on channel`, e.data);
+    this.emit("message", e.data);
   }
 
   private async waitUntilIceGatheringStateComplete(): Promise<void> {
@@ -96,7 +113,11 @@ export class Viewer extends EventEmitter {
     console.log(`SFU ${this.viewerId}`, ...args);
   }
 
-  async handleOffer(offer: string, stream) {
+  getId() {
+    return this.viewerId;
+  }
+
+  async handleOffer(offer: string, stream) {    
     await this.peer.setRemoteDescription({ 
       type: "offer", 
       sdp: offer 
@@ -120,5 +141,19 @@ export class Viewer extends EventEmitter {
 
     this.emit("connect");
     return this.peer.localDescription.sdp;
+  }
+
+  send(channelLabel: string, message: any) {
+    const channel = this.dataChannels.find(ch => ch.label === channelLabel);
+    if (!channel) {
+      this.log(`No channel with label ${channelLabel} found, not sending`);
+      return;
+    }
+
+    if (channel.readyState !== "open") {
+      this.log(`Channel with label ${channelLabel} is not open, not sending`);
+      return;
+    }
+    channel.send(JSON.stringify(message));    
   }
 }

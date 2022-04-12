@@ -1,6 +1,8 @@
 import { WHIPClient } from "../../sdk/src/index";
 
-import {watch, getIceServers } from "./util";
+import { getIceServers } from "./util";
+
+let likesCount = 0;
 
 function createWatchLink(channel) {
   const link = document.createElement("a");
@@ -86,9 +88,46 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   resources.appendChild(await createClientItem(client));
 
   updateChannelList(await getChannelUrl(client));
+  likesCount = 0;
+}
+
+function updateViewerCount(count) {  
+  const viewers =
+    document.querySelector<HTMLSpanElement>("#viewers");
+  viewers.innerHTML = `${count} viewer${count > 1 ? "s" : ""}`;
+}
+
+function updateLikesCount(count) {
+  const likes =
+    document.querySelector<HTMLSpanElement>("#likes");
+  likes.innerHTML = `${count} likes`;
+}
+
+function onMessage(data) {
+  const json = JSON.parse(data);
+  if (!json.message && !json.message.event) {
+    return;
+  }
+
+  console.log(json.message);
+
+  switch (json.message.event) {
+    case "viewerschange":
+      const viewers = json.message.viewercount;
+      updateViewerCount(viewers);
+      break;
+    case "reaction":
+      const reaction = json.message.reaction;
+      if (reaction === "like") {
+        likesCount++;
+        updateLikesCount(likesCount);
+      }
+      break;
+  }
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+
   const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
   const ingestCamera =
     document.querySelector<HTMLButtonElement>("#ingest-camera");
@@ -104,7 +143,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     authkey = process.env.API_KEY;
   }
 
-  const debug = process.env.NODE_ENV === "development" || process.env.DEBUG;
+  const debug = process.env.NODE_ENV === "development" || !!process.env.DEBUG;
   const iceConfigRemote = process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE;
 
   const client = new WHIPClient({
@@ -114,6 +153,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (iceConfigRemote) {
     await client.setIceServersFromEndpoint();
   }
+
+  client.setupBackChannel();
+  client.on("message", onMessage);
 
   ingestCamera.addEventListener("click", async () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({

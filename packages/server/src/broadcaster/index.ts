@@ -12,8 +12,10 @@ export interface BroadcasterICEServer {
 }
 
 interface BroadcasterOptions {
-  baseUrl?: string;
   port?: number;
+  interfaceIp?: string;
+  hostname?: string;
+  https?: boolean;
   prefix?: string;
   iceServers?: BroadcasterICEServer[];
 }
@@ -22,29 +24,19 @@ export class Broadcaster {
   private server: FastifyInstance;
   private channels: Map<string, Channel>;
   private port: number;
-  private baseUrl: string;
+  private interfaceIp: string;
+  private hostname: string;
+  private useHttps: boolean;
   private prefix: string;
   private iceServers?: BroadcasterICEServer[];
 
   constructor(opts?: BroadcasterOptions) {
-    this.port = 8001;
+    this.port = opts?.port || 8001;
+    this.interfaceIp = opts?.interfaceIp || "0.0.0.0";
+    this.useHttps = !!(opts?.https);
+    this.hostname = opts?.hostname || "localhost";
     this.prefix = "/broadcaster";
-    this.baseUrl = `http://localhost:${this.port}${this.prefix}`;
-
-    if (opts) {
-      if (opts.baseUrl) {
-        this.baseUrl = opts.baseUrl;
-      }
-      if (opts.prefix) {
-        this.prefix = opts.prefix;
-      }
-      if (opts.port) {
-        this.port = opts.port;
-      }
-      if (opts.iceServers) {
-        this.iceServers = opts.iceServers;
-      }
-    }
+    this.iceServers = opts?.iceServers || [];
 
     this.server = fastify({ ignoreTrailingSlash: true, logger: { level: "info" } });
     this.server.register(require("fastify-cors"));
@@ -111,9 +103,9 @@ export class Broadcaster {
     const channel = this.channels.get(channelId);
     return channel.getViewers().length;
   }
-
+ 
   getBaseUrl(): string {
-    return this.baseUrl;
+    return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.port + this.prefix;
   }
 
   getIceServers(): BroadcasterICEServer[]|null {
@@ -135,7 +127,7 @@ export class Broadcaster {
   }
 
   listen() {
-    this.server.listen(this.port, "0.0.0.0", (err, address) => {
+    this.server.listen(this.port, this.interfaceIp, (err, address) => {
       if (err) throw err;
       console.log(`Broadcaster listening at ${address}`);
     });

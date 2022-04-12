@@ -7,8 +7,10 @@ export { Broadcaster };
 
 interface WHIPEndpointOptions {
   port?: number;
+  interfaceIp?: string;
+  hostname?: string;
+  https?: boolean;
   iceServers?: WHIPResourceICEServer[];
-  serverAddress?: string;
   enabledWrtcPlugins?: string[];
 }
 
@@ -17,28 +19,19 @@ export class WHIPEndpoint {
   private resources: {[id: string]: WHIPResource};
   private broadcaster: Broadcaster;
   private port: number;
+  private interfaceIp: string;
+  private hostname: string;
+  private useHttps: boolean;
   private iceServers?: WHIPResourceICEServer[];
-  private serverAddress: string;
   private enabledWrtcPlugins: string[];
 
   constructor(opts?: WHIPEndpointOptions) {
-    this.port = 8000;
-    this.serverAddress = "http://localhost" + ":" + this.port;
-    this.enabledWrtcPlugins = [];
-    if (opts) {
-      if (opts.port) {
-        this.port = opts.port;
-      }
-      if (opts.iceServers) {
-        this.iceServers = opts.iceServers;
-      }
-      if (opts.serverAddress) {
-        this.serverAddress = opts.serverAddress;
-      }
-      if (opts.enabledWrtcPlugins) {
-        this.enabledWrtcPlugins = opts.enabledWrtcPlugins;
-      }
-    }
+    this.port = opts?.port || 8000;
+    this.interfaceIp = opts?.interfaceIp || "0.0.0.0";
+    this.useHttps = !!(opts?.https);
+    this.hostname = opts?.hostname || "localhost";
+    this.enabledWrtcPlugins = opts?.enabledWrtcPlugins || [];
+    this.iceServers = opts?.iceServers || [];
 
     this.server = fastify({ ignoreTrailingSlash: true, logger: { level: "info" } });
     this.server.register(require("fastify-cors"), {
@@ -98,11 +91,11 @@ export class WHIPEndpoint {
   }
 
   getServerAddress(): string {
-    return this.serverAddress;
+    return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.port;
   }
 
   listen() {
-    this.server.listen(this.port, "0.0.0.0", (err, address) => {
+    this.server.listen(this.port, this.interfaceIp, (err, address) => {
       if (err) throw err;
       console.log(`WHIP endpoint listening at ${address}`);
     });

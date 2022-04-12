@@ -1,10 +1,19 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { Viewer } from "./viewer";
 
+type BroadcasterRequest = FastifyRequest<{
+  Params: {
+    channelId: string;
+  },
+  Body: {
+    sdp: string;
+  }
+}>
+
 export default function(fastify: FastifyInstance, opts, done) {
   const broadcaster = opts.broadcaster;
 
-  fastify.post("/channel/:channelId", {}, async (request: any, reply: FastifyReply) => {
+  fastify.post("/channel/:channelId", {}, async (request: BroadcasterRequest, reply: FastifyReply) => {
     try {
       const channelId = request.params.channelId;
       const iceServers = broadcaster.getIceServers();
@@ -30,7 +39,7 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
-  fastify.get("/channel", {}, async (request: any, reply: FastifyReply) => {
+  fastify.get("/channel", {}, async (request: BroadcasterRequest, reply: FastifyReply) => {
     try {
       const channels = broadcaster.getChannels();
       reply.code(200).send(channels.map(channelId => {
@@ -42,7 +51,7 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
-  fastify.get("/channel/:channelId", {}, async (request: any, reply: FastifyReply) => {
+  fastify.get("/channel/:channelId", {}, async (request: BroadcasterRequest, reply: FastifyReply) => {
     try {
       const channelId = request.params.channelId;
       reply.code(200).send({

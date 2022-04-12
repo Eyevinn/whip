@@ -2,6 +2,13 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { createWHIPResourceFromType } from "./factory";
 import { WHIPResource, WHIPResourceICEServer } from "./models/WHIPResource";
 
+type WHIPRequest = FastifyRequest<{ 
+  Params: { 
+    type: string;
+    resourceId: string; 
+  }
+}>
+
 export default function(fastify: FastifyInstance, opts, done) {
   const API_KEY = process.env.NODE_ENV === "development" ? "devkey" : process.env.API_KEY;
 
@@ -34,7 +41,7 @@ export default function(fastify: FastifyInstance, opts, done) {
     done(null, body);
   })
 
-  fastify.post("/whip/:type", {}, async (request: any, reply: FastifyReply) => {
+  fastify.post("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
       const type = request.params.type;
       
@@ -62,7 +69,7 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
-  fastify.options("/whip/:type", {}, async (request: any, reply: FastifyReply) => {
+  fastify.options("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
       reply.header("Link", 
         addIceLinks(opts.instance.getIceServers(), request.headers["authorization"]));
@@ -73,7 +80,7 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
-  fastify.get("/whip", {}, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get("/whip", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
       reply.code(200).send(opts.instance.listResources().map(r => opts.prefix + "/whip/" + r.type + "/" + r.id));
     } catch (err) {
@@ -82,25 +89,25 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
-  fastify.delete("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+  fastify.delete("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     const { resourceId } = request.params; 
     await opts.instance.deleteResource(resourceId);
     reply.code(200).send("OK");
   });
 
-  fastify.get("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+  fastify.get("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
 
-  fastify.head("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+  fastify.head("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
 
-  fastify.post("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+  fastify.post("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
 
-  fastify.put("/whip/:type/:resourceId", {}, async (request: any, reply: FastifyReply) => {
+  fastify.put("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
 

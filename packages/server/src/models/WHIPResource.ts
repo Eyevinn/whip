@@ -27,6 +27,7 @@ export class WHIPResource {
   private remoteSdp: string;
   private iceServers: WHIPResourceICEServer[];
   private iceCount: number;
+  private dataChannels: RTCDataChannel[];
 
   constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
     this.sdpOffer = sdpOffer;
@@ -43,11 +44,13 @@ export class WHIPResource {
     this.pc.onconnectionstatechange = async (e) => await this.handleConnectionStateChange();
     this.iceCount = 0;
 
+    this.dataChannels = [];
     this.pc.ondatachannel = (e) => {
       console.log(`[${this.resourceId}]: datachannel=${e.channel.label}`);
       if (e.channel.label === "backchannel") {
         this.ondatachannel(e.channel);
       }
+      this.dataChannels.push(e.channel);
     }
   }
 
@@ -109,9 +112,11 @@ export class WHIPResource {
         await this.onconnect(this.pc.connectionState);
         break;
       case "disconnected":
-      case "closed":
       case "failed":
         await this.ondisconnect(this.pc.connectionState);
+        this.destroy();
+        break;
+      case "closed":
         break;
     }
   }
@@ -165,6 +170,7 @@ export class WHIPResource {
 
   destroy() {
     this.log("Destroy requested and closing peer");
+    this.dataChannels.forEach(dc => dc.close());
     this.pc.close();
   }
 }

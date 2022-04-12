@@ -83,6 +83,10 @@ export class Broadcaster {
   }
 
   removeChannel(channelId: string) {
+    const channel = this.channels.get(channelId);
+    if (channel) {
+      channel.destroy();
+    }
     this.channels.delete(channelId);
   }
 

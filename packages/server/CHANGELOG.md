@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.10.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.10.0...@eyevinn/whip-endpoint@0.10.1) (2022-04-12)
+
+
+### Bug Fixes
+
+* backchannel datachannel may not be created ([31b3dc9](https://github.com/Eyevinn/whip/commit/31b3dc99a5c1e114caff2af8c8414a4e6769f8fa))
+
+
+
 ## [0.10.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.9.0...@eyevinn/whip-endpoint@0.10.0) (2022-04-12)
 
 

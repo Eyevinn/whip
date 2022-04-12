@@ -54,10 +54,10 @@ export class Viewer extends EventEmitter {
   private onConnectionStateChange(e) {
     this.log("ConnectionState", this.peer.connectionState);
 
-    if (["disconnected", "closed", "failed"].includes(this.peer.connectionState)) {
-      this.log(`watcher closed connection, remove track from senders`);
+    if (["disconnected", "failed"].includes(this.peer.connectionState)) {
+      this.log(`watcher disconnected`);
       try {
-        this.peer.getSenders().map(sender => this.peer.removeTrack(sender));
+        this.destroy();
       } catch (err) {
         console.error(err);
       }
@@ -65,6 +65,8 @@ export class Viewer extends EventEmitter {
     } else if (this.peer.connectionState === "connected") {
       this.log(`watcher connected, clear connection timer`);
       clearTimeout(this.connectionTimeout);
+    } else if (this.peer.connectionState === "closed") {
+
     }
   }
 
@@ -112,6 +114,10 @@ export class Viewer extends EventEmitter {
     console.log(`SFU ${this.viewerId}`, ...args);
   }
 
+  private closeDataChannels() {
+    this.dataChannels.forEach(channel => channel.close());
+  }
+
   getId() {
     return this.viewerId;
   }
@@ -134,6 +140,7 @@ export class Viewer extends EventEmitter {
     this.connectionTimeout = setTimeout(() => {
       clearTimeout(this.connectionTimeout);
       this.log("Connection timeout");
+      this.closeDataChannels();
       this.peer.close();
     }, CONNECTION_TIMEOUT);
 
@@ -153,5 +160,13 @@ export class Viewer extends EventEmitter {
       return;
     }
     channel.send(JSON.stringify(message));    
+  }
+
+  destroy() {
+    this.log("Remove tracks from senders");
+    this.peer.getSenders().map(sender => this.peer.removeTrack(sender));
+    this.log("Close data channels");
+    this.closeDataChannels();
+    this.peer.close();
   }
 }

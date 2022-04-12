@@ -112,9 +112,11 @@ export class WHIPResource {
         await this.onconnect(this.pc.connectionState);
         break;
       case "disconnected":
-      case "closed":
       case "failed":
         await this.ondisconnect(this.pc.connectionState);
+        this.destroy();
+        break;
+      case "closed":
         break;
     }
   }

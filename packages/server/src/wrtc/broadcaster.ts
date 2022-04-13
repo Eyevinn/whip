@@ -57,4 +57,9 @@ export class WRTCBroadcaster extends WHIPResource {
       channel: `${this.broadcaster.getBaseUrl()}/channel/${this.getId()}`,
     }
   }
+
+  destroy() {
+    super.destroy();
+    this.broadcaster.removeChannel(this.getId());
+  }
 }

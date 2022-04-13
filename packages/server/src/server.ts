@@ -1,5 +1,7 @@
 import { WHIPEndpoint, Broadcaster } from "./index";
 
+import { readFileSync } from "fs";
+
 let iceServers = null;
 if (process.env.ICE_SERVERS) {
   iceServers = [];
@@ -22,11 +24,20 @@ if (iceServers) {
   iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
 }
 
+let tlsOptions;
+if (process.env.TLS_TERMINATION_ENABLED) {
+  tlsOptions = {
+    key: readFileSync("../../server-key.pem"),
+    cert: readFileSync("../../server-cert.pem")
+  }
+}
+
 const broadcaster = new Broadcaster({ 
   port: parseInt(process.env.BROADCAST_PORT || "8001"),
   extPort: parseInt(process.env.BROADCAST_PORT || "8001"),
   hostname: process.env.BROADCAST_HOSTNAME,
   https: process.env.BROADCAST_USE_HTTPS && process.env.BROADCAST_USE_HTTPS === "true",
+  tls: tlsOptions,
   prefix: process.env.BROADCAST_PREFIX,
   iceServers: iceServers,
 });
@@ -37,6 +48,7 @@ const endpoint = new WHIPEndpoint({
   extPort: parseInt(process.env.PORT || "8000"),
   hostname: process.env.WHIP_ENDPOINT_HOSTNAME,
   https: process.env.WHIP_ENDPOINT_USE_HTTPS && process.env.WHIP_ENDPOINT_USE_HTTPS === "true",
+  tls: tlsOptions,
   iceServers: iceServers,
   enabledWrtcPlugins: [ "broadcaster", "dummy", "rtsp" ], 
 });

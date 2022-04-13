@@ -1,9 +1,15 @@
 import fastify, { FastifyInstance } from "fastify";
+import https from "https";
 import { WHIPResource, WHIPResourceICEServer } from "./models/WHIPResource";
 import api from "./api";
 import { Broadcaster } from "./broadcaster";
 
 export { Broadcaster };
+
+interface TLSOptions {
+  key: string;
+  cert: string;
+}
 
 interface WHIPEndpointOptions {
   port?: number;
@@ -11,6 +17,7 @@ interface WHIPEndpointOptions {
   interfaceIp?: string;
   hostname?: string;
   https?: boolean;
+  tls?: TLSOptions;
   iceServers?: WHIPResourceICEServer[];
   enabledWrtcPlugins?: string[];
 }
@@ -26,6 +33,7 @@ export class WHIPEndpoint {
   private useHttps: boolean;
   private iceServers?: WHIPResourceICEServer[];
   private enabledWrtcPlugins: string[];
+  private tls?: TLSOptions;
 
   constructor(opts?: WHIPEndpointOptions) {
     this.port = opts?.port || 8000;
@@ -35,8 +43,17 @@ export class WHIPEndpoint {
     this.hostname = opts?.hostname || "localhost";
     this.enabledWrtcPlugins = opts?.enabledWrtcPlugins || [];
     this.iceServers = opts?.iceServers || [];
+    this.tls = opts?.tls;
 
-    this.server = fastify({ ignoreTrailingSlash: true, logger: { level: "info" } });
+    let httpsServer;
+    if (this.useHttps && this.tls) {
+      httpsServer = https.createServer({ key: this.tls.key, cert: this.tls.cert });
+    }    
+    this.server = fastify({ 
+      ignoreTrailingSlash: true, 
+      logger: { level: "info" },
+      https: httpsServer,
+    });
     this.server.register(require("fastify-cors"), {
       exposedHeaders: ["Location", "Link"],
       methods: ["POST", "GET", "OPTIONS", "DELETE"],

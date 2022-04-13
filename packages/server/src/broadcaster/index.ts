@@ -1,5 +1,6 @@
 import fastify, { FastifyInstance } from "fastify";
 import { MediaStream, RTCDataChannel } from "wrtc";
+import https from "https";
 
 import api from "./api";
 import { Viewer } from "./viewer";
@@ -11,12 +12,18 @@ export interface BroadcasterICEServer {
   credential?: string;
 }
 
+interface TLSOptions {
+  key: string;
+  cert: string;
+}
+
 interface BroadcasterOptions {
   port?: number;
   extPort?: number;
   interfaceIp?: string;
   hostname?: string;
   https?: boolean;
+  tls?: TLSOptions;
   prefix?: string;
   iceServers?: BroadcasterICEServer[];
 }
@@ -29,6 +36,7 @@ export class Broadcaster {
   private interfaceIp: string;
   private hostname: string;
   private useHttps: boolean;
+  private tls?: TLSOptions;
   private prefix: string;
   private iceServers?: BroadcasterICEServer[];
 
@@ -40,8 +48,19 @@ export class Broadcaster {
     this.hostname = opts?.hostname || "localhost";
     this.prefix = "/broadcaster";
     this.iceServers = opts?.iceServers || [];
+    this.tls = opts?.tls;
 
-    this.server = fastify({ ignoreTrailingSlash: true, logger: { level: "info" } });
+    let httpsServer;
+    if (this.useHttps && this.tls) {
+      httpsServer = https.createServer({ key: this.tls.key, cert: this.tls.cert });
+    }    
+
+    this.server = fastify({ 
+      ignoreTrailingSlash: true, 
+      logger: 
+      { level: "info" },
+      https: httpsServer, 
+    });
     this.server.register(require("fastify-cors"));
     this.server.register(api, { prefix: this.prefix, broadcaster: this });
 

@@ -25,6 +25,16 @@ Run development environment which will launch a demo / test page at http://local
 npm run dev
 ```
 
+### With TLS termination
+
+```
+NODE_ENV=development \ 
+TLS_TERMINATION_ENABLED=1 \
+WHIP_ENDPOINT_USE_HTTPS=1 \
+BROADCAST_USE_HTTPS=1 \
+npm run dev
+```
+
 ### Develop against demo backend
 
 ```

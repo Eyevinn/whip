@@ -51,6 +51,7 @@ Available WHIP endpoint options are:
   interfaceIp: string, // ip to bind and listen on
   hostname: string, // hostname or public IP
   https: boolean, // use https
+  tls: { key: string, cert: string }, // key and cert for TLS termination (optional),
   iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
   enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "broadcaster", "rtsp"
 }

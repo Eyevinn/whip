@@ -6,4 +6,4 @@ node_modules
 lerna-debug.log
 .vscode/settings.json
 .vscode/extensions.json
-
+*.pem

@@ -31,8 +31,7 @@ export class WHIPClient extends EventEmitter {
   private extensions: string[];
   private resourceResolve: (resource: string) => void;
   private iceGatheringTimeout;
-  private iceGatheringComplete: boolean;
-  private onIceCandidateFn: ({ candidate: RTCIceCandidate }) => void;
+  private waitingForCandidates: boolean = true;
 
   constructor({ endpoint, opts }: WHIPClientConstructor) {
     super();
@@ -54,7 +53,6 @@ export class WHIPClient extends EventEmitter {
     this.peer.oniceconnectionstatechange =
       this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
-    this.onIceCandidateFn = this.onIceCandidate.bind(this);
     this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
   }
 
@@ -78,25 +76,19 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
-  private onIceGatheringStateChange(e) {
+  private onIceGatheringStateChange(event: Event) {
     this.log("IceGatheringState", this.peer.iceGatheringState);
+
+    if (this.peer.iceGatheringState === 'complete') {
+      // ICE gathering is complete we clear the timeout
+      // and send the updated SDP to the server peer.
+      clearTimeout(this.iceGatheringTimeout);
+      this.onIceGatheringComplete();
+    }
   }
 
   private onIceConnectionStateChange(e) {
     this.log("IceConnectionState", this.peer.iceConnectionState);
-  }
-
-  private async onIceCandidate({ candidate }) {
-    if (candidate === null) {
-      // ICE gathering is complete we clear the timeout
-      // and send the updated SDP to the server peer.
-      clearTimeout(this.iceGatheringTimeout);
-
-      this.peer.removeEventListener("icecandidate", this.onIceCandidateFn);
-      this.onIceGatheringComplete();
-    } else {
-      this.log("IceCandidate", candidate.candidate);
-    }
   }
 
   private onIceCandidateError(e) {
@@ -106,20 +98,17 @@ export class WHIPClient extends EventEmitter {
   private onIceGatheringTimeout() {
     this.log("IceGatheringTimeout");
     clearTimeout(this.iceGatheringTimeout);
-
-    this.peer.removeEventListener("icecandidate", this.onIceCandidateFn);
     this.onIceGatheringComplete();
   }
 
   private async onIceGatheringComplete() {
-    if (this.iceGatheringComplete) {
+    if (!this.waitingForCandidates) {
       return;
     }
-    
+    this.waitingForCandidates = false;
+
     // We are ready to send an updated SDP to server peer
     this.log("IceGatheringComplete");
-
-    this.iceGatheringComplete = true;
 
     const response = await fetch(this.whipEndpoint.toString(), {
       method: "POST",
@@ -164,17 +153,11 @@ export class WHIPClient extends EventEmitter {
     // process. The client will ask the STUN/TURN servers (iceServers) for a set of candidates
     this.peer.setLocalDescription(sdpOffer);
 
-    // When we get an ICE candidate we get an 'icecandidate' event with
-    // an RTCIceCandidate. When this candidate is null we know we have
-    // gathered all candidates
-    this.peer.addEventListener("icecandidate", this.onIceCandidateFn);
-
     // As part of the ICE gathering process the client will test connection for each candidate
     // which can take some time if some of the candidates are slow to timeout. We need to
     // set a timeout where we will send what we have. We might have all candidates but the
-    // 'null' candidate does not arrive until we all candidate checks are completed.
-    this.iceGatheringComplete = false;
-    this.iceGatheringTimeout = setTimeout(this.onIceGatheringTimeout.bind(this), this.opts.iceGatheringTimeout || DEFAULT_ICE_GATHERING_TIMEOUT);
+    // last candidate does not arrive until we all candidate checks are completed.
+    this.iceGatheringTimeout = setTimeout(this.onIceGatheringTimeout.bind(this), this.opts.iceGatheringTimeout || DEFAULT_ICE_GATHERING_TIMEOUT);
   }
 
   private async doFetchICEFromEndpoint(): Promise<WHIPClientIceServer[]> {
@@ -196,7 +179,7 @@ export class WHIPClient extends EventEmitter {
       });
     }
     return iceServers;
-  }  
+  }
 
   async setIceServersFromEndpoint(): Promise<void> {
     if (this.opts.authkey) {
@@ -222,7 +205,7 @@ export class WHIPClient extends EventEmitter {
     mediaStream
       .getTracks()
       .forEach((track) => this.peer.addTrack(track, mediaStream));
-      
+
     await this.startSdpExchange();
   }
 

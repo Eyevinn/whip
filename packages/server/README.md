@@ -42,6 +42,26 @@ endpoint.registerBroadcaster(broadcaster);
 endpoint.listen();
 ```
 
+### TLS Termination example
+
+If you want to use TLS termination you provide the `tls` object containing key and cert. The `https` option must be set to `true`.
+
+```javascript
+const endpoint = new WHIPEndpoint({ 
+  port: 443, 
+  hostname: "whip.lab.eyevinn",
+  https: true,
+  tls: {
+    key: fs.readFileSync("./server-key.pem"),
+    cert: fs.readFileSync("./server-cert.pem"),
+  },
+  iceServers: iceServers,
+  enabledWrtcPlugins: [ "broadcaster" ], 
+});
+```
+
+### Options
+
 Available WHIP endpoint options are:
 
 ```

@@ -5,6 +5,7 @@
     "postinstall": "lerna bootstrap",
     "build": "lerna run build",
     "dev": "lerna run dev --stream --parallel",
+    "start": "lerna run server --stream --parallel --no-prefix",
     "lerna:version": "lerna version --changelog-preset conventionalcommits --conventional-commits",
     "publish": "lerna publish from-package --yes --ignore-scripts --no-verify-access"
   },

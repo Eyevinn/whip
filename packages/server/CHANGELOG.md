@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.11.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.11.1...@eyevinn/whip-endpoint@0.11.2) (2022-04-13)
+
+
+### Bug Fixes
+
+* remove broadcast channel when WHIP resource is destroyed ([fe81806](https://github.com/Eyevinn/whip/commit/fe8180663c9b47a42f370357c65609e6757f8eab))
+
+
+
 ### [0.11.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.11.0...@eyevinn/whip-endpoint@0.11.1) (2022-04-12)
 
 

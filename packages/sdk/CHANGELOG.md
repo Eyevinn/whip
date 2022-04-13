@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.7.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.7.0...@eyevinn/whip-web-client@0.7.1) (2022-04-13)
+
+
+### Bug Fixes
+
+* use ICE gather state to detect gathering complete ([#40](https://github.com/Eyevinn/whip/issues/40)) ([21569d8](https://github.com/Eyevinn/whip/commit/21569d8e71e150443337acd43592d808fce51fcf))
+
+
+
 ## [0.7.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.6.1...@eyevinn/whip-web-client@0.7.0) (2022-04-12)
 
 

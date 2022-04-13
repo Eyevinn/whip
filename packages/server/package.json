@@ -10,7 +10,7 @@
     "prepare": "npm run build",
     "build": "tsc --project ./",
     "dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node --inspect ./dist/server.js\"",
-    "start": "node dist/server.js",
+    "server": "node ./dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",

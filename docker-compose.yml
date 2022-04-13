@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  whip:
+    image: whip:dev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - PORT=9000
+      - WHIP_ENDPOINT_HOSTNAME=localhost
+      - WHIP_ENDPOINT_USE_HTTPS=false
+      - BROADCAST_PORT=9001
+      - BROADCAST_HOSTNAME=localhost
+      - BROADCAST_USE_HTTPS=false
+    logging:
+      driver: "local"
+      options:
+        max-size: 10m

@@ -1,8 +1,7 @@
 import { parseWHIPIceLinkHeader } from "./util";
-
 import { EventEmitter } from "events";
-
-const DEFAULT_ICE_GATHERING_TIMEOUT = 2000;
+import { WHIPProtocol } from "./WHIPProtocol";
+import { SessionDescription, MediaAttributes, parse, write, MediaDescription } from 'sdp-transform'
 
 export interface WHIPClientIceServer {
   urls: string;
@@ -22,6 +21,11 @@ export interface WHIPClientConstructor {
   opts?: WHIPClientOptions;
 }
 
+interface IceCredentials {
+  ufrag: string;
+  pwd: string
+}
+
 export class WHIPClient extends EventEmitter {
   private whipEndpoint: URL;
   private opts: WHIPClientOptions;
@@ -30,8 +34,9 @@ export class WHIPClient extends EventEmitter {
   private resource: string;
   private extensions: string[];
   private resourceResolve: (resource: string) => void;
-  private iceGatheringTimeout;
-  private waitingForCandidates: boolean = true;
+  private iceCredentials: IceCredentials | undefined = undefined;
+  private mediaMids: Array<string> = [];
+  private whipProtocol: WHIPProtocol = new WHIPProtocol();
 
   constructor({ endpoint, opts }: WHIPClientConstructor) {
     super();
@@ -44,16 +49,17 @@ export class WHIPClient extends EventEmitter {
     this.peer = new RTCPeerConnection({
       iceServers: this.opts.iceServers || [
         {
-          urls: "stun:stun.l.google.com:19302",
+          urls: ["stun:stun.l.google.com:19302"],
         },
       ],
     });
 
-    this.peer.onicegatheringstatechange = this.onIceGatheringStateChange.bind(this);
     this.peer.oniceconnectionstatechange =
       this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
     this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
+
+    this.peer.addEventListener('icecandidate', this.onIceCandidate.bind(this));
   }
 
   private log(...args: any[]) {
@@ -63,7 +69,72 @@ export class WHIPClient extends EventEmitter {
   }
 
   private error(...args: any[]) {
-    console.error("WHIPClient", ...args); 
+    console.error("WHIPClient", ...args);
+  }
+
+  private makeSDPTransformCandidate(candidate: RTCIceCandidate): any {
+    return {
+      foundation: candidate.foundation,
+      component: candidate.component === 'rtp' ? 0 : 1,
+      transport: candidate.protocol.toString(),
+      priority: candidate.priority,
+      ip: candidate.address,
+      port: candidate.port,
+      type: candidate.type.toString(),
+      raddr: candidate?.relatedAddress,
+      rport: candidate?.relatedPort,
+      tcptype: candidate?.tcpType?.toString()
+    };
+  }
+
+  private makeTrickleIceSdpFragment(candidate: RTCIceCandidate): string | undefined {
+    if (!this.iceCredentials || this.mediaMids.length === 0) {
+      this.error("Missing local SDP meta data, cannot send trickle ICE candidate");
+      return undefined;
+    }
+
+    let trickleIceSDP: SessionDescription = {
+      media: [],
+      iceUfrag: this.iceCredentials.ufrag,
+      icePwd: this.iceCredentials.pwd
+    };
+
+    // Create the SDP fragment as defined in https://www.rfc-editor.org/rfc/rfc8840.html
+    for (let mediaMid of this.mediaMids) {
+      const media = {
+        type: 'audio',
+        port: 9,
+        protocol: 'RTP/AVP',
+        payloads: '0',
+        rtp: [],
+        fmtp: [],
+        mid: mediaMid,
+        candidates: [
+          this.makeSDPTransformCandidate(candidate)
+        ]
+      };
+      trickleIceSDP.media.push(media);
+    }
+
+    const trickleIceSDPString = write(trickleIceSDP);
+
+    // sdp-transform appends standard SDP fields that are not used in WHIP trickle ICE SDP fragments, remove them from the result.
+    return trickleIceSDPString.replace('v=0\r\ns= \r\n', '');
+  }
+
+  async onIceCandidate(event: Event) {
+    if (event.type !== 'icecandidate') {
+      return;
+    }
+    const candidateEvent = <RTCPeerConnectionIceEvent>(event);
+    const candidate: RTCIceCandidate | null = candidateEvent.candidate;
+    if (!candidate) {
+      return;
+    }
+
+    const trickleIceSDP = this.makeTrickleIceSdpFragment(candidate);
+    const url = await this.getResourceUrl();
+    this.whipProtocol.updateIce(url, trickleIceSDP)
   }
 
   private onConnectionStateChange(e) {
@@ -76,17 +147,6 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
-  private onIceGatheringStateChange(event: Event) {
-    this.log("IceGatheringState", this.peer.iceGatheringState);
-
-    if (this.peer.iceGatheringState === 'complete') {
-      // ICE gathering is complete we clear the timeout
-      // and send the updated SDP to the server peer.
-      clearTimeout(this.iceGatheringTimeout);
-      this.onIceGatheringComplete();
-    }
-  }
-
   private onIceConnectionStateChange(e) {
     this.log("IceConnectionState", this.peer.iceConnectionState);
   }
@@ -95,29 +155,47 @@ export class WHIPClient extends EventEmitter {
     this.log("IceCandidateError", e);
   }
 
-  private onIceGatheringTimeout() {
-    this.log("IceGatheringTimeout");
-    clearTimeout(this.iceGatheringTimeout);
-    this.onIceGatheringComplete();
-  }
-
-  private async onIceGatheringComplete() {
-    if (!this.waitingForCandidates) {
-      return;
-    }
-    this.waitingForCandidates = false;
-
-    // We are ready to send an updated SDP to server peer
-    this.log("IceGatheringComplete");
-
-    const response = await fetch(this.whipEndpoint.toString(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/sdp",
-        "Authorization": this.opts.authkey
-      },
-      body: this.peer.localDescription.sdp,
+  private async startSdpExchange(): Promise<void> {
+    // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
+    // 
+    // Client peer creates an offer
+    const sdpOffer = await this.peer.createOffer({
+      offerToReceiveAudio: false,
+      offerToReceiveVideo: false,
     });
+
+    const parsedOffer: SessionDescription | undefined = sdpOffer.sdp && parse(sdpOffer.sdp);
+    if (!parsedOffer) {
+      return Promise.reject();
+    }
+
+    if (parsedOffer.iceUfrag && parsedOffer.icePwd) {
+      this.iceCredentials = {
+        pwd: parsedOffer.icePwd,
+        ufrag: parsedOffer.iceUfrag
+      };
+
+    } else if (parsedOffer.media.length !== 0 &&
+      parsedOffer.media[0].iceUfrag &&
+      parsedOffer.media[0].icePwd) {
+      this.iceCredentials = {
+        pwd: parsedOffer.media[0].icePwd,
+        ufrag: parsedOffer.media[0].iceUfrag
+      };
+    }
+
+    for (let media of parsedOffer.media) {
+      if (media.mid) {
+        this.mediaMids.push(media.mid);
+      }
+    }
+
+    const response = await this.whipProtocol.sendOffer(
+      this.whipEndpoint.toString(),
+      this.opts.authkey,
+      sdpOffer.sdp);
+
+    await this.peer.setLocalDescription(sdpOffer);
 
     if (response.ok) {
       this.resource = response.headers.get("Location");
@@ -132,7 +210,7 @@ export class WHIPClient extends EventEmitter {
       }
 
       const answer = await response.text();
-      this.peer.setRemoteDescription({
+      await this.peer.setRemoteDescription({
         type: "answer",
         sdp: answer,
       });
@@ -141,33 +219,12 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
-  private async startSdpExchange(): Promise<void> {
-    // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
-    // 
-    // Client peer creates an offer
-    const sdpOffer = await this.peer.createOffer({
-      offerToReceiveAudio: false,
-      offerToReceiveVideo: false,
-    });
-    // We store the offer as the local SDP. This will trigger the ICE candidate gathering
-    // process. The client will ask the STUN/TURN servers (iceServers) for a set of candidates
-    this.peer.setLocalDescription(sdpOffer);
-
-    // As part of the ICE gathering process the client will test connection for each candidate
-    // which can take some time if some of the candidates are slow to timeout. We need to
-    // set a timeout where we will send what we have. We might have all candidates but the
-    // last candidate does not arrive until we all candidate checks are completed.
-    this.iceGatheringTimeout = setTimeout(this.onIceGatheringTimeout.bind(this), this.opts.iceGatheringTimeout || DEFAULT_ICE_GATHERING_TIMEOUT);
-  }
-
   private async doFetchICEFromEndpoint(): Promise<WHIPClientIceServer[]> {
     let iceServers: WHIPClientIceServer[] = [];
-    const response = await fetch(this.whipEndpoint.toString(), {
-      method: "OPTIONS",
-      headers: {
-        "Authorization": this.opts.authkey,
-      }
-    });
+    const response = await this.whipProtocol.getConfiguration(
+      this.whipEndpoint.toString(),
+      this.opts.authkey);
+
     if (response.ok) {
       response.headers.forEach((v, k) => {
         if (k == "link") {
@@ -185,7 +242,7 @@ export class WHIPClient extends EventEmitter {
     if (this.opts.authkey) {
       this.log("Fetching ICE config from endpoint");
       const iceServers: WHIPClientIceServer[] = await this.doFetchICEFromEndpoint();
-      this.peer.setConfiguration({ iceServers: iceServers });
+      //this.peer.setConfiguration({ iceServers: iceServers });
     } else {
       this.error("No authkey is provided so cannot fetch ICE config from endpoint.");
     }
@@ -211,7 +268,7 @@ export class WHIPClient extends EventEmitter {
 
   async destroy(): Promise<void> {
     const resourceUrl = await this.getResourceUrl();
-    await fetch(resourceUrl, { method: "DELETE" }).catch((e) => this.error("destroy()", e));
+    await this.whipProtocol.delete(resourceUrl).catch((e) => this.error("destroy()", e));
 
     const senders = this.peer.getSenders();
     if (senders) {

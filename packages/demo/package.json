@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "@eyevinn/whip-web-client-demo",
   "version": "0.10.0",
   "description": "Demonstration of a browser based WHIP client",

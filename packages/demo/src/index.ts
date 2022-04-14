@@ -12,6 +12,14 @@ function createWatchLink(channel) {
   return link;
 }
 
+function createWebPlayerLink(channel) {
+  const link = document.createElement("a");
+  link.href = `https://web.player.eyevinn.technology?manifest=${encodeURIComponent(channel.resource)}`;
+  link.innerText = `Watch in Eyevinn Web Player`;
+  link.target = "_blank";
+  return link;
+}
+
 async function getChannelUrl(client: WHIPClient): Promise<string> {
   let channelListUrl: string;
   (await client.getResourceExtensions()).forEach(link => {
@@ -72,6 +80,7 @@ async function updateChannelList(channelListUrl?: string) {
     if (json.length > 0) {
       json.map((channel) => {
         channels.appendChild(createWatchLink(channel));
+        channels.appendChild(createWebPlayerLink(channel));
       });
     }
   }

@@ -1,6 +1,6 @@
 {
   "name": "@eyevinn/whip-web-client",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "WebRTC HTTP ingestion protocol web client SDK",
   "main": "dist/whip-client.js",
   "module": "dist/whip-client.m.js",
@@ -27,9 +27,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/sdp-transform": "^2.4.5",
     "microbundle": "^0.14.2",
-    "typescript": "^4.6.2",
-    "@types/sdp-transform": "^2.4.5"
+    "typescript": "^4.6.2"
   },
   "publishConfig": {
     "access": "public"

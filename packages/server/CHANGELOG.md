@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.11.2...@eyevinn/whip-endpoint@0.12.0) (2022-04-14)
+
+
+### Features
+
+* **#48:** endpoint that returns an MPEG-DASH for a channel ([#49](https://github.com/Eyevinn/whip/issues/49)) ([279c0b0](https://github.com/Eyevinn/whip/commit/279c0b0135506b1f5c4cb1ec054da2fdbc075019)), closes [#48](https://github.com/Eyevinn/whip/issues/48) [#38](https://github.com/Eyevinn/whip/issues/38)
+* support for TLS termination ([#42](https://github.com/Eyevinn/whip/issues/42)) ([9409adb](https://github.com/Eyevinn/whip/commit/9409adbb9ddad9b8e1e9546347d407bfe90bbb5f))
+* trickle ICE from client ([#43](https://github.com/Eyevinn/whip/issues/43)) ([d08294f](https://github.com/Eyevinn/whip/commit/d08294f65e8ca73d11062d7c04914157204b832f))
+
+
+### Bug Fixes
+
+* possible to set ext port with env variable ([579123d](https://github.com/Eyevinn/whip/commit/579123dc5800055bdf4957f4fcad6f01e8d6116b))
+
+
+
 ### [0.11.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.11.1...@eyevinn/whip-endpoint@0.11.2) (2022-04-13)
 
 

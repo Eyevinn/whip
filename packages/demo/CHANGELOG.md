@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.10.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.9.0...@eyevinn/whip-web-client-demo@0.10.0) (2022-04-14)
+
+
+### Features
+
+* **#48:** endpoint that returns an MPEG-DASH for a channel ([#49](https://github.com/Eyevinn/whip/issues/49)) ([279c0b0](https://github.com/Eyevinn/whip/commit/279c0b0135506b1f5c4cb1ec054da2fdbc075019)), closes [#48](https://github.com/Eyevinn/whip/issues/48) [#38](https://github.com/Eyevinn/whip/issues/38)
+* support for TLS termination ([#42](https://github.com/Eyevinn/whip/issues/42)) ([9409adb](https://github.com/Eyevinn/whip/commit/9409adbb9ddad9b8e1e9546347d407bfe90bbb5f))
+
+
+
 ## [0.9.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.8.1...@eyevinn/whip-web-client-demo@0.9.0) (2022-04-12)
 
 

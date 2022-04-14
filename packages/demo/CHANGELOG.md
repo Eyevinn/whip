@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.10.0...@eyevinn/whip-web-client-demo@0.11.0) (2022-04-14)
+
+
+### Features
+
+* link to watch channel in eyevinn web-player ([13d27a6](https://github.com/Eyevinn/whip/commit/13d27a6b076edbb196a43c94f7a017877ce37513))
+
+
+
 ## [0.10.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.9.0...@eyevinn/whip-web-client-demo@0.10.0) (2022-04-14)
 
 

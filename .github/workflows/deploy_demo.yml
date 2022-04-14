@@ -20,6 +20,7 @@ jobs:
           npm run build
         env:
           API_KEY: ${{ secrets.WHIP_API_KEY }}
+          NODE_ENV: 'awsdev'
       - name: deploy demo site
         uses: jakejarvis/s3-sync-action@v0.5.1
         with:

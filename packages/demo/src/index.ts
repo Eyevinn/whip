@@ -139,6 +139,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     const protocol = process.env.TLS_TERMINATION_ENABLED ? "https" : "http";
     input.value = `${protocol}://${window.location.hostname}:8000/api/v1/whip/broadcaster`;
     authkey = "devkey";
+  } else if (process.env.NODE_ENV === "awsdev") {
+    input.value = "https://whip.dev.eyevinn.technology/api/v1/whip/broadcaster";
+    authkey = process.env.API_KEY;
   } else {
     input.value = "https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster";
     authkey = process.env.API_KEY;

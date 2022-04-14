@@ -41,6 +41,10 @@ export default function(fastify: FastifyInstance, opts, done) {
     done(null, body);
   })
 
+  fastify.addContentTypeParser('application/trickle-ice-sdpfrag', { parseAs: "string" }, (req, body, done) => {
+    done(null, body);
+  })
+
   fastify.post("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
       const type = request.params.type;
@@ -93,6 +97,16 @@ export default function(fastify: FastifyInstance, opts, done) {
     const { resourceId } = request.params; 
     await opts.instance.deleteResource(resourceId);
     reply.code(200).send("OK");
+  });
+
+  fastify.patch("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
+    const { resourceId } = request.params; 
+    const body = <string>request.body;
+    if (opts.instance.patchResource(resourceId, body)) {
+      reply.code(204).send("OK");
+      return;
+    }
+    reply.code(405).send("reserved");
   });
 
   fastify.get("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {

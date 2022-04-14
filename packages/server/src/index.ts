@@ -36,9 +36,9 @@ export class WHIPEndpoint {
   private tls?: TLSOptions;
 
   constructor(opts?: WHIPEndpointOptions) {
-    this.port = opts?.port || 8000;
+    this.port = opts?.port || 8000;
     this.extPort = opts?.extPort || this.port;
-    this.interfaceIp = opts?.interfaceIp || "0.0.0.0";
+    this.interfaceIp = opts?.interfaceIp || "0.0.0.0";
     this.useHttps = !!(opts?.https);
     this.hostname = opts?.hostname || "localhost";
     this.enabledWrtcPlugins = opts?.enabledWrtcPlugins || [];
@@ -56,7 +56,7 @@ export class WHIPEndpoint {
     });
     this.server.register(require("fastify-cors"), {
       exposedHeaders: ["Location", "Link"],
-      methods: ["POST", "GET", "OPTIONS", "DELETE"],
+      methods: ["POST", "GET", "OPTIONS", "DELETE", "PATCH"],
       preflightContinue: true,
       strictPreflight: false,
     });
@@ -89,6 +89,14 @@ export class WHIPEndpoint {
       delete this.resources[id];
       resource.destroy();
     }
+  }
+
+  async patchResource(id: string, body: string): Promise<number> {
+    const resource = this.resources[id]; 
+    if (resource) {
+      return resource.patch(body);
+    }
+    return Promise.resolve(404);
   }
 
   listResources() {

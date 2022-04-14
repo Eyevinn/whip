@@ -242,7 +242,7 @@ export class WHIPClient extends EventEmitter {
     if (this.opts.authkey) {
       this.log("Fetching ICE config from endpoint");
       const iceServers: WHIPClientIceServer[] = await this.doFetchICEFromEndpoint();
-      //this.peer.setConfiguration({ iceServers: iceServers });
+      this.peer.setConfiguration({ iceServers: iceServers });
     } else {
       this.error("No authkey is provided so cannot fetch ICE config from endpoint.");
     }

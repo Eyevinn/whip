@@ -1,5 +1,6 @@
 import { MediaStream, RTCDataChannel } from "wrtc";
 import { EventEmitter } from "events";
+import { XMLBuilder } from "fast-xml-parser";
 
 import { Viewer } from "./viewer";
 
@@ -17,12 +18,14 @@ export class Channel extends EventEmitter {
   private mediaStream: MediaStream;
   private dataChannel?: RTCDataChannel;
   private viewers: Viewer[];
+  private mpdXml: string;
 
   constructor(channelId: string, mediaStream: MediaStream) {
     super();
     this.channelId = channelId;
     this.mediaStream = mediaStream;
     this.viewers = [];
+    this.mpdXml;
   }
 
   private log(...args: any[]) {
@@ -82,6 +85,31 @@ export class Channel extends EventEmitter {
 
   getId(): string {
     return this.channelId;
+  }
+
+  generateMpdXml(link: string, rel: string) {
+    const obj = [{
+      "MPD": [{
+        "Period": {
+        },
+        ":@": {
+          "@_xlink:href": link,
+          "@_xlink:rel": rel,
+          "@_xlink:actuate": "onRequest"
+        },
+      }],
+      ":@": {
+        "@_profiles": "urn:mpeg:dash:profile:webrtc-live:2022",
+      }
+    }];
+
+    const builder = new XMLBuilder({
+      ignoreAttributes: false,
+      format: true,
+      preserveOrder: true,
+    });
+    const output = builder.build(obj);
+    return output;
   }
 
   destroy() {

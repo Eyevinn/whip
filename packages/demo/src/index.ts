@@ -34,7 +34,7 @@ async function createClientItem(client: WHIPClient) {
   const channelListUrl = await getChannelUrl(client);
 
   const links = await client.getResourceExtensions();
-  links.filter(v => v.match(/urn:ietf:params:whip:/)).forEach(l => {
+  links.filter(v => v.match(/urn:ietf:params:whip:/) || v.match(/urn:mpeg:dash:schema:mpd/)).forEach(l => {
     const m = l.match(/<?([^>]*)>;\s*rel=([^;]*)/);
     if (m) {
       const [_, url, rel] = m;

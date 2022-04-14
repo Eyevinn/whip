@@ -39,6 +39,23 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
+  fastify.get("/mpd/:channelId", {}, async (request: BroadcasterRequest, reply: FastifyReply) => {
+    try {
+      const channelId = request.params.channelId;
+      const mpdXml = broadcaster.generateMpd(channelId);
+      if (!mpdXml) {
+        reply.code(404).send(`No channel with ID ${channelId} found`);
+      } else {
+        reply.code(200).headers({
+          "Content-Type": "application/dash+xml",
+        }).send(mpdXml);
+      }
+    } catch (err) {
+      console.error(err);
+      reply.code(500).send(err.message);
+    }
+  });
+
   fastify.get("/channel", {}, async (request: BroadcasterRequest, reply: FastifyReply) => {
     try {
       const channels = broadcaster.getChannels();

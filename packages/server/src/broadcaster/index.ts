@@ -12,6 +12,12 @@ export interface BroadcasterICEServer {
   credential?: string;
 }
 
+interface LinkTypes {
+  list: string;
+  channel: string;
+  mpd: string;
+}
+
 interface TLSOptions {
   key: string;
   cert: string;
@@ -102,6 +108,23 @@ export class Broadcaster {
       channel.destroy();
     }
     this.channels.delete(channelId);
+  }
+
+  getLinkTypes(prefix): LinkTypes {
+    return {
+      list: prefix + "eyevinn-wrtc-channel-list",
+      channel: prefix + "eyevinn-wrtc-channel",
+      mpd: "urn:mpeg:dash:schema:mpd:2011",
+    }
+  }
+
+  generateMpd(channelId: string) {
+    const channel = this.channels.get(channelId);
+    if (!channel) {
+      return null;
+    }
+    const rel = this.getLinkTypes("urn:ietf:params:whip:")["channel"];
+    return channel.generateMpdXml(`${this.getBaseUrl()}/channel/${channelId}`, rel);
   }
 
   addViewer(channelId: string, newViewer: Viewer) {

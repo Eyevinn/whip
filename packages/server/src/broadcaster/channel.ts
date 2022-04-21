@@ -103,6 +103,7 @@ export class Channel extends EventEmitter {
         "@_type": "static",
         "@_xmlns": "urn:mpeg:dash:schema:mpd:2011",
         "@_xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "@_xmlns:xlink": "http://www.w3.org/1999/xlink",
         "@_xsi:schemaLocation": "urn:mpeg:DASH:schema:MPD:2011 DASH-MPD.xsd"
       }
     }];

@@ -55,6 +55,10 @@
         {
           "name": "WHIP_ENDPOINT_USE_HTTPS",
           "value": "true"
+        },
+        {
+          "name": "PREROLL_MPD",
+          "value": "https://f53accc45b7aded64ed8085068f31881.egress.mediapackage-vod.eu-north-1.amazonaws.com/out/v1/167c67eb67a7435aa286497a69e714c7/64651f16da554640930b7ce2cd9f758b/66d211307b7d43d3bd515a3bfb654e1c/manifest.mpd"
         }
       ],
       "image": "590877988961.dkr.ecr.eu-north-1.amazonaws.com/whip/dev:latest-dev",

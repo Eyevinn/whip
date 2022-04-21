@@ -40,6 +40,7 @@ const broadcaster = new Broadcaster({
   tls: tlsOptions,
   prefix: process.env.BROADCAST_PREFIX,
   iceServers: iceServers,
+  preRollMpd: process.env.PREROLL_MPD,
 });
 broadcaster.listen();
 

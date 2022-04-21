@@ -32,6 +32,7 @@ interface BroadcasterOptions {
   tls?: TLSOptions;
   prefix?: string;
   iceServers?: BroadcasterICEServer[];
+  preRollMpd?: string;
 }
 
 export class Broadcaster {
@@ -45,6 +46,7 @@ export class Broadcaster {
   private tls?: TLSOptions;
   private prefix: string;
   private iceServers?: BroadcasterICEServer[];
+  private preRollMpd?: string;
 
   constructor(opts?: BroadcasterOptions) {
     this.port = opts?.port || 8001;
@@ -55,6 +57,7 @@ export class Broadcaster {
     this.prefix = "/broadcaster";
     this.iceServers = opts?.iceServers || [];
     this.tls = opts?.tls;
+    this.preRollMpd = opts?.preRollMpd;
 
     let httpsServer;
     if (this.useHttps && this.tls) {
@@ -75,6 +78,9 @@ export class Broadcaster {
 
   createChannel(channelId: string, stream: MediaStream) {
     const channel = new Channel(channelId, stream);
+    if (this.preRollMpd) {
+      channel.assignPreRollMpd(this.preRollMpd);
+    }
     this.channels.set(channelId, channel);
   }
 

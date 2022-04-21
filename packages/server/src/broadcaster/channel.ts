@@ -19,6 +19,7 @@ export class Channel extends EventEmitter {
   private dataChannel?: RTCDataChannel;
   private viewers: Viewer[];
   private mpdXml: string;
+  private preroll: string;
 
   constructor(channelId: string, mediaStream: MediaStream) {
     super();
@@ -35,6 +36,10 @@ export class Channel extends EventEmitter {
   assignBackChannel(dataChannel: RTCDataChannel) {
     this.log("Assigning backchannel", dataChannel);
     this.dataChannel = dataChannel;
+  }
+
+  assignPreRollMpd(mpdUrl: string) {
+    this.preroll = mpdUrl;
   }
 
   addViewer(newViewer: Viewer) {
@@ -88,16 +93,30 @@ export class Channel extends EventEmitter {
   }
 
   generateMpdXml(link: string, rel: string) {
-    const obj = [{
-      "MPD": [{
-        "Period": {
+    const periods = [];
+
+    if (this.preroll) {
+      periods.push({
+        "Period": {},
+        ":@": {
+          "@_xlink:href": this.preroll,
+          "@_xlink:actuate": "onLoad" 
         },
+      })
+    }
+    periods.push({
+      "Period": [{
+        "AdaptationSet": { },
         ":@": {
           "@_xlink:href": link,
           "@_xlink:rel": rel,
-          "@_xlink:actuate": "onRequest"
-        },
+          "@_xlink:actuate": "onRequest"  
+        }
       }],
+    });
+
+    const obj = [{
+      "MPD": periods,
       ":@": {
         "@_profiles": "urn:mpeg:dash:profile:webrtc-live:2022",
         "@_type": "static",

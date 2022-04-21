@@ -100,7 +100,7 @@ export class Channel extends EventEmitter {
         "Period": {},
         ":@": {
           "@_xlink:href": this.preroll,
-          "@_xlink:actuate": "onRequest" 
+          "@_xlink:actuate": "onLoad" 
         },
       })
     }

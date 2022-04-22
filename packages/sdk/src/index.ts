@@ -28,11 +28,6 @@ interface IceCredentials {
   pwd: string
 }
 
-interface IceCredentials {
-  ufrag: string;
-  pwd: string
-}
-
 export class WHIPClient extends EventEmitter {
   private whipEndpoint: URL;
   private opts: WHIPClientOptions;

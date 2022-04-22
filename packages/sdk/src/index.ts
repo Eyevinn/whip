@@ -1,7 +1,7 @@
 import { parseWHIPIceLinkHeader } from "./util";
 import { EventEmitter } from "events";
 import { WHIPProtocol } from "./WHIPProtocol";
-import { SessionDescription, MediaAttributes, parse, write, MediaDescription } from 'sdp-transform'
+import { SessionDescription, parse, write } from 'sdp-transform'
 
 export interface WHIPClientIceServer {
   urls: string;
@@ -19,8 +19,8 @@ export interface WHIPClientOptions {
 export interface WHIPClientConstructor {
   endpoint: string;
   opts?: WHIPClientOptions;
-  whipProtocol: WHIPProtocol;
-  peerConnectionFactory: (configuration: RTCConfiguration) => RTCPeerConnection;
+  whipProtocol?: WHIPProtocol;
+  peerConnectionFactory?: (configuration: RTCConfiguration) => RTCPeerConnection;
 }
 
 interface IceCredentials {
@@ -45,8 +45,10 @@ export class WHIPClient extends EventEmitter {
     super();
     this.whipEndpoint = new URL(endpoint);
     this.opts = opts;
-    this.whipProtocol = whipProtocol;
-    this.peerConnectionFactory = peerConnectionFactory;
+    this.whipProtocol = whipProtocol ? whipProtocol : new WHIPProtocol();
+    this.peerConnectionFactory = peerConnectionFactory ? 
+      peerConnectionFactory : 
+      (configuration: RTCConfiguration) => new RTCPeerConnection(configuration);
     this.initPeer();
   }
 

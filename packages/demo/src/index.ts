@@ -1,6 +1,4 @@
 import { WHIPClient } from "../../sdk/src/index";
-import { WHIPProtocol } from "../../sdk/src/WHIPProtocol";
-
 import { getIceServers } from "./util";
 
 let likesCount = 0;
@@ -162,9 +160,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const client = new WHIPClient({
     endpoint: input.value,
-    opts: { debug: debug, iceServers: getIceServers(), authkey: authkey },
-    whipProtocol: new WHIPProtocol(),
-    peerConnectionFactory: (configuration: RTCConfiguration) => new RTCPeerConnection(configuration)
+    opts: { debug: debug, iceServers: getIceServers(), authkey: authkey }
   });
   if (iceConfigRemote) {
     await client.setIceServersFromEndpoint();

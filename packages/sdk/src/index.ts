@@ -19,6 +19,13 @@ export interface WHIPClientOptions {
 export interface WHIPClientConstructor {
   endpoint: string;
   opts?: WHIPClientOptions;
+  whipProtocol: WHIPProtocol;
+  peerConnectionFactory: (configuration: RTCConfiguration) => RTCPeerConnection;
+}
+
+interface IceCredentials {
+  ufrag: string;
+  pwd: string
 }
 
 interface IceCredentials {
@@ -36,17 +43,20 @@ export class WHIPClient extends EventEmitter {
   private resourceResolve: (resource: string) => void;
   private iceCredentials: IceCredentials | undefined = undefined;
   private mediaMids: Array<string> = [];
-  private whipProtocol: WHIPProtocol = new WHIPProtocol();
+  private whipProtocol: WHIPProtocol;
+  private peerConnectionFactory: (configuration: RTCConfiguration) => RTCPeerConnection;
 
-  constructor({ endpoint, opts }: WHIPClientConstructor) {
+  constructor({ endpoint, opts, whipProtocol, peerConnectionFactory }: WHIPClientConstructor) {
     super();
     this.whipEndpoint = new URL(endpoint);
     this.opts = opts;
+    this.whipProtocol = whipProtocol;
+    this.peerConnectionFactory = peerConnectionFactory;
     this.initPeer();
   }
 
   private initPeer() {
-    this.peer = new RTCPeerConnection({
+    this.peer = this.peerConnectionFactory({
       iceServers: this.opts.iceServers || [
         {
           urls: ["stun:stun.l.google.com:19302"],
@@ -54,11 +64,9 @@ export class WHIPClient extends EventEmitter {
       ],
     });
 
-    this.peer.oniceconnectionstatechange =
-      this.onIceConnectionStateChange.bind(this);
-    this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
-    this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
-
+    this.peer.addEventListener('iceconnectionstatechange', this.onIceConnectionStateChange.bind(this));
+    this.peer.addEventListener('icecandidateerror', this.onIceCandidateError.bind(this));
+    this.peer.addEventListener('connectionstatechange', this.onConnectionStateChange.bind(this));
     this.peer.addEventListener('icecandidate', this.onIceCandidate.bind(this));
   }
 
@@ -137,21 +145,21 @@ export class WHIPClient extends EventEmitter {
     this.whipProtocol.updateIce(url, trickleIceSDP)
   }
 
-  private onConnectionStateChange(e) {
+  async onConnectionStateChange(event: Event) {
     this.log("PeerConnectionState", this.peer.connectionState);
 
     switch (this.peer.connectionState) {
       case "disconnected":
-        this.destroy();
+        await this.destroy();
         break;
     }
   }
 
-  private onIceConnectionStateChange(e) {
+  onIceConnectionStateChange(e) {
     this.log("IceConnectionState", this.peer.iceConnectionState);
   }
 
-  private onIceCandidateError(e) {
+  onIceCandidateError(e) {
     this.log("IceCandidateError", e);
   }
 

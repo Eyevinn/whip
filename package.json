@@ -4,6 +4,7 @@
   "scripts": {
     "postinstall": "lerna bootstrap",
     "build": "lerna run build",
+    "test": "lerna run test",
     "dev": "lerna run dev --stream --parallel",
     "start": "lerna run server --stream --parallel --no-prefix",
     "lerna:version": "lerna version --changelog-preset conventionalcommits --conventional-commits",

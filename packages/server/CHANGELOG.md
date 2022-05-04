@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.13.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.12.0...@eyevinn/whip-endpoint@0.13.0) (2022-05-04)
+
+
+### Features
+
+* multi-period MPD ([#51](https://github.com/Eyevinn/whip/issues/51)) ([3b2a9ef](https://github.com/Eyevinn/whip/commit/3b2a9ef003316dc588b9747deac5a7464c57485a))
+
+
+### Bug Fixes
+
+* add missing xlink namespace ([#50](https://github.com/Eyevinn/whip/issues/50)) ([53f7c6a](https://github.com/Eyevinn/whip/commit/53f7c6aa9613d5115342e890b8ba3a46a568e132))
+* added MPD attributes ([c0e736d](https://github.com/Eyevinn/whip/commit/c0e736dbea0289063ecc1139e50febf50ee2d570))
+
+
+
 ## [0.12.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.11.2...@eyevinn/whip-endpoint@0.12.0) (2022-04-14)
 
 

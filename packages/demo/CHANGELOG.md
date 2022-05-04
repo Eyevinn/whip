@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.11.0...@eyevinn/whip-web-client-demo@0.12.0) (2022-05-04)
+
+
+### Features
+
+* unit test framework for sdk ([#52](https://github.com/Eyevinn/whip/issues/52)) ([409f536](https://github.com/Eyevinn/whip/commit/409f536ffaabc476fd0ce2fb6a749ea66a65bacd))
+
+
+### Bug Fixes
+
+* make client injected dependencies optional ([f3991d5](https://github.com/Eyevinn/whip/commit/f3991d5e408142fb80c85a9922cb7de823edb7aa))
+
+
+
 ## [0.11.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.10.0...@eyevinn/whip-web-client-demo@0.11.0) (2022-04-14)
 
 

@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.9.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.9.0...@eyevinn/whip-web-client@0.9.1) (2022-05-05)
+
+
+### Bug Fixes
+
+* remove logged error in generated js output ([6c005f0](https://github.com/Eyevinn/whip/commit/6c005f065a20d8022ca160116df0a6428be0095c))
+
+
+
 ## [0.9.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.8.0...@eyevinn/whip-web-client@0.9.0) (2022-05-04)
 
 

@@ -144,11 +144,8 @@ export class WHIPClient extends EventEmitter {
 
   async onConnectionStateChange(event: Event) {
     this.log("PeerConnectionState", this.peer.connectionState);
-
-    switch (this.peer.connectionState) {
-      case "disconnected":
-        await this.destroy();
-        break;
+    if (this.peer.connectionState === 'failed') {
+      await this.destroy();
     }
   }
 

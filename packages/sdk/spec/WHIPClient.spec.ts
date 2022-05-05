@@ -250,12 +250,26 @@ describe('WHIP Client', () => {
             .once();
     });
 
-    it('Closes peer connection when connection state transitions to disconnected', async () => {
+    it('Does not close peer connection when connection state transitions to disconnected', async () => {
         when(whipProtocol.delete(anyString()))
             .thenResolve(instance(response));
 
         when(rtcPeerConnection.connectionState)
             .thenReturn('disconnected');
+
+        await whipClient.ingest(instance(mediaStream));
+        await whipClient.onConnectionStateChange(instance(event));
+
+        verify(rtcPeerConnection.close())
+            .never();
+    })
+
+    it('Closes peer connection when connection state transitions to failed', async () => {
+        when(whipProtocol.delete(anyString()))
+            .thenResolve(instance(response));
+
+        when(rtcPeerConnection.connectionState)
+            .thenReturn('failed');
 
         await whipClient.ingest(instance(mediaStream));
         await whipClient.onConnectionStateChange(instance(event));

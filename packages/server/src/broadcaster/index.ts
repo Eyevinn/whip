@@ -152,6 +152,9 @@ export class Broadcaster {
 
   getViewerCount(channelId: string): number {
     const channel = this.channels.get(channelId);
+    if (!channel) {
+      return 0;
+    }
     return channel.getViewers().length;
   }
  

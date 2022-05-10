@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.13.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.13.1...@eyevinn/whip-endpoint@0.13.2) (2022-05-10)
+
+
+### Bug Fixes
+
+* only teardown peer connection on failed state ([#58](https://github.com/Eyevinn/whip/issues/58)) ([b1029a4](https://github.com/Eyevinn/whip/commit/b1029a4b3d428b63b3a6d582e3c8de1147fdbd6f))
+
+
+
 ### [0.13.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.13.0...@eyevinn/whip-endpoint@0.13.1) (2022-05-10)
 
 

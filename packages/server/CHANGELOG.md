@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.13.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.13.0...@eyevinn/whip-endpoint@0.13.1) (2022-05-10)
+
+
+### Bug Fixes
+
+* prevent server from crasching if viewer count from a channel that does not exist is requested ([#57](https://github.com/Eyevinn/whip/issues/57)) ([29a99dd](https://github.com/Eyevinn/whip/commit/29a99dd4ade39d7cacfc33923a35714a1cf8bafb))
+
+
+
 ## [0.13.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.12.0...@eyevinn/whip-endpoint@0.13.0) (2022-05-04)
 
 

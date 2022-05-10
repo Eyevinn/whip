@@ -141,6 +141,7 @@ export class WHIPResource {
         await this.onconnect(this.pc.connectionState);
         break;
       case "disconnected":
+        break;
       case "failed":
         await this.ondisconnect(this.pc.connectionState);
         this.destroy();

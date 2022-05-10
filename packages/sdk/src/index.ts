@@ -13,6 +13,7 @@ export interface WHIPClientOptions {
   debug?: boolean;
   iceServers?: WHIPClientIceServer[];
   iceGatheringTimeout?: number;
+  iceTrickleDisabled?: boolean;
   authkey?: string;
 }
 
@@ -40,6 +41,7 @@ export class WHIPClient extends EventEmitter {
   private mediaMids: Array<string> = [];
   private whipProtocol: WHIPProtocol;
   private peerConnectionFactory: (configuration: RTCConfiguration) => RTCPeerConnection;
+  private iceGatheringComplete: boolean;
 
   constructor({ endpoint, opts, whipProtocol, peerConnectionFactory }: WHIPClientConstructor) {
     super();
@@ -65,6 +67,7 @@ export class WHIPClient extends EventEmitter {
     this.peer.addEventListener('icecandidateerror', this.onIceCandidateError.bind(this));
     this.peer.addEventListener('connectionstatechange', this.onConnectionStateChange.bind(this));
     this.peer.addEventListener('icecandidate', this.onIceCandidate.bind(this));
+    this.iceGatheringComplete = false;
   }
 
   private log(...args: any[]) {
@@ -134,17 +137,22 @@ export class WHIPClient extends EventEmitter {
     const candidateEvent = <RTCPeerConnectionIceEvent>(event);
     const candidate: RTCIceCandidate | null = candidateEvent.candidate;
     if (!candidate) {
+      this.iceGatheringComplete = true;
       return;
     }
 
-    const trickleIceSDP = this.makeTrickleIceSdpFragment(candidate);
-    const url = await this.getResourceUrl();
-    this.whipProtocol.updateIce(url, trickleIceSDP)
+    if (!this.opts.iceTrickleDisabled) {
+      const trickleIceSDP = this.makeTrickleIceSdpFragment(candidate);
+      const url = await this.getResourceUrl();
+      this.log("TrickleIceSDP", trickleIceSDP);
+      this.whipProtocol.updateIce(url, trickleIceSDP)
+    }
   }
 
   async onConnectionStateChange(event: Event) {
     this.log("PeerConnectionState", this.peer.connectionState);
     if (this.peer.connectionState === 'failed') {
+      this.emit("disconnected");
       await this.destroy();
     }
   }
@@ -192,12 +200,31 @@ export class WHIPClient extends EventEmitter {
       }
     }
 
+    if (this.opts.iceTrickleDisabled) {
+      this.log("ICE trickle disabled, waiting for all candidates to be gathered");
+      await this.peer.setLocalDescription(sdpOffer);
+
+      // Wait for all ICE candidates to be gathered
+      const forIceGatheringComplete: Promise<void> = new Promise((resolve, reject) => {
+        let t = setInterval(() => {
+          if (this.iceGatheringComplete) {
+            clearInterval(t);
+            resolve();
+          }
+        }, 1000);
+      });
+      await forIceGatheringComplete;
+      sdpOffer.sdp = this.peer.localDescription.sdp;
+    }
+
     const response = await this.whipProtocol.sendOffer(
       this.whipEndpoint.toString(),
       this.opts.authkey,
       sdpOffer.sdp);
 
-    await this.peer.setLocalDescription(sdpOffer);
+    if (!this.opts.iceTrickleDisabled) {
+      await this.peer.setLocalDescription(sdpOffer);
+    }
 
     if (response.ok) {
       this.resource = response.headers.get("Location");

@@ -160,7 +160,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const client = new WHIPClient({
     endpoint: input.value,
-    opts: { debug: debug, iceServers: getIceServers(), authkey: authkey }
+    opts: { 
+      debug: debug, 
+      iceServers: getIceServers(), 
+      authkey: authkey, 
+      iceTrickleDisabled: !!process.env.ICE_TRICKLE_DISABLED,
+    }
   });
   if (iceConfigRemote) {
     await client.setIceServersFromEndpoint();

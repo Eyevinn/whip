@@ -3,7 +3,11 @@ import { WRTCBroadcaster } from "./wrtc/broadcaster";
 import { WRTCDummy } from "./wrtc/dummy";
 import { WRTCRTSP, RTSPResolution } from "./wrtc/rtsp";
 
-export const createWHIPResourceFromType = (type: string, sdpOffer: string, enabledPlugins: string[], iceServers?: WHIPResourceICEServer[]) => {
+export interface WHIPResourceParams {
+  channelId?: string;
+}
+
+export const createWHIPResourceFromType = (type: string, params: WHIPResourceParams, sdpOffer: string, enabledPlugins: string[], iceServers?: WHIPResourceICEServer[]) => {
   if (!enabledPlugins.includes(type)) {
     console.error(`Requested plugin '${type}' that is not enabled`);
     throw new Error(`Requested plugin '${type}' that is not enabled`);
@@ -14,7 +18,7 @@ export const createWHIPResourceFromType = (type: string, sdpOffer: string, enabl
     case "dummy":
       return new WRTCDummy(sdpOffer, iceServers);
     case "broadcaster":
-      return new WRTCBroadcaster(sdpOffer, iceServers);
+      return new WRTCBroadcaster(sdpOffer, iceServers, { channelId: params?.channelId });
     case "rtsp":
       let opts = null;
       if (process.env.RTSP_SERVER || process.env.RTSP_RESOLUTION) {

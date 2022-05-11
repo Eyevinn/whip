@@ -77,6 +77,10 @@ export class Broadcaster {
   }
 
   createChannel(channelId: string, stream: MediaStream) {
+    // Check if channel with channelId already exists
+    if (this.channels.get(channelId)) {
+      throw new Error(`Channel with Id ${channelId} already exists`);
+    }
     const channel = new Channel(channelId, stream);
     if (this.preRollMpd) {
       channel.assignPreRollMpd(this.preRollMpd);

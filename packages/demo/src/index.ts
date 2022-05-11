@@ -1,4 +1,4 @@
-import { WHIPClient } from "../../sdk/src/index";
+import { WHIPClient, WHIPClientOptions } from "../../sdk/src/index";
 import { getIceServers } from "./util";
 
 let likesCount = 0;
@@ -134,6 +134,21 @@ function onMessage(data) {
   }
 }
 
+async function createClient(url: string, iceConfigRemote: boolean, opts: WHIPClientOptions) {
+  const client = new WHIPClient({
+    endpoint: url,
+    opts: opts,
+  });
+  if (iceConfigRemote) {
+    await client.setIceServersFromEndpoint();
+  }
+
+  client.setupBackChannel();
+  client.on("message", onMessage);
+
+  return client;
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
 
   const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
@@ -156,20 +171,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   const debug = process.env.NODE_ENV === "development" || !!process.env.DEBUG;
-  const iceConfigRemote = process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE;
-
-  const client = new WHIPClient({
-    endpoint: input.value,
-    opts: { debug: debug, iceServers: getIceServers(), authkey: authkey }
-  });
-  if (iceConfigRemote) {
-    await client.setIceServersFromEndpoint();
-  }
-
-  client.setupBackChannel();
-  client.on("message", onMessage);
+  const iceConfigRemote = !!(process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE);
 
   ingestCamera.addEventListener("click", async () => {
+    const client = await createClient(input.value, iceConfigRemote, { 
+      debug: debug, iceServers: getIceServers(), authkey: authkey }
+    );
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio: true,
@@ -178,6 +185,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   ingestScreen.addEventListener("click", async () => {
+    const client = await createClient(input.value, iceConfigRemote, { 
+      debug: debug, iceServers: getIceServers(), authkey: authkey }
+    );
     const mediaStream = await navigator.mediaDevices.getDisplayMedia();
     ingest(client, mediaStream);
   });

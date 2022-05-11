@@ -1,11 +1,14 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { createWHIPResourceFromType } from "./factory";
+import { createWHIPResourceFromType, WHIPResourceParams } from "./factory";
 import { WHIPResource, WHIPResourceICEServer } from "./models/WHIPResource";
 
 type WHIPRequest = FastifyRequest<{ 
   Params: { 
     type: string;
     resourceId: string; 
+  },
+  Querystring: {
+    channelId?: string;
   }
 }>
 
@@ -48,9 +51,12 @@ export default function(fastify: FastifyInstance, opts, done) {
   fastify.post("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
       const type = request.params.type;
-      
+      const whipResourceParams = request.query;
+
       const resource = createWHIPResourceFromType(type, 
-        <string>request.body, opts.instance.getEnabledPlugins(), 
+        whipResourceParams,
+        <string>request.body, 
+        opts.instance.getEnabledPlugins(), 
         opts.instance.getIceServers());
       opts.instance.addResource(resource);
       if (opts.instance.hasBroadcaster()) {

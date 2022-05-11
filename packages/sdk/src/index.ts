@@ -136,6 +136,7 @@ export class WHIPClient extends EventEmitter {
     }
     const candidateEvent = <RTCPeerConnectionIceEvent>(event);
     const candidate: RTCIceCandidate | null = candidateEvent.candidate;
+    this.log(candidate);
     if (!candidate) {
       this.iceGatheringComplete = true;
       return;
@@ -206,11 +207,13 @@ export class WHIPClient extends EventEmitter {
 
       // Wait for all ICE candidates to be gathered
       const forIceGatheringComplete: Promise<void> = new Promise((resolve, reject) => {
+        let timeout = 0;
         let t = setInterval(() => {
-          if (this.iceGatheringComplete) {
+          if (this.iceGatheringComplete || timeout < 10) {
             clearInterval(t);
             resolve();
           }
+          timeout++;
         }, 1000);
       });
       await forIceGatheringComplete;

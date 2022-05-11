@@ -164,7 +164,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       debug: debug, 
       iceServers: getIceServers(), 
       authkey: authkey, 
-      iceTrickleDisabled: process.env.ICE_TRICKLE_DISABLED && process.env.ICE_TRICKLE_DISABLED === "true",
+      iceTrickleDisabled: !!process.env.ICE_TRICKLE_DISABLED,
     }
   });
   if (iceConfigRemote) {

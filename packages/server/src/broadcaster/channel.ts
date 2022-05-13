@@ -17,7 +17,7 @@ export class Channel extends EventEmitter {
   private channelId: string;
   private mediaStream: MediaStream;
   private dataChannel?: RTCDataChannel;
-  private viewers: Viewer[];
+  private viewers: Map<string, Viewer>;
   private mpdXml: string;
   private preroll: string;
 
@@ -25,7 +25,7 @@ export class Channel extends EventEmitter {
     super();
     this.channelId = channelId;
     this.mediaStream = mediaStream;
-    this.viewers = [];
+    this.viewers = new Map();
     this.mpdXml;
   }
 
@@ -43,21 +43,22 @@ export class Channel extends EventEmitter {
   }
 
   addViewer(newViewer: Viewer) {
-    this.viewers.push(newViewer);
+    this.viewers.set(newViewer.getId(), newViewer);
+    this.log(`Add viewer ${newViewer.getId()} to ${this.channelId}, size ${this.viewers.size}`);
     this.onViewersChange();
   }
 
   removeViewer(viewerToRemove: Viewer) {
-    this.viewers = this.viewers.filter(v => v.getId() !== viewerToRemove.getId());
+    this.viewers.delete(viewerToRemove.getId());
     this.onViewersChange();
   }
 
   onViewersChange() {
     this.sendMessageOnBackChannel({
-      message: { event: "viewerschange", viewercount: this.viewers.length },
+      message: { event: "viewerschange", viewercount: this.viewers.size },
     });
     this.broadcastMessage("broadcaster", {
-      message: { event: "viewerschange", viewercount: this.viewers.length },
+      message: { event: "viewerschange", viewercount: this.viewers.size },
     })
   }
 
@@ -81,7 +82,14 @@ export class Channel extends EventEmitter {
   }
 
   getViewers(): Viewer[] {
-    return this.viewers;
+    return Array.from(this.viewers.values());
+  }
+
+  getViewer(viewerId: string): Viewer | undefined {
+    if (!this.viewers.has(viewerId)) {
+      return undefined;
+    }
+    return this.viewers.get(viewerId);
   }
 
   getStream(): MediaStream {

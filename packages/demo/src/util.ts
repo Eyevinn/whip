@@ -1,5 +1,5 @@
 import { WHIPClientIceServer } from "@eyevinn/whip-web-client";
-import { WebRTCPlayer } from "@eyevinn/webrtc-player";
+import { WebRTCPlayer } from "@eyevinn/webrtc-player";
 
 export async function watch(channelUrl, video) {
   if (channelUrl) {

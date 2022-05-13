@@ -1,10 +1,12 @@
 import { WHIPResourceICEServer } from "./models/WHIPResource";
 import { WRTCBroadcaster } from "./wrtc/broadcaster";
 import { WRTCDummy } from "./wrtc/dummy";
+import { WRTCRTMP } from "./wrtc/rtmp";
 import { WRTCRTSP, RTSPResolution } from "./wrtc/rtsp";
 
 export interface WHIPResourceParams {
   channelId?: string;
+  b64json?: string;
 }
 
 export const createWHIPResourceFromType = (type: string, params: WHIPResourceParams, sdpOffer: string, enabledPlugins: string[], iceServers?: WHIPResourceICEServer[]) => {
@@ -36,6 +38,13 @@ export const createWHIPResourceFromType = (type: string, params: WHIPResourcePar
         }
       }
       return new WRTCRTSP(sdpOffer, iceServers, opts);
+    case "rtmp":
+      if (!params || !params.b64json) {
+        throw new Error(`Missing base64 json payload`);
+      }
+      const payload = JSON.parse(Buffer.from(params.b64json, "base64").toString());
+      const [ width, height ] = payload.resolution ? payload.resolution.split("x") : [ 960, 540 ];
+      return new WRTCRTMP(sdpOffer, iceServers, { rtmpUrl: payload.rtmpUrl, width: width, height: height });
     default:
       throw new Error(`Failed to create resource, reason: Invalid resource type '${type}'`);
   }

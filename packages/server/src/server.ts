@@ -51,7 +51,7 @@ const endpoint = new WHIPEndpoint({
   https: process.env.WHIP_ENDPOINT_USE_HTTPS && process.env.WHIP_ENDPOINT_USE_HTTPS === "true",
   tls: tlsOptions,
   iceServers: iceServers,
-  enabledWrtcPlugins: [ "broadcaster", "dummy", "rtsp" ], 
+  enabledWrtcPlugins: [ "broadcaster", "dummy", "rtsp", "rtmp" ], 
 });
 endpoint.registerBroadcaster(broadcaster);
 endpoint.listen();

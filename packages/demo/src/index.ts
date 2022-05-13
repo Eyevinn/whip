@@ -157,6 +157,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   const ingestScreen =
     document.querySelector<HTMLButtonElement>("#ingest-screen");
 
+  const paramChannelId =
+    document.querySelector<HTMLInputElement>("#param-channel-id");
+
+  const paramB64Json =
+    document.querySelector<HTMLInputElement>("#param-b64json");
+
   let authkey;
   if (process.env.NODE_ENV === "development") {
     const protocol = process.env.TLS_TERMINATION_ENABLED ? "https" : "http";
@@ -172,6 +178,23 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const debug = process.env.NODE_ENV === "development" || !!process.env.DEBUG;
   const iceConfigRemote = !!(process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE);
+
+  function updateThisUrl() {
+    const url = new URL(window.location.href);
+    input.value && url.searchParams.set("endpoint", input.value);
+    document.querySelector<HTMLInputElement>("#thisurl").value = url.toString();
+  }
+
+  const url = new URL(window.location.href);
+  if (url.searchParams.has("endpoint")) {
+    input.value = url.searchParams.get("endpoint");
+    const endpointUrl = new URL(input.value);
+    paramChannelId.value = endpointUrl.searchParams.get("channelId");
+    if (endpointUrl.searchParams.has("b64json")) {
+      paramB64Json.value = Buffer.from(endpointUrl.searchParams.get("b64json"), "base64").toString();
+    }
+  }
+  updateThisUrl();
 
   ingestCamera.addEventListener("click", async () => {
     const client = await createClient(input.value, iceConfigRemote, { 
@@ -190,5 +213,32 @@ window.addEventListener("DOMContentLoaded", async () => {
     );
     const mediaStream = await navigator.mediaDevices.getDisplayMedia();
     ingest(client, mediaStream);
+  });
+
+  paramChannelId.addEventListener("change", () => {
+    const url = new URL(input.value);
+    if (!paramChannelId.value) {
+      url.searchParams.delete("channelId");
+    } else {
+      url.searchParams.set("channelId", paramChannelId.value);
+    }
+    input.value = url.toString();
+    updateThisUrl();
+  });
+
+  paramB64Json.addEventListener("change", () => {
+    const url = new URL(input.value);
+    if (!paramB64Json.value) {
+      url.searchParams.delete("b64json");
+    } else {
+      const b64json = Buffer.from(paramB64Json.value, "utf-8").toString("base64");
+      url.searchParams.set("b64json", b64json);
+    }
+    input.value = url.toString();
+    updateThisUrl();
+  });
+
+  input.addEventListener("change", () => {
+    updateThisUrl();
   });
 });

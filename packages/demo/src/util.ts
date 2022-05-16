@@ -5,7 +5,7 @@ export async function watch(channelUrl, video) {
   if (channelUrl) {
     const player = new WebRTCPlayer({ 
       video: video, 
-      type: "se.eyevinn.webrtc", 
+      type: "se.eyevinn.whpp", 
       iceServers: getIceServers(), 
       createDataChannels: [ "reactions", "broadcaster" ],
     });

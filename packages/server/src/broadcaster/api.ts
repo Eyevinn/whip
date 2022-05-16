@@ -133,7 +133,11 @@ export default function (fastify: FastifyInstance, opts, done) {
     try {
       const channels = broadcaster.getChannels();
       reply.code(200).send(channels.map(channelId => {
-        return { channelId: channelId, resource: broadcaster.getBaseUrl() + "/channel/" + channelId };
+        return { 
+          channelId: channelId, 
+          resource: broadcaster.getBaseUrl() + "/channel/" + channelId,
+          type: "se.eyevinn.whpp" 
+        };
       }));
     } catch (err) {
       console.error(err);
@@ -146,6 +150,7 @@ export default function (fastify: FastifyInstance, opts, done) {
       const channelId = request.params.channelId;
       reply.code(200).send({
         channelId: channelId,
+        type: "se.eyevinn.whpp",
         viewers: broadcaster.getViewerCount(channelId),
       });
     } catch (err) {

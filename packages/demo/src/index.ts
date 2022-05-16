@@ -6,6 +6,9 @@ let likesCount = 0;
 function createWatchLink(channel) {
   const link = document.createElement("a");
   link.href = `watch.html?locator=${encodeURIComponent(channel.resource)}`;
+  if (channel.type) {
+    link.href += `&type=${channel.type}`;
+  }
   link.innerText = `Watch Channel`;
   link.target = "_blank";
   return link;

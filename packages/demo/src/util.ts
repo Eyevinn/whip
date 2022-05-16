@@ -1,11 +1,13 @@
 import { WHIPClientIceServer } from "@eyevinn/whip-web-client";
 import { WebRTCPlayer } from "@eyevinn/webrtc-player";
 
-export async function watch(channelUrl, video) {
+export async function watch(channelUrl, video, type) {
   if (channelUrl) {
+    const adapterType = type || "se.eyevinn.webrtc";
+
     const player = new WebRTCPlayer({ 
       video: video, 
-      type: "se.eyevinn.whpp", 
+      type: adapterType, 
       iceServers: getIceServers(), 
       createDataChannels: [ "reactions", "broadcaster" ],
     });

@@ -37,7 +37,7 @@ export default function (fastify: FastifyInstance, opts, done) {
   fastify.options("/channel/:channelId", {}, async (request: BroadcasterPostRequest, reply: FastifyReply) => {
     try {
       reply.headers({
-        "Content-Type": "application/whpp+json",
+        "Accept": [ "application/json", "application/whpp+json" ],
       });
       reply.code(204).send();
     } catch (err) {

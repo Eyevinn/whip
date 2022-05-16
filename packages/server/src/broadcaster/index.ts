@@ -71,7 +71,7 @@ export class Broadcaster {
       https: httpsServer, 
     });
     this.server.register(require("fastify-cors"), {
-      exposedHeaders: ["Location"],
+      exposedHeaders: ["Location", "Accept"],
       methods: ["POST", "GET", "OPTIONS", "PATCH", "PUT"],
       preflightContinue: true,
       strictPreflight: false,

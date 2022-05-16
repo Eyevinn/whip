@@ -6,9 +6,6 @@ let likesCount = 0;
 function createWatchLink(channel) {
   const link = document.createElement("a");
   link.href = `watch.html?locator=${encodeURIComponent(channel.resource)}`;
-  if (channel.type) {
-    link.href += `&type=${channel.type}`;
-  }
   link.innerText = `Watch Channel`;
   link.target = "_blank";
   return link;
@@ -25,7 +22,7 @@ function createWebPlayerLink(channel) {
 async function getChannelUrl(client: WHIPClient): Promise<string> {
   let channelListUrl: string;
   (await client.getResourceExtensions()).forEach(link => {
-    if (link.match(/rel=urn:ietf:params:whip:whpp-list/)) {
+    if (link.match(/rel=urn:ietf:params:whip:whpp-list/) || link.match(/rel=urn:ietf:params:whip:eyevinn-wrtc-channel-list/)) {
       const m = link.match(/<?([^>]*)>/);
       channelListUrl = m[1];
     }

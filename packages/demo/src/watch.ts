@@ -7,10 +7,9 @@ function updateViewerCount(count) {
 window.addEventListener("DOMContentLoaded", async () => {
   const searchParams = new URL(window.location.href).searchParams;
   const locator = searchParams.get("locator");
-  const type = searchParams.get("type");
 
   if (locator) {
-    const player = await watch(locator, document.querySelector<HTMLVideoElement>("video"), type);
+    const player = await watch(locator, document.querySelector<HTMLVideoElement>("video"));
 
     setTimeout(async () => {
       const viewerCount = await getViewerCount(locator);

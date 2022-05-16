@@ -127,8 +127,8 @@ export class Broadcaster {
 
   getLinkTypes(prefix): LinkTypes {
     return {
-      list: prefix + "eyevinn-wrtc-channel-list",
-      channel: prefix + "eyevinn-wrtc-channel",
+      list: prefix + "whpp-list",
+      channel: prefix + "whpp",
       mpd: "urn:mpeg:dash:schema:mpd:2011",
     }
   }

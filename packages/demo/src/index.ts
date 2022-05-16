@@ -22,7 +22,7 @@ function createWebPlayerLink(channel) {
 async function getChannelUrl(client: WHIPClient): Promise<string> {
   let channelListUrl: string;
   (await client.getResourceExtensions()).forEach(link => {
-    if (link.match(/rel=urn:ietf:params:whip:eyevinn-wrtc-channel-list/)) {
+    if (link.match(/rel=urn:ietf:params:whip:whpp-list/)) {
       const m = link.match(/<?([^>]*)>/);
       channelListUrl = m[1];
     }

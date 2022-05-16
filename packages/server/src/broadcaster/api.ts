@@ -34,6 +34,18 @@ type BroadcasterPostRequest = FastifyRequest<{
 export default function (fastify: FastifyInstance, opts, done) {
   const broadcaster = opts.broadcaster;
 
+  fastify.options("/channel/:channelId", {}, async (request: BroadcasterPostRequest, reply: FastifyReply) => {
+    try {
+      reply.headers({
+        "Content-Type": "application/whpp+json",
+      });
+      reply.code(204).send();
+    } catch (err) {
+      console.error(err);
+      reply.code(500).send(err.message);
+    }
+  });
+
   fastify.post("/channel/:channelId", {}, async (request: BroadcasterPostRequest, reply: FastifyReply) => {
     try {
       const channelId = request.params.channelId;
@@ -55,7 +67,7 @@ export default function (fastify: FastifyInstance, opts, done) {
       
       reply.code(201)
         .headers({
-          'Content-type': 'application/json',
+          'Content-type': 'application/whpp+json',
           'Location': broadcaster.getBaseUrl() + "/channel/" + channelId + '/' + viewer.getId()
         })
         .send(responseBody);
@@ -136,7 +148,6 @@ export default function (fastify: FastifyInstance, opts, done) {
         return { 
           channelId: channelId, 
           resource: broadcaster.getBaseUrl() + "/channel/" + channelId,
-          type: "se.eyevinn.whpp" 
         };
       }));
     } catch (err) {
@@ -150,7 +161,6 @@ export default function (fastify: FastifyInstance, opts, done) {
       const channelId = request.params.channelId;
       reply.code(200).send({
         channelId: channelId,
-        type: "se.eyevinn.whpp",
         viewers: broadcaster.getViewerCount(channelId),
       });
     } catch (err) {

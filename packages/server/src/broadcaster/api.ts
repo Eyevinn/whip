@@ -159,6 +159,7 @@ export default function (fastify: FastifyInstance, opts, done) {
   fastify.get("/channel/:channelId", {}, async (request: BroadcasterRequest, reply: FastifyReply) => {
     try {
       const channelId = request.params.channelId;
+      reply.headers({ "Content-Type": "application/whpp+json" });
       reply.code(200).send({
         channelId: channelId,
         viewers: broadcaster.getViewerCount(channelId),

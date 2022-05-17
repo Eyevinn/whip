@@ -93,44 +93,8 @@ The following environment variables are read to override default values:
 
 To access a channel you follow this procedure:
 
-1. Obtain the channel locator from the `Link` header of type `rel=urn:ietf:params:whip:eyevinn-wrtc-channel` in the `201` response when creating the WHIP resource.
-2. Create an RTC peer and an offer that can receive video and audio.
-3. Send the SDP to the broadcaster using the channel locator obtained in 1: `curl -d '{ sdp: <localSdp> }' http://<broadcasthost>:8001/broadcaster/channel/<uuid4>`.
-4. Connect the RTC peer's stream to your HTML video element.
-
-Example code given that `channelUrl` has already been obtained:
-
-```javascript
-  const peer = new RTCPeerConnection();
-  peer.onicecandidate = async (event) => {
-    if (event.candidate === null) {
-      // We have all ICE candidates
-      const response = await fetch(channelUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ sdp: peer.localDescription.sdp })
-      });
-      const { sdp } = await response.json();
-      peer.setRemoteDescription({ type: "answer", sdp: sdp });
-    }
-  }
-  peer.ontrack = (ev) => {
-    if (ev.streams && ev.streams[0]) {
-      document.querySelector("video").srcObject = ev.streams[0];
-    }
-  }
-
-  peer.addTransceiver("video", { direction: "recvonly" });
-  peer.addTransceiver("audio", { direction: "recvonly" });
-
-  const offer = await peer.createOffer({
-    offerToReceiveAudio: true,
-    offerToReceiveVideo: true
-  });
-  peer.setLocalDescription(offer);
-```
+1. Obtain the channel locator from the `Link` header of type `rel=urn:ietf:params:whip:whpp` in the `201` response when creating the WHIP resource.
+2. Follow the [WebRTC HTTP Playback Protocol](https://github.com/Eyevinn/webrtc-http-playback-protocol) to establish an RTP connection for consumption only or use the [WebRTC player with support for WHPP](https://github.com/Eyevinn/webrtc-player).
 
 ## RTSP output
 

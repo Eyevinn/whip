@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.13.2...@eyevinn/whip-endpoint@0.14.0) (2022-05-17)
+
+
+### Features
+
+* request a fixed channel name ([#61](https://github.com/Eyevinn/whip/issues/61)) ([4cf17c8](https://github.com/Eyevinn/whip/commit/4cf17c8e995f47caefeb837b5916e57c7d5472b1))
+* update viewer protocol based on webrtc-http-playback-protocol ([#62](https://github.com/Eyevinn/whip/issues/62)) ([322eff2](https://github.com/Eyevinn/whip/commit/322eff28ab0937760499349d8557e2635adc77ae))
+
+
+
 ### [0.13.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.13.1...@eyevinn/whip-endpoint@0.13.2) (2022-05-10)
 
 

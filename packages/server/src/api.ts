@@ -68,7 +68,9 @@ export default function(fastify: FastifyInstance, opts, done) {
       reply.headers({
         "Content-Type": "application/sdp",
         "Location": `${opts.instance.getServerAddress()}${opts.prefix}/whip/${type}/${resource.getId()}`,
+        "ETag": resource.getETag()
       });
+      
       const links = addIceLinks(resource.getIceServers(), request.headers["authorization"])
         .concat(addProtocolExtensions(resource));
       reply.header("Link", links);
@@ -108,11 +110,13 @@ export default function(fastify: FastifyInstance, opts, done) {
   fastify.patch("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     const { resourceId } = request.params; 
     const body = <string>request.body;
-    if (opts.instance.patchResource(resourceId, body)) {
-      reply.code(204).send("OK");
-      return;
+
+    try {
+      const statusCode = await opts.instance.patchResource(resourceId, body, request.headers.etag);
+      reply.code(statusCode).send();
+    } catch {
+      reply.code(500).send();
     }
-    reply.code(405).send("reserved");
   });
 
   fastify.get("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {

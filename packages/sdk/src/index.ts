@@ -34,6 +34,7 @@ export class WHIPClient extends EventEmitter {
 
   private peer: RTCPeerConnection;
   private resource: string;
+  private eTag: string | undefined = undefined;
   private extensions: string[];
   private resourceResolve: (resource: string) => void;
   private iceCredentials: IceCredentials | undefined = undefined;
@@ -139,7 +140,7 @@ export class WHIPClient extends EventEmitter {
 
     const trickleIceSDP = this.makeTrickleIceSdpFragment(candidate);
     const url = await this.getResourceUrl();
-    this.whipProtocol.updateIce(url, trickleIceSDP)
+    this.whipProtocol.updateIce(url, this.eTag, trickleIceSDP)
   }
 
   async onConnectionStateChange(event: Event) {
@@ -202,6 +203,9 @@ export class WHIPClient extends EventEmitter {
     if (response.ok) {
       this.resource = response.headers.get("Location");
       this.log("WHIP Resource", this.resource);
+
+      this.eTag = response.headers.get("ETag");
+      this.log("eTag", this.eTag);
 
       this.extensions = response.headers.get("Link").split(",").map(v => v.trimStart());
       this.log("WHIP Resource Extensions", this.extensions);

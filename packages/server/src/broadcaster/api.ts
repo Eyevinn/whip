@@ -34,6 +34,16 @@ type BroadcasterPostRequest = FastifyRequest<{
 export default function (fastify: FastifyInstance, opts, done) {
   const broadcaster = opts.broadcaster;
 
+  fastify.addContentTypeParser('application/whpp+json', { parseAs: "string" }, (req, body: string, done) => {
+    try {
+      const json = JSON.parse(body);
+      done(null, json);
+    } catch (err) {
+      err.statusCode = 400;
+      done(err, undefined);
+    }
+  })
+
   fastify.options("/channel/:channelId", {}, async (request: BroadcasterPostRequest, reply: FastifyReply) => {
     try {
       reply.headers({

@@ -1,11 +1,12 @@
 import { MediaStream } from "wrtc";
-import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
+import { WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
+import { WRTCWHIPResource } from "../models/WRTCWHIPResource";
 
 interface WRTCBroadcasterOptions {
   channelId?: string;
 }
 
-export class WRTCBroadcaster extends WHIPResource {
+export class WRTCBroadcaster extends WRTCWHIPResource {
   private channelId: string;
 
   constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[], opts?: WRTCBroadcasterOptions) {

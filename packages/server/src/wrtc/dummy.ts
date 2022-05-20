@@ -1,9 +1,10 @@
 import { nonstandard as WRTCNonstandard } from "wrtc";
-import { WHIPResource, WHIPResourceICEServer } from "../models/WHIPResource";
+import { WRTCWHIPResource } from "../models/WRTCWHIPResource";
+import { WHIPResourceICEServer } from "../models/WHIPResource";
 
 const { RTCVideoSink, RTCAudioSink } = WRTCNonstandard;
 
-export class WRTCDummy extends WHIPResource {
+export class WRTCDummy extends WRTCWHIPResource {
   constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
     super(sdpOffer, iceServers);
 

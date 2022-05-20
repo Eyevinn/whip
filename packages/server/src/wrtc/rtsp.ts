@@ -1,5 +1,6 @@
-import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
+import { WRTCWHIPResource } from "../models/WRTCWHIPResource";
 import { MPEGTS, MPEGTSResolution } from "../transform/mpegts";
+import { WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
 
 import ffmpeg from "fluent-ffmpeg";
 
@@ -30,7 +31,7 @@ interface WRTCRTSPOptions {
   resolution: RTSPResolution;
 }
 
-export class WRTCRTSP extends WHIPResource {
+export class WRTCRTSP extends WRTCWHIPResource {
   private rtspServer: string;
   private output;
   private outputResolution: RTSPResolution;

@@ -1,4 +1,5 @@
-import { WHIPResourceICEServer } from "./models/WHIPResource";
+import { WRTCWHIPResource } from "./models/WRTCWHIPResource";
+import { WHIPResourceICEServer, WHIPResource } from "./models/WHIPResource";
 import { WRTCBroadcaster } from "./wrtc/broadcaster";
 import { WRTCDummy } from "./wrtc/dummy";
 import { WRTCRTSP, RTSPResolution } from "./wrtc/rtsp";
@@ -7,7 +8,7 @@ export interface WHIPResourceParams {
   channelId?: string;
 }
 
-export const createWHIPResourceFromType = (type: string, params: WHIPResourceParams, sdpOffer: string, enabledPlugins: string[], iceServers?: WHIPResourceICEServer[]) => {
+export const createWHIPResourceFromType = (type: string, params: WHIPResourceParams, sdpOffer: string, enabledPlugins: string[], iceServers?: WHIPResourceICEServer[]): WHIPResource => {
   if (!enabledPlugins.includes(type)) {
     console.error(`Requested plugin '${type}' that is not enabled`);
     throw new Error(`Requested plugin '${type}' that is not enabled`);

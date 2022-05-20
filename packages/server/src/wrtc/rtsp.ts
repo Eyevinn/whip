@@ -1,4 +1,4 @@
-import { WRTCWHIPResource } from "../models/WRTCWHIPResource";
+import { WRTCWHIPResource } from "./WRTCWHIPResource";
 import { MPEGTS, MPEGTSResolution } from "../transform/mpegts";
 import { WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
 

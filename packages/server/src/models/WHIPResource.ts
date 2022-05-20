@@ -10,7 +10,7 @@ export interface WHIPResourceICEServer {
 
 export interface WHIPResource {
     getProtocolExtensions(): string[];
-    sdpAnswer();
+    sdpAnswer(): Promise<string>;
     assignBroadcaster(broadcaster: Broadcaster);
     getIceServers(): WHIPResourceICEServer[];
     getId(): string;

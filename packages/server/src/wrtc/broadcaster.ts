@@ -1,6 +1,6 @@
 import { MediaStream } from "wrtc";
 import { WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
-import { WRTCWHIPResource } from "../models/WRTCWHIPResource";
+import { WRTCWHIPResource } from "./WRTCWHIPResource";
 
 interface WRTCBroadcasterOptions {
   channelId?: string;

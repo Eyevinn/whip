@@ -1,5 +1,5 @@
-import { WRTCWHIPResource } from "./models/WRTCWHIPResource";
 import { WHIPResourceICEServer, WHIPResource } from "./models/WHIPResource";
+import { SFUBroadcaster } from "./sfu/SFUBroadcaster";
 import { WRTCBroadcaster } from "./wrtc/broadcaster";
 import { WRTCDummy } from "./wrtc/dummy";
 import { WRTCRTSP, RTSPResolution } from "./wrtc/rtsp";
@@ -37,6 +37,8 @@ export const createWHIPResourceFromType = (type: string, params: WHIPResourcePar
         }
       }
       return new WRTCRTSP(sdpOffer, iceServers, opts);
+    case "sfu-broadcaster":
+      return new SFUBroadcaster(sdpOffer, iceServers, params?.channelId);
     default:
       throw new Error(`Failed to create resource, reason: Invalid resource type '${type}'`);
   }

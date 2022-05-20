@@ -1,5 +1,5 @@
 import { nonstandard as WRTCNonstandard } from "wrtc";
-import { WRTCWHIPResource } from "../models/WRTCWHIPResource";
+import { WRTCWHIPResource } from "./WRTCWHIPResource";
 import { WHIPResourceICEServer } from "../models/WHIPResource";
 
 const { RTCVideoSink, RTCAudioSink } = WRTCNonstandard;

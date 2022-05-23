@@ -203,7 +203,8 @@ export class WHIPClient extends EventEmitter {
       this.resource = response.headers.get("Location");
       this.log("WHIP Resource", this.resource);
 
-      this.extensions = response.headers.get("Link").split(",").map(v => v.trimStart());
+      const linkHeader = response.headers.get("Link");
+      this.extensions = linkHeader ? linkHeader.split(",").map(v => v.trimStart()) : [];
       this.log("WHIP Resource Extensions", this.extensions);
 
       if (this.resourceResolve) {

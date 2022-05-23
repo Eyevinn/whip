@@ -38,7 +38,7 @@ export const createWHIPResourceFromType = (type: string, params: WHIPResourcePar
       }
       return new WRTCRTSP(sdpOffer, iceServers, opts);
     case "sfu-broadcaster":
-      return new SFUBroadcaster(sdpOffer, iceServers, params?.channelId);
+      return new SFUBroadcaster(sdpOffer, params?.channelId);
     default:
       throw new Error(`Failed to create resource, reason: Invalid resource type '${type}'`);
   }

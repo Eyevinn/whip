@@ -49,6 +49,9 @@ export class WRTCWHIPResource implements WHIPResource {
     }
   }
 
+  async connect() {
+  }
+
   protected log(...args: any[]) {
     console.log(`[${this.resourceId}]:`, ...args);
   }

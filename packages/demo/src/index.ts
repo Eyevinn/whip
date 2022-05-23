@@ -113,7 +113,9 @@ function updateLikesCount(count) {
 
 function onMessage(data) {
   const json = JSON.parse(data);
-  if (!json.message && !json.message.event) {
+  console.log(`onMessage: ${JSON.stringify(json)}`);
+
+  if (!json.message || !json.message.event) {
     return;
   }
 

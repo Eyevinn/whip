@@ -63,6 +63,7 @@ export default function(fastify: FastifyInstance, opts, done) {
         resource.assignBroadcaster(opts.instance.getBroadcaster());
       }
 
+      await resource.connect();
       const sdpAnswer = await resource.sdpAnswer();
 
       reply.headers({

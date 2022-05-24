@@ -26,11 +26,12 @@ export class WHIPProtocol {
         });
     }
 
-    updateIce(url: string, sdp: string): Promise<Response> {
+    updateIce(url: string, eTag: string, sdp: string): Promise<Response> {
         return fetch(url, {
             method: "PATCH",
             headers: {
-                "Content-Type": "application/trickle-ice-sdpfrag"
+                "Content-Type": "application/trickle-ice-sdpfrag",
+                "ETag": eTag
             },
             body: sdp
         });

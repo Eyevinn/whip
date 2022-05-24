@@ -55,7 +55,7 @@ export class WHIPEndpoint {
       https: httpsServer,
     });
     this.server.register(require("fastify-cors"), {
-      exposedHeaders: ["Location", "Link"],
+      exposedHeaders: ["Location", "ETag", "Link"],
       methods: ["POST", "GET", "OPTIONS", "DELETE", "PATCH"],
       preflightContinue: true,
       strictPreflight: false,
@@ -91,10 +91,10 @@ export class WHIPEndpoint {
     }
   }
 
-  async patchResource(id: string, body: string): Promise<number> {
+  async patchResource(id: string, body: string, eTag:string | undefined): Promise<number> {
     const resource = this.resources[id]; 
     if (resource) {
-      return resource.patch(body);
+      return resource.patch(body, eTag);
     }
     return Promise.resolve(404);
   }

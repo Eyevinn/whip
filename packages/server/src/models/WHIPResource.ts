@@ -15,6 +15,7 @@ export interface WHIPResource {
     assignBroadcaster(broadcaster: Broadcaster);
     getIceServers(): WHIPResourceICEServer[];
     getId(): string;
+    getETag(): string | undefined;
     getType(): string;
     patch(body: string): Promise<number>;
     destroy();

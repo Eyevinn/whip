@@ -17,6 +17,6 @@ export interface WHIPResource {
     getId(): string;
     getETag(): string | undefined;
     getType(): string;
-    patch(body: string): Promise<number>;
+    patch(body: string, eTag?: string): Promise<number>;
     destroy();
 }

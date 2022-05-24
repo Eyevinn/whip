@@ -290,7 +290,7 @@ export class SFUBroadcaster implements WHIPResource {
         return "sfu-broadcaster";
     }
 
-    patch(body: string): Promise<number> {
+    patch(body: string, eTag?: string): Promise<number> {
         return Promise.resolve(405);
     }
 

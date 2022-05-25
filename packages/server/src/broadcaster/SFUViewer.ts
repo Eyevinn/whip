@@ -5,7 +5,7 @@ import { Viewer } from './Viewer'
 import { SmbEndpointDescription } from "../sfu/SMBEndpointDescription";
 import { WHIPResourceMediaStreams } from "../models/WHIPResource";
 import fetch from 'node-fetch';
-import { SessionDescription, write, MediaDescription } from "sdp-transform";
+import { SessionDescription, write, parse } from "sdp-transform";
 
 const CONNECTION_TIMEOUT = 60 * 1000;
 const SMB_URL = 'http://localhost:8080/conferences/';
@@ -18,6 +18,7 @@ export class SFUViewer extends EventEmitter implements Viewer {
     private mediaStreams?: WHIPResourceMediaStreams;
     private nextMid: number = 0;
     private usedMids: string[] = [];
+    private endpointDescription?: SmbEndpointDescription = undefined;
 
     constructor(channelId: string, sfuResourceId: string, mediaStreams?: WHIPResourceMediaStreams) {
         super();
@@ -40,7 +41,7 @@ export class SFUViewer extends EventEmitter implements Viewer {
         return this.viewerId;
     }
 
-    private async allocateChannel(): Promise<SmbEndpointDescription> {
+    private async allocateChannel() {
         const request = {
             "action": "allocate",
             "bundle-transport": {
@@ -73,8 +74,7 @@ export class SFUViewer extends EventEmitter implements Viewer {
             return Promise.reject();
         }
 
-        const endpointDescription = <SmbEndpointDescription>(await response.json());
-        return Promise.resolve(endpointDescription);
+        this.endpointDescription = <SmbEndpointDescription>(await response.json());
     }
 
     async handlePost(stream?: MediaStream): Promise<ViewerOfferResponse> {
@@ -82,12 +82,13 @@ export class SFUViewer extends EventEmitter implements Viewer {
             throw 'MediaStream should be undefined with SFUViewer';
         }
 
-        const endpointDescription = await this.allocateChannel();
-        this.log(`handlePost response: ${JSON.stringify(endpointDescription)}`);
-        let offer = this.createOffer(endpointDescription);
+        await this.allocateChannel();
+        this.log(`handlePost response: ${JSON.stringify(this.endpointDescription)}`);
+        let offer = this.createOffer();
         this.log(JSON.stringify(offer));
         this.log(write(offer));
 
+        this.emit("connect");
         return Promise.resolve({
             offer: write(offer),
             mediaStreams: this.mediaStreams.video.ssrcs.flatMap(element => {
@@ -96,7 +97,7 @@ export class SFUViewer extends EventEmitter implements Viewer {
         });
     }
 
-    private createOffer(endpointDescription: SmbEndpointDescription): SessionDescription {
+    private createOffer(): SessionDescription {
         let offer: SessionDescription = {
             version: 0,
             origin: {
@@ -115,8 +116,8 @@ export class SFUViewer extends EventEmitter implements Viewer {
             media: []
         };
 
-        this.addSFUMids(endpointDescription, offer);
-        this.addIngestMids(endpointDescription, offer);
+        this.addSFUMids(offer);
+        this.addIngestMids(offer);
 
         offer.msidSemantic = {
             semantic: 'WMS',
@@ -130,8 +131,8 @@ export class SFUViewer extends EventEmitter implements Viewer {
         return offer;
     }
 
-    private makeMediaDescription(type: string, endpointDescription: SmbEndpointDescription): any {
-        const transport = endpointDescription["bundle-transport"];
+    private makeMediaDescription(type: string): any {
+        const transport = this.endpointDescription["bundle-transport"];
 
         const result = {
             mid: this.nextMid.toString(),
@@ -182,11 +183,11 @@ export class SFUViewer extends EventEmitter implements Viewer {
         return result;
     }
 
-    private addIngestMids(endpointDescription: SmbEndpointDescription, offer: SessionDescription) {
-        const audio = endpointDescription.audio;
+    private addIngestMids(offer: SessionDescription) {
+        const audio = this.endpointDescription.audio;
         const audioPayloadType = audio["payload-type"];
 
-        let audioDescription = this.makeMediaDescription('audio', endpointDescription);
+        let audioDescription = this.makeMediaDescription('audio');
         audioDescription.payloads = audioPayloadType.id.toString();
         audioDescription.rtp = [{
             payload: audioPayloadType.id,
@@ -211,8 +212,8 @@ export class SFUViewer extends EventEmitter implements Viewer {
         }
         offer.media.push(audioDescription);
 
-        const video = endpointDescription.video;
-        let videoDescription = this.makeMediaDescription('video', endpointDescription);
+        const video = this.endpointDescription.video;
+        let videoDescription = this.makeMediaDescription('video');
         videoDescription.payloads = video["payload-types"]
             .flatMap(element => element.id)
             .join(' ');
@@ -261,11 +262,11 @@ export class SFUViewer extends EventEmitter implements Viewer {
         offer.media.push(videoDescription);
     }
 
-    private addSFUMids(endpointDescription: SmbEndpointDescription, offer: SessionDescription) {
-        const video = endpointDescription.video;
+    private addSFUMids(offer: SessionDescription) {
+        const video = this.endpointDescription.video;
         const videoSsrc = video.ssrcs[0];
 
-        let videoDescription = this.makeMediaDescription('video', endpointDescription);
+        let videoDescription = this.makeMediaDescription('video');
         videoDescription.payloads = video["payload-types"]
             .flatMap(element => element.id)
             .join(' ');
@@ -288,7 +289,7 @@ export class SFUViewer extends EventEmitter implements Viewer {
         ];
         offer.media.push(videoDescription);
 
-        let dataDescription = this.makeMediaDescription('application', endpointDescription);
+        let dataDescription = this.makeMediaDescription('application');
         dataDescription.protocol = 'UDP/DTLS/SCTP';
         dataDescription.payloads = 'webrtc-datachannel';
         dataDescription.sctpmap = {
@@ -300,14 +301,57 @@ export class SFUViewer extends EventEmitter implements Viewer {
     }
 
     async handlePut(request: ViewerAnswerRequest): Promise<void> {
-        return Promise.reject();
+        console.log('handlePut ' + JSON.stringify(request));
+
+        this.endpointDescription.audio.ssrcs = [];
+        this.endpointDescription.video.ssrcs = [];
+        this.endpointDescription.video["ssrc-groups"] = [];
+
+        const parsedAnswer = parse(request.answer);
+        const answerMediaDescription = parsedAnswer.media[0];
+        let transport = this.endpointDescription["bundle-transport"];
+        transport.dtls.type = answerMediaDescription.fingerprint.type;
+        transport.dtls.hash = answerMediaDescription.fingerprint.hash;
+        transport.dtls.setup = answerMediaDescription.setup;
+        transport.ice.ufrag = answerMediaDescription.iceUfrag;
+        transport.ice.pwd = answerMediaDescription.icePwd;
+        transport.ice.candidates = !answerMediaDescription.candidates ? [] : answerMediaDescription.candidates.flatMap(element => {
+            return {
+                'generation': element.generation,
+                'component': element.component,
+                'protocol': element.transport,
+                'port': element.port,
+                'ip': element.ip,
+                'relPort': element.rport,
+                'relAddr': element.raddr,
+                'foundation': element.foundation,
+                'priority': parseInt(element.priority.toString(), 10),
+                'type': element.type,
+                'network': element["network-id"]
+            };
+        });
+        this.endpointDescription["action"] = "configure";
+
+        console.log(JSON.stringify(this.endpointDescription));
+
+        const url = SMB_URL + this.sfuResourceId + '/' + this.viewerId;
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(this.endpointDescription)
+        });
+
+        if (!response.ok) {
+            return Promise.reject();
+        }
     }
 
     async handlePatch(request: ViewerCandidateRequest): Promise<void> {
     }
 
     send(channelLabel: string, message: any) {
-        throw "Data channel sending with SFU viewer not possible";
     }
 
     destroy() {

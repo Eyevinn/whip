@@ -2,7 +2,7 @@ import { RTCPeerConnection } from "wrtc";
 import { v4 as uuidv4 } from "uuid";
 import { Broadcaster } from "../broadcaster";
 import { SessionDescription, parse, write } from 'sdp-transform'
-import { WHIPResource, WHIPResourceICEServer } from "../models/WHIPResource";
+import { WHIPResource, WHIPResourceICEServer, WHIPResourceMediaStreams } from "../models/WHIPResource";
 
 const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 2000;
 
@@ -228,6 +228,18 @@ export class WRTCWHIPResource implements WHIPResource {
 
     return Promise.resolve(204);
   }
+
+  getMediaStreams(): WHIPResourceMediaStreams {
+    return <WHIPResourceMediaStreams>{
+        audio: {
+            ssrcs: []
+        },
+        video: {
+            ssrcs: [],
+            ssrcGroups: []
+        }
+    };
+}
 
   destroy() {
     this.log("Destroy requested and closing peer");

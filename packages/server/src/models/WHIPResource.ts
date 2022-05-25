@@ -8,6 +8,28 @@ export interface WHIPResourceICEServer {
     credential?: string;
 }
 
+export interface WHIPResourceSsrc {
+    ssrc: string;
+    cname?: string;
+    mslabel?: string;
+    label?: string;
+}
+
+export interface WHIPResourceSsrcGroup {
+    semantics: string;
+    ssrcs: string[];
+}
+
+export interface WHIPResourceMediaStreams {
+    audio: {
+        ssrcs: WHIPResourceSsrc[];
+    },
+    video: {
+        ssrcs: WHIPResourceSsrc[];
+        ssrcGroups: WHIPResourceSsrcGroup[];
+    }
+}
+
 export interface WHIPResource {
     connect();
     getProtocolExtensions(): string[];
@@ -18,5 +40,6 @@ export interface WHIPResource {
     getETag(): string | undefined;
     getType(): string;
     patch(body: string, eTag?: string): Promise<number>;
-    destroy();
+    getMediaStreams(): WHIPResourceMediaStreams;
+    destroy(): void;
 }

@@ -1,10 +1,11 @@
-import { RTCPeerConnection, RTCDataChannel, RTCConfiguration } from "wrtc";
+import { RTCPeerConnection, RTCDataChannel } from "wrtc";
 import { v4 as uuidv4 } from "uuid";
 
 import { BroadcasterICEServer } from ".";
 import { EventEmitter } from "events";
 import { ViewerAnswerRequest, ViewerCandidateRequest, ViewerMediaStream, ViewerOfferResponse } from './ViewerRequests'
 import { parse } from 'sdp-transform'
+import { Viewer } from './Viewer'
 
 const ICE_GATHERING_TIMEOUT = process.env.ICE_GATHERING_TIMEOUT ? parseInt(process.env.ICE_GATHERING_TIMEOUT) : 4000;
 const CONNECTION_TIMEOUT = 60 * 1000;
@@ -13,7 +14,7 @@ export interface ViewerOptions {
   iceServers?: BroadcasterICEServer[];
 }
 
-export class Viewer extends EventEmitter {
+export class WRTCViewer extends EventEmitter implements Viewer {
   private channelId: string;
   private viewerId: string;
   private peer: RTCPeerConnection;
@@ -120,7 +121,7 @@ export class Viewer extends EventEmitter {
     this.dataChannels.forEach(channel => channel.close());
   }
 
-  getId() {
+  getId(): string {
     return this.viewerId;
   }
 

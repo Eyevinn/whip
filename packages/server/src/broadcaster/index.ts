@@ -3,8 +3,9 @@ import { MediaStream, RTCDataChannel } from "wrtc";
 import https from "https";
 
 import api from "./api";
-import { Viewer } from "./viewer";
-import { Channel } from "./channel";
+import { Viewer } from "./Viewer"
+import { Channel } from "./Channel";
+import { WHIPResourceMediaStreams } from "../models/WHIPResource"
 
 export interface BroadcasterICEServer {
   urls: string;
@@ -81,12 +82,12 @@ export class Broadcaster {
     this.channels = new Map();
   }
 
-  createChannel(channelId: string, stream: MediaStream) {
+  createChannel(channelId: string, stream?: MediaStream, sfuResourceId?: string, mediaStreams?: WHIPResourceMediaStreams) {
     // Check if channel with channelId already exists
     if (this.channels.get(channelId)) {
       throw new Error(`Channel with Id ${channelId} already exists`);
     }
-    const channel = new Channel(channelId, stream);
+    const channel = new Channel(channelId, stream, sfuResourceId, mediaStreams);
     if (this.preRollMpd) {
       channel.assignPreRollMpd(this.preRollMpd);
     }
@@ -101,10 +102,26 @@ export class Broadcaster {
     channel.assignBackChannel(dataChannel);
   }
 
-  getStreamForChannel(channelId: string): MediaStream {
+  getStreamForChannel(channelId: string): MediaStream | undefined {
     const channel = this.channels.get(channelId);
     if (channel) {
       return channel.getStream();
+    }
+    return undefined;
+  }
+
+  getSFUResourceIdForChannel(channelId: string): string | undefined {
+    const channel = this.channels.get(channelId);
+    if (channel) {
+      return channel.getSFUResourceId();
+    }
+    return undefined;
+  }
+
+  getMediaStreamsForChannel(channelId: string): WHIPResourceMediaStreams | undefined {
+    const channel = this.channels.get(channelId);
+    if (channel) {
+      return channel.getMediaStreams();
     }
     return undefined;
   }

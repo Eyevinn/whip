@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { Viewer } from "./viewer";
+import { WRTCViewer } from "./WRTCViewer";
 import { ViewerAnswerRequest, ViewerCandidateRequest } from './ViewerRequests'
+import { SFUViewer } from "./SFUViewer";
 
 type BroadcasterRequest = FastifyRequest<{
   Params: {
@@ -61,7 +62,8 @@ export default function (fastify: FastifyInstance, opts, done) {
       const channelId = request.params.channelId;
       const iceServers = broadcaster.getIceServers();
 
-      const viewer = new Viewer(channelId, { iceServers: iceServers });
+      //const viewer = new WRTCViewer(channelId, { iceServers: iceServers });
+      const viewer = new SFUViewer(channelId, broadcaster.getSFUResourceIdForChannel(channelId), broadcaster.getMediaStreamsForChannel(channelId));
       viewer.on("connect", () => {
         broadcaster.addViewer(channelId, viewer);
       });
@@ -72,8 +74,8 @@ export default function (fastify: FastifyInstance, opts, done) {
         broadcaster.onMessageFromViewer(channelId, viewer, message);
       });
 
-      const stream = broadcaster.getStreamForChannel(channelId);
-      const responseBody = await viewer.handlePost(stream);
+      //const stream = broadcaster.getStreamForChannel(channelId);
+      const responseBody = await viewer.handlePost(undefined);
       
       reply.code(201)
         .headers({

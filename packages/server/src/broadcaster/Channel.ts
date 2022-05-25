@@ -1,8 +1,8 @@
 import { MediaStream, RTCDataChannel } from "wrtc";
 import { EventEmitter } from "events";
 import { XMLBuilder } from "fast-xml-parser";
-
-import { Viewer } from "./viewer";
+import { Viewer } from './Viewer'
+import { WHIPResourceMediaStreams } from '../models/WHIPResource'
 
 interface BackChannelMessage {
   viewerId?: string;
@@ -15,18 +15,23 @@ interface BroadcastMessage {
 
 export class Channel extends EventEmitter {
   private channelId: string;
-  private mediaStream: MediaStream;
+  private mediaStream?: MediaStream;
   private dataChannel?: RTCDataChannel;
   private viewers: Map<string, Viewer>;
   private mpdXml: string;
   private preroll: string;
+  private sfuResourceId?: string;
+  private mediaStreams?: WHIPResourceMediaStreams;
 
-  constructor(channelId: string, mediaStream: MediaStream) {
+  constructor(channelId: string, mediaStream?: MediaStream, sfuResourceId?: string, mediaStreams?: WHIPResourceMediaStreams) {
     super();
     this.channelId = channelId;
     this.mediaStream = mediaStream;
+    this.sfuResourceId = sfuResourceId;
+    this.mediaStreams = mediaStreams;
     this.viewers = new Map();
     this.mpdXml;
+    this.log(`Create Channel channelId ${channelId}, mediaStream ${mediaStream ? "set": "undefined"}, sfuResourceId ${sfuResourceId}, mediaStreams ${JSON.stringify(mediaStreams)}`);
   }
 
   private log(...args: any[]) {
@@ -92,8 +97,16 @@ export class Channel extends EventEmitter {
     return this.viewers.get(viewerId);
   }
 
-  getStream(): MediaStream {
+  getStream(): MediaStream | undefined {
     return this.mediaStream;
+  }
+
+  getSFUResourceId(): string | undefined {
+    return this.sfuResourceId;
+  }
+
+  getMediaStreams(): WHIPResourceMediaStreams | undefined {
+    return this.mediaStreams;
   }
 
   getId(): string {

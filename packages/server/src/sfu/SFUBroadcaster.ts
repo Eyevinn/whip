@@ -3,19 +3,18 @@ import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX, WHIPResourceMediaStre
 import { parse, SessionDescription, write } from 'sdp-transform'
 import { v4 as uuidv4 } from "uuid";
 import fetch from 'node-fetch';
-import { SmbEndpointDescription } from "./SMBEndpointDescription";
-
-const SMB_URL = 'http://localhost:8080/conferences/';
+import { SmbEndpointDescription, SFUProtocol } from "./SFUProtocol";
 
 export class SFUBroadcaster implements WHIPResource {
     private resourceId: string;
-    private broadcaster: Broadcaster | undefined = undefined;
-    private conferenceId: string | undefined = undefined;
+    private broadcaster?: Broadcaster = undefined;
+    private sfuResourceId?: string = undefined;
     private offer: string;
-    private answer: string | undefined = undefined;
-    private channelId: string | undefined = undefined;
+    private answer?: string = undefined;
+    private channelId?: string = undefined;
     private eTag: string;
     private mediaStreams: WHIPResourceMediaStreams;
+    private sfuProtocol: SFUProtocol = new SFUProtocol();
 
     constructor(sdpOffer: string, channelId?: string) {
         this.resourceId = uuidv4();
@@ -35,80 +34,8 @@ export class SFUBroadcaster implements WHIPResource {
     }
 
     async connect() {
-        await this.setupSfu(this.offer);
-        this.broadcaster.createChannel(this.channelId, undefined, this.conferenceId, this.mediaStreams);
-    }
-
-    private async allocateConference() {
-        const url = SMB_URL;
-        const allocateResponse = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: '{}'
-        });
-
-        if (!allocateResponse.ok) {
-            return;
-        }
-
-        const allocateResponseJson = await allocateResponse.json();
-        this.conferenceId = allocateResponseJson['id'];
-        console.log(`sfuResourceId: ${this.conferenceId}`);
-    }
-
-    private async allocateChannel(): Promise<SmbEndpointDescription> {
-        const request = {
-            "action": "allocate",
-            "bundle-transport": {
-                "ice-controlling": true,
-                "ice": true,
-                "dtls": true
-            },
-            "audio": {
-                "relay-type": "forwarder"
-            },
-            "video": {
-                "relay-type": "forwarder"
-            },
-            "data": {
-            }
-        }
-
-        const url = SMB_URL + this.conferenceId + '/ingest';
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(request)
-        });
-
-        if (!response.ok) {
-            return Promise.reject();
-        }
-
-        const endpointDescription = <SmbEndpointDescription>(await response.json());
-        return Promise.resolve(endpointDescription);
-    }
-
-    private async patchChannel(endpointDescription: SmbEndpointDescription) {
-        const request = endpointDescription;
-        request['action'] = 'configure';
-
-        const url = SMB_URL + this.conferenceId + '/ingest';
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(request)
-        });
-
-        if (!response.ok) {
-            throw 'patchChannel error';
-        }
+        await this.setupSfu();
+        this.broadcaster.createChannel(this.channelId, undefined, this.sfuResourceId, this.mediaStreams);
     }
 
     private createAnswer(endpointDescription: SmbEndpointDescription) {
@@ -120,6 +47,8 @@ export class SFUBroadcaster implements WHIPResource {
         let nextMid = 0;
         let bundleGroupMids = '';
 
+        const transport = endpointDescription['bundle-transport'];
+
         for (let media of parsedSDP.media) {
             media.mid = `${nextMid}`;
             bundleGroupMids = bundleGroupMids === '' ? `${media.mid}` : `${bundleGroupMids} ${media.mid}`
@@ -127,18 +56,17 @@ export class SFUBroadcaster implements WHIPResource {
 
             media.rtcpRsize = undefined;
             media['iceOptions'] = undefined;
-            media.iceUfrag = endpointDescription['bundle-transport'].ice.ufrag;
-            media.icePwd = endpointDescription['bundle-transport'].ice.pwd;
-            media.fingerprint.type = endpointDescription["bundle-transport"].dtls.type;
-            media.fingerprint.hash = endpointDescription["bundle-transport"].dtls.hash;
+            media.iceUfrag = transport.ice.ufrag;
+            media.icePwd = transport.ice.pwd;
+            media.fingerprint.type = transport.dtls.type;
+            media.fingerprint.hash = transport.dtls.hash;
             media.setup = media.setup === 'actpass' ? 'active' : 'actpass';
             media.ssrcGroups = undefined;
             media.ssrcs = undefined;
             media.msid = undefined;
 
-            media.candidates = [];
-            for (let candidate of endpointDescription["bundle-transport"].ice.candidates) {
-                media.candidates.push({
+            media.candidates = transport.ice.candidates.flatMap(candidate => {
+                return {
                     foundation: candidate.foundation,
                     component: candidate.component,
                     transport: candidate.protocol,
@@ -150,8 +78,8 @@ export class SFUBroadcaster implements WHIPResource {
                     rport: candidate.relPort,
                     generation: candidate.generation,
                     'network-id': candidate.network
-                });
-            }
+                };
+            });
 
             if (media.type === 'audio') {
                 media.rtp = media.rtp.filter(rtp => rtp.codec === 'opus');
@@ -196,20 +124,28 @@ export class SFUBroadcaster implements WHIPResource {
         this.answer = write(parsedSDP);
     }
 
-    private async setupSfu(sdpOffer: string) {
-        await this.allocateConference();
-        const endpointDescription = await this.allocateChannel();
-        this.createAnswer(endpointDescription);
+    private async setupSfu() {
+        this.sfuResourceId = await this.sfuProtocol.allocateConference();
 
         const parsedOffer = parse(this.offer);
+        const endpointDescription = await this.sfuProtocol.allocateEndpoint(
+            this.sfuResourceId, 
+            'ingest',
+            parsedOffer.media.find(element => element.type === 'audio') !== undefined,
+            parsedOffer.media.find(element => element.type === 'video') !== undefined,
+            parsedOffer.media.find(element => element.type === 'application') !== undefined);
+
+        this.createAnswer(endpointDescription);
 
         // Add information from the WHIP client offer to the SFU endpoint description
-        endpointDescription["bundle-transport"].dtls.setup = parsedOffer.media[0].setup;
-        endpointDescription["bundle-transport"].dtls.type = parsedOffer.media[0].fingerprint.type;
-        endpointDescription["bundle-transport"].dtls.hash = parsedOffer.media[0].fingerprint.hash;
-        endpointDescription["bundle-transport"].ice.ufrag = parsedOffer.media[0].iceUfrag;
-        endpointDescription["bundle-transport"].ice.pwd = parsedOffer.media[0].icePwd;
-        endpointDescription["bundle-transport"].ice.candidates = [];
+        const transport = endpointDescription['bundle-transport'];
+        const offerMediaDescription = parsedOffer.media[0];
+        transport.dtls.setup = offerMediaDescription.setup;
+        transport.dtls.type = offerMediaDescription.fingerprint.type;
+        transport.dtls.hash = offerMediaDescription.fingerprint.hash;
+        transport.ice.ufrag = offerMediaDescription.iceUfrag;
+        transport.ice.pwd = offerMediaDescription.icePwd;
+        transport.ice.candidates = [];
 
         for (let media of parsedOffer.media) {
             if (media.type === 'audio') {
@@ -222,20 +158,18 @@ export class SFUBroadcaster implements WHIPResource {
                 media.ssrcs.filter(ssrc => ssrc.attribute === 'msid')
                     .forEach(ssrc => endpointDescription.video.ssrcs.push(`${ssrc.id}`));
 
-                endpointDescription.video["ssrc-groups"] = [];
-                for (let mediaSsrcGroup of media.ssrcGroups) {
-                    const ssrcsSplit = mediaSsrcGroup.ssrcs.split(' ');
-
-                    endpointDescription.video["ssrc-groups"].push({
-                        ssrcs: ssrcsSplit,
+                endpointDescription.video["ssrc-groups"] = media.ssrcGroups.flatMap(mediaSsrcGroup => {
+                    return {
+                        ssrcs: mediaSsrcGroup.ssrcs.split(' '),
                         semantics: mediaSsrcGroup.semantics
-                    });
-                }
+                    };
+                });
             }
         }
 
         // Add information from the negotiated answer to the SFU endpoint description
         const parsedAnswer = parse(this.answer);
+
         for (let media of parsedAnswer.media) {
             if (media.type === 'audio') {
                 endpointDescription.audio["payload-type"].id = media.rtp[0].payload;
@@ -247,28 +181,26 @@ export class SFUBroadcaster implements WHIPResource {
             } else if (media.type === 'video') {
                 endpointDescription.video["payload-types"][0].id = media.rtp[0].payload;
                 endpointDescription.video["payload-types"][1].id = media.rtp[1].payload;
-                endpointDescription.video["payload-types"][1].parameters[0].name = 'apt';
-                endpointDescription.video["payload-types"][1].parameters[0].value = `${media.rtp[0].payload}`;
+                endpointDescription.video["payload-types"][1].parameters = { 'apt': media.rtp[0].payload.toString() };
 
-                endpointDescription.video["rtp-hdrexts"] = [];
-                for (let ext of media.ext) {
-                    endpointDescription.video["rtp-hdrexts"].push({ id: ext.value, uri: ext.uri });
-                }
+                endpointDescription.video["rtp-hdrexts"] = media.ext.flatMap(ext => {
+                    return { id: ext.value, uri: ext.uri };
+                });
 
-                let payloadType = endpointDescription.video["payload-types"][0];
-                payloadType["rtcp-fbs"] = [];
-                for (let rtcpFb of media.rtcpFb) {
-                    payloadType["rtcp-fbs"].push({
-                        type: rtcpFb.type,
-                        subtype: rtcpFb.subtype
+                endpointDescription.video["payload-types"].forEach(payloadType => {
+                    const rtcpFbs = media.rtcpFb.filter(element => element.payload === payloadType.id);
+                    payloadType["rtcp-fbs"] = rtcpFbs.flatMap(rtcpFb => {
+                        return {
+                            type: rtcpFb.type, 
+                            subtype: rtcpFb.subtype
+                        };
                     });
-                }
+                });
             }
         }
 
         this.extractMediaStreams(parsedOffer);
-
-        await this.patchChannel(endpointDescription);
+        await this.sfuProtocol.configureEndpoint(this.sfuResourceId, 'ingest', endpointDescription);
     }
 
     // Extract media stream information from the WHIP client offer
@@ -303,28 +235,16 @@ export class SFUBroadcaster implements WHIPResource {
                 mediaStreams.set(ssrcString, resourceSsrc);
             });
 
-            media.ssrcGroups && media.ssrcGroups.forEach(ssrcGroup => {
-                let resourceSsrcGroup = <WHIPResourceSsrcGroup>{
+            this.mediaStreams.video.ssrcGroups = media.ssrcGroups && media.ssrcGroups.flatMap(ssrcGroup => {
+                return {
                     semantics: ssrcGroup.semantics,
-                    ssrcs: []
-                }
-                ssrcGroup.ssrcs.split(' ').forEach(element => resourceSsrcGroup.ssrcs.push(element));
-                this.mediaStreams.video.ssrcGroups.push(resourceSsrcGroup);
-                console.log(`video ssrc group: ${resourceSsrcGroup.semantics} ${JSON.stringify(resourceSsrcGroup.ssrcs)})`);
+                    ssrcs: ssrcGroup.ssrcs.split(' ')
+                };
             });
         }
 
-        for (let key of audioMediaStreams.keys()) {
-            const value = audioMediaStreams.get(key);
-            console.log(`audio ssrc: ${key} ${JSON.stringify(value)})`);
-            this.mediaStreams.audio.ssrcs.push(value);
-        }
-
-        for (let key of videoMediaStreams.keys()) {
-            const value = videoMediaStreams.get(key);
-            console.log(`video ssrc: ${key} ${JSON.stringify(value)})`);
-            this.mediaStreams.video.ssrcs.push(value);
-        }
+        audioMediaStreams.forEach(value => this.mediaStreams.audio.ssrcs.push(value));
+        videoMediaStreams.forEach(value => this.mediaStreams.video.ssrcs.push(value));
     }
 
     getProtocolExtensions(): string[] {

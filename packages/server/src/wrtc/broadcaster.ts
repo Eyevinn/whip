@@ -1,4 +1,4 @@
-import { MediaStream } from "wrtc";
+import { MediaStream } from "wrtc";
 import { WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
 import { WRTCWHIPResource } from "./WRTCWHIPResource";
 

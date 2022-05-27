@@ -2,8 +2,8 @@ import { Broadcaster } from "../broadcaster";
 import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX, WHIPResourceMediaStreams, WHIPResourceSsrc, WHIPResourceSsrcGroup } from "../models/WHIPResource";
 import { parse, SessionDescription, write } from 'sdp-transform'
 import { v4 as uuidv4 } from "uuid";
-import fetch from 'node-fetch';
 import { SmbEndpointDescription, SFUProtocol } from "./SFUProtocol";
+import { clearTimeout } from "timers";
 
 export class SFUBroadcaster implements WHIPResource {
     private resourceId: string;
@@ -15,6 +15,7 @@ export class SFUBroadcaster implements WHIPResource {
     private eTag: string;
     private mediaStreams: WHIPResourceMediaStreams;
     private sfuProtocol: SFUProtocol = new SFUProtocol();
+    private channelHealthTimeout?: NodeJS.Timeout;
 
     constructor(sdpOffer: string, channelId?: string) {
         this.resourceId = uuidv4();
@@ -36,6 +37,27 @@ export class SFUBroadcaster implements WHIPResource {
     async connect() {
         await this.setupSfu();
         this.broadcaster.createChannel(this.channelId, undefined, this.sfuResourceId, this.mediaStreams);
+        this.checkChannelHealth();
+    }
+
+    private async checkChannelHealth() {
+        try {
+            const result = await this.sfuProtocol.getConferences();
+            if (result.find(element => element === this.sfuResourceId) === undefined) {
+                console.log(`SFU resource does not exist, deleting channel ${this.channelId}`);
+                this.broadcaster.removeChannel(this.channelId);
+                return;
+            }
+        } catch (error) {
+            console.log(`SFU not responding, deleting channel ${this.channelId}`);
+            this.broadcaster.removeChannel(this.channelId);
+            return;
+        }
+
+        console.log('Channel SFU resource healthy');
+        this.channelHealthTimeout = setTimeout(() => {
+            this.checkChannelHealth();
+        }, 10000);
     }
 
     private createAnswer(endpointDescription: SmbEndpointDescription) {
@@ -129,7 +151,7 @@ export class SFUBroadcaster implements WHIPResource {
 
         const parsedOffer = parse(this.offer);
         const endpointDescription = await this.sfuProtocol.allocateEndpoint(
-            this.sfuResourceId, 
+            this.sfuResourceId,
             'ingest',
             parsedOffer.media.find(element => element.type === 'audio') !== undefined,
             parsedOffer.media.find(element => element.type === 'video') !== undefined,
@@ -191,7 +213,7 @@ export class SFUBroadcaster implements WHIPResource {
                     const rtcpFbs = media.rtcpFb.filter(element => element.payload === payloadType.id);
                     payloadType["rtcp-fbs"] = rtcpFbs.flatMap(rtcpFb => {
                         return {
-                            type: rtcpFb.type, 
+                            type: rtcpFb.type,
                             subtype: rtcpFb.subtype
                         };
                     });
@@ -217,9 +239,9 @@ export class SFUBroadcaster implements WHIPResource {
             media.ssrcs.forEach(ssrc => {
                 const ssrcString = ssrc.id.toString();
 
-                let resourceSsrc = mediaStreams.has(ssrcString) ? 
-                mediaStreams.get(ssrcString) : <WHIPResourceSsrc>{ssrc: ssrcString};
-                
+                let resourceSsrc = mediaStreams.has(ssrcString) ?
+                    mediaStreams.get(ssrcString) : <WHIPResourceSsrc>{ ssrc: ssrcString };
+
                 switch (ssrc.attribute) {
                     case 'label':
                         resourceSsrc.label = ssrc.value;
@@ -293,5 +315,8 @@ export class SFUBroadcaster implements WHIPResource {
     }
 
     destroy() {
+        if (this.channelHealthTimeout) {
+            clearTimeout(this.channelHealthTimeout);
+        }
     }
 }

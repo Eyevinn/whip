@@ -156,4 +156,20 @@ export class SFUProtocol {
             return Promise.reject();
         }
     }
+
+    async getConferences(): Promise<string[]> {
+        const url = SMB_URL;
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+            }
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+
+        const responseBody = await response.json();
+        return Promise.resolve(responseBody);
+    }
 }

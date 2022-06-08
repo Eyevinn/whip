@@ -1,4 +1,5 @@
-import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
+import { WRTCWHIPResource } from "./WRTCWHIPResource";
+import { WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
 import { MPEGTS, MPEGTSResolution } from "../transform/mpegts";
 
 import ffmpeg from "fluent-ffmpeg";
@@ -9,7 +10,7 @@ interface WRTCRTMPOptions {
   height: number;
 }
 
-export class WRTCRTMP extends WHIPResource {
+export class WRTCRTMP extends WRTCWHIPResource {
   private rtmpUrl: string;
   private width: number;
   private height: number;

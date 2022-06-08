@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.23",
+    "buffer": "^6.0.3",
     "events": "^3.3.0",
     "parcel": "^2.3.2"
   },

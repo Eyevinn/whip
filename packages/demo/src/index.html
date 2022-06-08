@@ -28,6 +28,9 @@
       #channels {
         display: grid;
       }
+      #params {
+        display: grid;
+      }
       #whip-endpoint {
         width: 100%;
       }
@@ -46,11 +49,20 @@
         <img src="./logo-lightmode.png" />
       </picture>
       <h1>WHIP Client SDK Demo</h1>
+      <input id="thisurl" type="text" size="100" readonly></input>
     </header>
     <section>
       <h2>WHIP Endpoint</h2>
       <!-- https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster -->
       <input id="whip-endpoint" type="text" value=""></input>
+    </section>
+    <section>
+      <div id="params">
+        <label for="param-channel-id">Channel Id:</label>
+        <input id="param-channel-id" type="text" value=""></input>
+        <label for="param-b64json">JSON:</label>
+        <textarea id="param-b64json" rows="5" cols="60"></textarea>
+      </div>
     </section>
     <section id="ingest">
       <h2>Ingest</h2>

@@ -9,6 +9,7 @@ type WHIPRequest = FastifyRequest<{
   },
   Querystring: {
     channelId?: string;
+    b64json?: string; // base64 encoded json
   }
 }>
 

@@ -55,7 +55,7 @@ export class Broadcaster {
     this.useHttps = !!(opts?.https);
     this.hostname = opts?.hostname || "localhost";
     this.prefix = "/broadcaster";
-    this.iceServers = opts?.iceServers || [];
+    this.iceServers = opts?.iceServers || [];
     this.tls = opts?.tls;
     this.preRollMpd = opts?.preRollMpd;
 
@@ -70,7 +70,12 @@ export class Broadcaster {
       { level: "info" },
       https: httpsServer, 
     });
-    this.server.register(require("fastify-cors"));
+    this.server.register(require("fastify-cors"), {
+      exposedHeaders: ["Location", "Accept"],
+      methods: ["POST", "GET", "OPTIONS", "PATCH", "PUT"],
+      preflightContinue: true,
+      strictPreflight: false,
+    });
     this.server.register(api, { prefix: this.prefix, broadcaster: this });
 
     this.channels = new Map();
@@ -122,8 +127,8 @@ export class Broadcaster {
 
   getLinkTypes(prefix): LinkTypes {
     return {
-      list: prefix + "eyevinn-wrtc-channel-list",
-      channel: prefix + "eyevinn-wrtc-channel",
+      list: prefix + "whpp-list",
+      channel: prefix + "whpp",
       mpd: "urn:mpeg:dash:schema:mpd:2011",
     }
   }
@@ -140,6 +145,7 @@ export class Broadcaster {
   addViewer(channelId: string, newViewer: Viewer) {
     const channel = this.channels.get(channelId);
     if (!channel) {
+      console.log(`channelId ${channelId} not found`);
       return;
     }
     channel.addViewer(newViewer);
@@ -152,6 +158,15 @@ export class Broadcaster {
     }
     
     channel.removeViewer(viewerToRemove);
+  }
+
+  getViewer(channelId: string, viewerId: string): Viewer|undefined {
+    const channel = this.channels.get(channelId);
+    if (!channel) {
+      return undefined;
+    }
+
+    return channel.getViewer(viewerId);
   }
 
   getViewerCount(channelId: string): number {

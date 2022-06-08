@@ -35,6 +35,7 @@ export class WHIPResource {
   private iceCount: number;
   private dataChannels: RTCDataChannel[];
   private iceCredentials: IceCredentials | undefined = undefined;
+  private eTag: string | undefined = undefined;
 
   constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
     this.sdpOffer = sdpOffer;
@@ -98,6 +99,7 @@ export class WHIPResource {
     }
 
     this.log(`ICE credentials ${JSON.stringify(this.iceCredentials)}`);
+    this.eTag = this.makeETag();
 
     await this.beforeAnswer();
     const answer = await this.pc.createAnswer();
@@ -182,8 +184,19 @@ export class WHIPResource {
     await p;
   }
 
-  getId() {
+  private makeETag(): string | undefined {
+    if (!this.iceCredentials) {
+      return undefined;
+    }
+    return `${this.iceCredentials.ufrag}:${this.iceCredentials.pwd}`;
+  }
+
+  getId(): string {
     return this.resourceId;
+  }
+
+  getETag(): string | undefined {
+    return this.eTag;
   }
 
   getType() {
@@ -198,7 +211,7 @@ export class WHIPResource {
     };
   }
 
-  async patch(body: string): Promise<number> {
+  async patch(body: string, eTag: string | undefined): Promise<number> {
     const parsedSdp = parse(body);
 
     if (!parsedSdp || 
@@ -207,7 +220,12 @@ export class WHIPResource {
       parsedSdp.media[0].candidates.length === 0) {
 
       this.log(`Malformed patch content: ${body}`);
-      return Promise.reject(400);
+      return Promise.resolve(400);
+    }
+
+    if (!eTag || eTag !== this.eTag) {
+      this.log('entity-tag mismatch');
+      return Promise.resolve(412);
     }
 
     const searchResult = body.match(/a=candidate.*\r\n/);

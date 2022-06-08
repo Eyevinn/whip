@@ -1,8 +1,10 @@
-import { RTCPeerConnection, RTCDataChannel } from "wrtc";
+import { RTCPeerConnection, RTCDataChannel, RTCConfiguration } from "wrtc";
 import { v4 as uuidv4 } from "uuid";
 
 import { BroadcasterICEServer } from ".";
 import { EventEmitter } from "events";
+import { ViewerAnswerRequest, ViewerCandidateRequest, ViewerMediaStream, ViewerOfferResponse } from './ViewerRequests'
+import { parse } from 'sdp-transform'
 
 const ICE_GATHERING_TIMEOUT = process.env.ICE_GATHERING_TIMEOUT ? parseInt(process.env.ICE_GATHERING_TIMEOUT) : 4000;
 const CONNECTION_TIMEOUT = 60 * 1000;
@@ -42,7 +44,7 @@ export class Viewer extends EventEmitter {
   private onIceGatheringStateChange(e) {
     this.log("IceGatheringState", this.peer.iceGatheringState);
   }
-  
+
   private onIceConnectionStateChange(e) {
     this.log("IceConnectionState", this.peer.iceConnectionState);
   }
@@ -86,7 +88,7 @@ export class Viewer extends EventEmitter {
     if (this.peer.iceGatheringState === "complete") {
       return;
     }
-  
+
     const p: Promise<void> = new Promise((resolve, reject) => {
       const t = setTimeout(() => {
         this.peer.removeEventListener("icecandidate", onIceCandidateFn);
@@ -122,20 +124,20 @@ export class Viewer extends EventEmitter {
     return this.viewerId;
   }
 
-  async handleOffer(offer: string, stream) {    
-    await this.peer.setRemoteDescription({ 
-      type: "offer", 
-      sdp: offer 
-    });
-
+  async handlePost(stream: MediaStream): Promise<ViewerOfferResponse> {
     for (const track of stream.getTracks()) {
-      this.log(`Added track ${track.kind} from ${this.channelId}`);
+      this.log(`Added local track ${track.kind} from ${this.channelId}`);
       this.peer.addTrack(track, stream);
     }
 
-    const answer = await this.peer.createAnswer();
-    await this.peer.setLocalDescription(answer);
+    const offer = await this.peer.createOffer();
+    await this.peer.setLocalDescription(offer);
     await this.waitUntilIceGatheringStateComplete();
+
+    const viewerResponse: ViewerOfferResponse = {
+      offer: this.peer.localDescription.sdp,
+      mediaStreams: this.getMediaStreams()
+    };
 
     this.connectionTimeout = setTimeout(() => {
       clearTimeout(this.connectionTimeout);
@@ -145,7 +147,37 @@ export class Viewer extends EventEmitter {
     }, CONNECTION_TIMEOUT);
 
     this.emit("connect");
-    return this.peer.localDescription.sdp;
+    return viewerResponse;
+  }
+
+  async handlePut(request: ViewerAnswerRequest): Promise<void> {
+    await this.peer.setRemoteDescription({
+      type: 'answer',
+      sdp: request.answer
+    });
+  }
+
+  async handlePatch(request: ViewerCandidateRequest): Promise<void> {
+    await this.peer.addIceCandidate({ candidate: request.candidate });
+  }
+
+  private getMediaStreams(): ViewerMediaStream[] {
+    const parsedSdp = parse(this.peer.localDescription.sdp);
+    let storedStreamIds = new Set<string>();
+    let mediaStreams: ViewerMediaStream[] = [];
+
+    for (let media of parsedSdp.media) {
+      const msidSplit = media.msid && media.msid.split(' ');
+
+      if (!msidSplit || msidSplit.length !== 2 || storedStreamIds.has(msidSplit[0])) {
+        continue;
+      }
+
+      storedStreamIds.add(msidSplit[0]);
+      mediaStreams.push({ streamId: msidSplit[0] });
+    }
+
+    return mediaStreams;
   }
 
   send(channelLabel: string, message: any) {
@@ -159,7 +191,7 @@ export class Viewer extends EventEmitter {
       this.log(`Channel with label ${channelLabel} is not open, not sending`);
       return;
     }
-    channel.send(JSON.stringify(message));    
+    channel.send(JSON.stringify(message));
   }
 
   destroy() {

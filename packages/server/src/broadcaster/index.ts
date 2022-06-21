@@ -34,6 +34,7 @@ interface BroadcasterOptions {
   prefix?: string;
   iceServers?: BroadcasterICEServer[];
   preRollMpd?: string;
+  useSFU?: boolean;
 }
 
 export class Broadcaster {
@@ -77,7 +78,7 @@ export class Broadcaster {
       preflightContinue: true,
       strictPreflight: false,
     });
-    this.server.register(api, { prefix: this.prefix, broadcaster: this });
+    this.server.register(api, { prefix: this.prefix, broadcaster: this, useSFU: opts?.useSFU });
 
     this.channels = new Map();
   }

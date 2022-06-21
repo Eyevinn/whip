@@ -34,6 +34,7 @@ type BroadcasterPostRequest = FastifyRequest<{
 
 export default function (fastify: FastifyInstance, opts, done) {
   const broadcaster = opts.broadcaster;
+  const useSFU: boolean | undefined = opts?.useSFU;
 
   fastify.addContentTypeParser('application/whpp+json', { parseAs: "string" }, (req, body: string, done) => {
     try {
@@ -62,20 +63,19 @@ export default function (fastify: FastifyInstance, opts, done) {
       const channelId = request.params.channelId;
       const iceServers = broadcaster.getIceServers();
 
-      //const viewer = new WRTCViewer(channelId, { iceServers: iceServers });
-      const viewer = new SFUViewer(channelId, broadcaster.getSFUResourceIdForChannel(channelId), broadcaster.getMediaStreamsForChannel(channelId));
+      const viewer = useSFU ? 
+        new SFUViewer(channelId, broadcaster.getSFUResourceIdForChannel(channelId), broadcaster.getMediaStreamsForChannel(channelId)) : 
+        new WRTCViewer(channelId, { iceServers: iceServers });
+
       viewer.on("connect", () => {
         broadcaster.addViewer(channelId, viewer);
       });
       viewer.on("disconnect", () => {
         broadcaster.removeViewer(channelId, viewer);
       });
-      viewer.on("message", (message) => {
-        broadcaster.onMessageFromViewer(channelId, viewer, message);
-      });
 
-      //const stream = broadcaster.getStreamForChannel(channelId);
-      const responseBody = await viewer.handlePost(undefined);
+      const stream = useSFU ? undefined : broadcaster.getStreamForChannel(channelId);
+      const responseBody = await viewer.handlePost(stream);
       
       reply.code(201)
         .headers({

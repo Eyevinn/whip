@@ -21,7 +21,6 @@ export class WRTCWHIPResource implements WHIPResource {
   private remoteSdp: string;
   private iceServers: WHIPResourceICEServer[];
   private iceCount: number;
-  private dataChannels: RTCDataChannel[];
   private iceCredentials: IceCredentials | undefined = undefined;
   private eTag: string | undefined = undefined;
 
@@ -39,15 +38,6 @@ export class WRTCWHIPResource implements WHIPResource {
     this.pc.onicecandidateerror = e => this.log(`icecandidate=${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
     this.pc.onconnectionstatechange = async (e) => await this.handleConnectionStateChange();
     this.iceCount = 0;
-
-    this.dataChannels = [];
-    this.pc.ondatachannel = (e) => {
-      console.log(`[${this.resourceId}]: datachannel=${e.channel.label}`);
-      if (e.channel.label === "backchannel") {
-        this.ondatachannel(e.channel);
-      }
-      this.dataChannels.push(e.channel);
-    }
   }
 
   async connect() {
@@ -108,10 +98,6 @@ export class WRTCWHIPResource implements WHIPResource {
   }
 
   async ondisconnect(state) {
-
-  }
-
-  async ondatachannel(datachannel) {
 
   }
 
@@ -243,7 +229,6 @@ export class WRTCWHIPResource implements WHIPResource {
 
   destroy() {
     this.log("Destroy requested and closing peer");
-    this.dataChannels.forEach(dc => dc.close());
     this.pc.close();
   }
 }

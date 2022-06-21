@@ -255,13 +255,6 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
-  setupBackChannel() {
-    const channel = this.peer.createDataChannel("backchannel");
-    channel.onmessage = (ev) => {
-      this.emit("message", ev.data);
-    };
-  }
-
   async ingest(mediaStream: MediaStream): Promise<void> {
     if (!this.peer) {
       this.initPeer();

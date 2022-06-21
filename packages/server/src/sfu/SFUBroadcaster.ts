@@ -317,6 +317,7 @@ export class SFUBroadcaster implements WHIPResource {
     destroy() {
         if (this.channelHealthTimeout) {
             clearTimeout(this.channelHealthTimeout);
+            this.channelHealthTimeout = undefined;
         }
     }
 }

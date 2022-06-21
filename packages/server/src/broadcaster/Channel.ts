@@ -1,4 +1,4 @@
-import { MediaStream, RTCDataChannel } from "wrtc";
+import { MediaStream } from "wrtc";
 import { EventEmitter } from "events";
 import { XMLBuilder } from "fast-xml-parser";
 import { Viewer } from './Viewer'
@@ -16,7 +16,6 @@ interface BroadcastMessage {
 export class Channel extends EventEmitter {
   private channelId: string;
   private mediaStream?: MediaStream;
-  private dataChannel?: RTCDataChannel;
   private viewers: Map<string, Viewer>;
   private mpdXml: string;
   private preroll: string;
@@ -38,11 +37,6 @@ export class Channel extends EventEmitter {
     console.log(`[${this.channelId}]`, ...args);
   }
 
-  assignBackChannel(dataChannel: RTCDataChannel) {
-    this.log("Assigning backchannel", dataChannel);
-    this.dataChannel = dataChannel;
-  }
-
   assignPreRollMpd(mpdUrl: string) {
     this.preroll = mpdUrl;
   }
@@ -50,40 +44,10 @@ export class Channel extends EventEmitter {
   addViewer(newViewer: Viewer) {
     this.viewers.set(newViewer.getId(), newViewer);
     this.log(`Add viewer ${newViewer.getId()} to ${this.channelId}, size ${this.viewers.size}`);
-    this.onViewersChange();
   }
 
   removeViewer(viewerToRemove: Viewer) {
     this.viewers.delete(viewerToRemove.getId());
-    this.onViewersChange();
-  }
-
-  onViewersChange() {
-    this.sendMessageOnBackChannel({
-      message: { event: "viewerschange", viewercount: this.viewers.size },
-    });
-    this.broadcastMessage("broadcaster", {
-      message: { event: "viewerschange", viewercount: this.viewers.size },
-    })
-  }
-
-  sendMessageOnBackChannel(message: BackChannelMessage) {
-    if (!this.dataChannel) {
-      this.log(`No backchannel found, not sending`);
-      return;
-    }    
-    if (this.dataChannel.readyState !== "open") {
-      this.log(`Backchannel not ready to receive, not sending`);
-      return;
-    }
-
-    this.dataChannel.send(JSON.stringify(message));
-  }
-
-  broadcastMessage(channelLabel: string, message: BroadcastMessage) {
-    this.viewers.forEach(viewer => {
-      viewer.send(channelLabel, message);
-    });
   }
 
   getViewers(): Viewer[] {
@@ -158,8 +122,5 @@ export class Channel extends EventEmitter {
   }
 
   destroy() {
-    if (this.dataChannel) {
-      this.dataChannel.close();
-    }
   }
 }

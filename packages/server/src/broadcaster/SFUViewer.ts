@@ -308,9 +308,6 @@ export class SFUViewer extends EventEmitter implements Viewer {
     async handlePatch(request: ViewerCandidateRequest): Promise<void> {
     }
 
-    send(channelLabel: string, message: any) {
-    }
-
     destroy() {
     }
 }

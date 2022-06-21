@@ -1,6 +1,6 @@
 import { WHIPResourceICEServer, WHIPResource } from "./models/WHIPResource";
 import { SFUBroadcaster } from "./sfu/SFUBroadcaster";
-import { WRTCBroadcaster } from "./wrtc/broadcaster";
+import { WRTCBroadcaster } from "./wrtc/WRTCBroadcaster";
 import { WRTCDummy } from "./wrtc/dummy";
 import { WRTCRTMP } from "./wrtc/rtmp";
 import { WRTCRTSP, RTSPResolution } from "./wrtc/rtsp";

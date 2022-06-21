@@ -5,7 +5,7 @@ if [ ! -d "SymphonyMediaBridge" ]; then
 fi
 pushd SymphonyMediaBridge
 git fetch -p
-git checkout marcus/dynamic_payload_types
+git checkout master
 git pull
 CC=clang CXX=clang++ cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" .
 CC=clang CXX=clang++ make -j5

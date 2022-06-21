@@ -5,6 +5,5 @@ export interface Viewer {
     handlePost(stream?: MediaStream): Promise<ViewerOfferResponse>;
     handlePut(request: ViewerAnswerRequest): Promise<void>;
     handlePatch(request: ViewerCandidateRequest): Promise<void>;
-    send(channelLabel: string, message: any): void;
     destroy(): void;
 }

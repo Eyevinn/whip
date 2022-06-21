@@ -1,5 +1,5 @@
 import fastify, { FastifyInstance } from "fastify";
-import { MediaStream, RTCDataChannel } from "wrtc";
+import { MediaStream } from "wrtc";
 import https from "https";
 
 import api from "./api";
@@ -92,14 +92,6 @@ export class Broadcaster {
       channel.assignPreRollMpd(this.preRollMpd);
     }
     this.channels.set(channelId, channel);
-  }
-
-  assignBackChannel(channelId: string, dataChannel: RTCDataChannel) {
-    const channel = this.channels.get(channelId);
-    if (!channel) {
-      return;
-    }
-    channel.assignBackChannel(dataChannel);
   }
 
   getStreamForChannel(channelId: string): MediaStream | undefined {
@@ -200,20 +192,6 @@ export class Broadcaster {
 
   getIceServers(): BroadcasterICEServer[]|null {
     return this.iceServers;
-  }
-
-  onMessageFromViewer(channelId: string, viewer: Viewer, message: string) {
-    const channel = this.channels.get(channelId);
-    if (!channel) {
-      return;
-    }
-    const json = JSON.parse(message);
-    console.log(`Received message from viewer ${viewer.getId()}`, json);
-
-    channel.sendMessageOnBackChannel({
-      viewerId: viewer.getId(),
-      message: json,
-    });
   }
 
   listen() {

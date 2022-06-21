@@ -8,5 +8,6 @@
   "ice.tcp.enable": false,
   "defaultLastN": 1,
   "rctl.enable": true,
-  "rctl.debugLog": false
+  "rctl.debugLog": false,
+  "mixerInactivityTimeoutMs": 30000
 }

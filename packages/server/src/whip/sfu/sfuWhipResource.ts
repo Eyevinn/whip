@@ -57,7 +57,6 @@ export class SfuWhipResource implements WhipResource {
       return;
     }
 
-    console.log('Channel SFU resource healthy');
     this.channelHealthTimeout = setTimeout(() => {
       this.checkChannelHealth();
     }, 10000);
@@ -124,8 +123,6 @@ export class SfuWhipResource implements WhipResource {
         const vp8PayloadType = vp8Codec.payload;
 
         const rtxFmtp = media.fmtp.find(fmtp => fmtp.config === `apt=${vp8PayloadType}`);
-        console.log(`rtxFmtp = ${JSON.stringify(rtxFmtp)}`);
-        const vp8RtxCodec = media.rtp.find(rtp => rtp.payload === rtxFmtp.payload);
         const vp8RtxPayloadType = rtxFmtp.payload;
 
         media.rtp = media.rtp.filter(rtp => rtp.payload === vp8PayloadType || rtp.payload === vp8RtxPayloadType);
@@ -138,11 +135,8 @@ export class SfuWhipResource implements WhipResource {
           ext.uri === 'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id');
 
         media.direction = 'recvonly';
-        console.log(`vp8PayloadType = ${vp8PayloadType}`);
-        console.log(JSON.stringify(media.rtcpFb));
         media.rtcpFb = media.rtcpFb.filter(rtcpFb => rtcpFb.payload === vp8PayloadType &&
           (rtcpFb.type === 'goog-remb' || rtcpFb.type === 'nack'));
-        console.log(JSON.stringify(media.rtcpFb));
 
         media.ssrcGroups = undefined;
       }
@@ -160,8 +154,6 @@ export class SfuWhipResource implements WhipResource {
     this.sfuResourceId = await this.smbProtocol.allocateConference();
 
     const parsedOffer = parse(this.offer);
-    console.log(this.offer);
-    console.log(JSON.stringify(parsedOffer));
     const endpointDescription = await this.smbProtocol.allocateEndpoint(
       this.sfuResourceId,
       'ingest',
@@ -170,8 +162,6 @@ export class SfuWhipResource implements WhipResource {
       parsedOffer.media.find(element => element.type === 'application') !== undefined);
 
     this.createAnswer(endpointDescription);
-
-    console.log('1');
 
     // Add information from the WHIP client offer to the SFU endpoint description
     const transport = endpointDescription['bundle-transport'];
@@ -183,18 +173,13 @@ export class SfuWhipResource implements WhipResource {
     transport.ice.pwd = offerMediaDescription.icePwd;
     transport.ice.candidates = [];
 
-    console.log('2');
-
     for (let media of parsedOffer.media) {
       if (media.type === 'audio') {
-        console.log('3 - audio');
         endpointDescription.audio.ssrcs = [];
         media.ssrcs.filter(ssrc => ssrc.attribute === 'msid')
           .forEach(ssrc => endpointDescription.audio.ssrcs.push(`${ssrc.id}`));
 
       } else if (media.type === 'video') {
-        console.log('3 - video');
-
         endpointDescription.video.ssrcs = [];
         media.ssrcs.filter(ssrc => ssrc.attribute === 'msid')
           .forEach(ssrc => endpointDescription.video.ssrcs.push(`${ssrc.id}`));
@@ -208,15 +193,11 @@ export class SfuWhipResource implements WhipResource {
       }
     }
 
-    console.log('4');
-
     // Add information from the negotiated answer to the SFU endpoint description
     const parsedAnswer = parse(this.answer);
-    console.log(JSON.stringify(parsedAnswer));
 
     for (let media of parsedAnswer.media) {
       if (media.type === 'audio') {
-        console.log('5 - audio');
 
         endpointDescription.audio["payload-type"].id = media.rtp[0].payload;
         endpointDescription.audio["rtp-hdrexts"] = [];
@@ -225,7 +206,6 @@ export class SfuWhipResource implements WhipResource {
         }
 
       } else if (media.type === 'video') {
-        console.log('5 - video');
 
         endpointDescription.video["payload-types"][0].id = media.rtp[0].payload;
         endpointDescription.video["payload-types"][1].id = media.rtp[1].payload;
@@ -246,8 +226,6 @@ export class SfuWhipResource implements WhipResource {
         });
       }
     }
-
-    console.log('6');
 
     this.extractMediaStreams(parsedOffer);
     await this.smbProtocol.configureEndpoint(this.sfuResourceId, 'ingest', endpointDescription);

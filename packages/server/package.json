@@ -10,7 +10,8 @@
     "prepare": "npm run build",
     "build": "tsc --project ./",
     "dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node --inspect ./dist/server.js\"",
-    "server": "node ./dist/server.js"
+    "server": "node ./dist/server.js",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'spec/**/*.ts'"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",
   "contributors": [
@@ -23,10 +24,16 @@
     "url": "git+https://github.com/Eyevinn/whip.git"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.1",
     "@types/node": "^17.0.21",
     "@types/sdp-transform": "^2.4.5",
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0",
+    "ts-node": "^10.8.1",
     "tsc-watch": "^4.6.0",
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.2",
+    "ts-mockito": "^2.6.1"
   },
   "dependencies": {
     "fast-xml-parser": "^4.0.7",

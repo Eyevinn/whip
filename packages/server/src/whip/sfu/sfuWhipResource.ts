@@ -15,10 +15,10 @@ export class SfuWhipResource implements WhipResource {
   private channelId?: string = undefined;
   private eTag: string;
   private mediaStreams: MediaStreamsInfo;
-  private smbProtocol: SmbProtocol = new SmbProtocol();
+  private smbProtocol: SmbProtocol;
   private channelHealthTimeout?: NodeJS.Timeout;
 
-  constructor(sdpOffer: string, channelId?: string) {
+  constructor(smbProtocolFactory: () => SmbProtocol, sdpOffer: string, channelId?: string) {
     this.resourceId = uuidv4();
     this.offer = sdpOffer;
     this.channelId = channelId ? channelId : this.getId();
@@ -33,6 +33,8 @@ export class SfuWhipResource implements WhipResource {
         ssrcGroups: []
       }
     };
+
+    this.smbProtocol = smbProtocolFactory();
   }
 
   async connect() {

@@ -246,14 +246,11 @@ export class SfuWhipResource implements WhipResource {
           mediaStreams.get(ssrcString) : <MediaStreamsInfoSsrc>{ ssrc: ssrcString };
 
         switch (ssrc.attribute) {
-          case 'label':
-            resourceSsrc.label = ssrc.value;
-            break;
-          case 'mslabel':
-            resourceSsrc.mslabel = ssrc.value;
-            break;
           case 'cname':
             resourceSsrc.cname = ssrc.value;
+            break;
+          case 'msid':
+            [resourceSsrc.mslabel, resourceSsrc.label] = ssrc.value.split(' ');
             break;
         }
 

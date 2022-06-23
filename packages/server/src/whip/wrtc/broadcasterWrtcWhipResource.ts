@@ -1,14 +1,15 @@
-import { MediaStream } from "wrtc";
-import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
+import { MediaStream } from "wrtc";
+import { WhipResourceIceServer, IANA_PREFIX } from "../whipResource";
+import { WrtcWhipResource } from "./wrtcWhipResource";
 
-interface WRTCBroadcasterOptions {
+interface BroadcasterWrtcWhipResourceOptions {
   channelId?: string;
 }
 
-export class WRTCBroadcaster extends WHIPResource {
+export class BroadcasterWrtcWhipResource extends WrtcWhipResource {
   private channelId: string;
 
-  constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[], opts?: WRTCBroadcasterOptions) {
+  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], opts?: BroadcasterWrtcWhipResourceOptions) {
     super(sdpOffer, iceServers);
     this.channelId = this.getId();
     if (opts?.channelId) {
@@ -40,12 +41,6 @@ export class WRTCBroadcaster extends WHIPResource {
         this.channelId = this.getId();
         this.broadcaster.createChannel(this.channelId, stream);
       }
-    }
-  }
-
-  async ondatachannel(datachannel) {
-    if (datachannel.label === "backchannel") {
-      this.broadcaster.assignBackChannel(this.channelId, datachannel);
     }
   }
 

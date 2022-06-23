@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { Viewer } from "./viewer";
-import { ViewerAnswerRequest, ViewerCandidateRequest } from './ViewerRequests'
+import { WrtcWhppViewer } from "./wrtc/wrtcWhppViewer";
+import { WhppAnswerRequest, WhppCandidateRequest } from './whppRequests'
+import { SfuWhppViewer } from "./sfu/sfuWhppViewer";
 
 type BroadcasterRequest = FastifyRequest<{
   Params: {
@@ -13,7 +14,7 @@ type BroadcasterPutRequest = FastifyRequest<{
     channelId: string,
     viewerId: string
   },
-  Body: ViewerAnswerRequest;
+  Body: WhppAnswerRequest;
 }>
 
 type BroadcasterPatchRequest = FastifyRequest<{
@@ -21,7 +22,7 @@ type BroadcasterPatchRequest = FastifyRequest<{
     channelId: string,
     viewerId: string
   },
-  Body: ViewerAnswerRequest;
+  Body: WhppAnswerRequest;
 }>
 
 type BroadcasterPostRequest = FastifyRequest<{
@@ -33,6 +34,7 @@ type BroadcasterPostRequest = FastifyRequest<{
 
 export default function (fastify: FastifyInstance, opts, done) {
   const broadcaster = opts.broadcaster;
+  const useSFU: boolean | undefined = opts?.useSFU;
 
   fastify.addContentTypeParser('application/whpp+json', { parseAs: "string" }, (req, body: string, done) => {
     try {
@@ -61,18 +63,18 @@ export default function (fastify: FastifyInstance, opts, done) {
       const channelId = request.params.channelId;
       const iceServers = broadcaster.getIceServers();
 
-      const viewer = new Viewer(channelId, { iceServers: iceServers });
+      const viewer = useSFU ? 
+        new SfuWhppViewer(channelId, broadcaster.getSFUResourceIdForChannel(channelId), broadcaster.getMediaStreamsForChannel(channelId)) : 
+        new WrtcWhppViewer(channelId, { iceServers: iceServers });
+
       viewer.on("connect", () => {
         broadcaster.addViewer(channelId, viewer);
       });
       viewer.on("disconnect", () => {
         broadcaster.removeViewer(channelId, viewer);
       });
-      viewer.on("message", (message) => {
-        broadcaster.onMessageFromViewer(channelId, viewer, message);
-      });
 
-      const stream = broadcaster.getStreamForChannel(channelId);
+      const stream = useSFU ? undefined : broadcaster.getStreamForChannel(channelId);
       const responseBody = await viewer.handlePost(stream);
       
       reply.code(201)

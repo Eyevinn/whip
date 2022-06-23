@@ -1,8 +1,6 @@
 import { WHIPClient, WHIPClientOptions } from "../../sdk/src/index";
 import { getIceServers } from "./util";
 
-let likesCount = 0;
-
 function createWatchLink(channel) {
   const link = document.createElement("a");
   link.href = `watch.html?locator=${encodeURIComponent(channel.resource)}`;
@@ -96,42 +94,6 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   resources.appendChild(await createClientItem(client));
 
   updateChannelList(await getChannelUrl(client));
-  likesCount = 0;
-}
-
-function updateViewerCount(count) {  
-  const viewers =
-    document.querySelector<HTMLSpanElement>("#viewers");
-  viewers.innerHTML = `${count} viewer${count > 1 ? "s" : ""}`;
-}
-
-function updateLikesCount(count) {
-  const likes =
-    document.querySelector<HTMLSpanElement>("#likes");
-  likes.innerHTML = `${count} likes`;
-}
-
-function onMessage(data) {
-  const json = JSON.parse(data);
-  if (!json.message && !json.message.event) {
-    return;
-  }
-
-  console.log(json.message);
-
-  switch (json.message.event) {
-    case "viewerschange":
-      const viewers = json.message.viewercount;
-      updateViewerCount(viewers);
-      break;
-    case "reaction":
-      const reaction = json.message.reaction;
-      if (reaction === "like") {
-        likesCount++;
-        updateLikesCount(likesCount);
-      }
-      break;
-  }
 }
 
 async function createClient(url: string, iceConfigRemote: boolean, opts: WHIPClientOptions) {
@@ -142,9 +104,6 @@ async function createClient(url: string, iceConfigRemote: boolean, opts: WHIPCli
   if (iceConfigRemote) {
     await client.setIceServersFromEndpoint();
   }
-
-  client.setupBackChannel();
-  client.on("message", onMessage);
 
   return client;
 }
@@ -163,10 +122,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   const paramB64Json =
     document.querySelector<HTMLInputElement>("#param-b64json");
 
+  const broadcasterType = process.env.USE_SFU && process.env.USE_SFU === 'true' ? 'sfu-broadcaster' : 'broadcaster';
+
   let authkey;
   if (process.env.NODE_ENV === "development") {
     const protocol = process.env.TLS_TERMINATION_ENABLED ? "https" : "http";
-    input.value = `${protocol}://${window.location.hostname}:8000/api/v1/whip/broadcaster`;
+    input.value = `${protocol}://${window.location.hostname}:8000/api/v1/whip/` + broadcasterType;
     authkey = "devkey";
   } else if (process.env.NODE_ENV === "awsdev") {
     input.value = "https://whip.dev.eyevinn.technology/api/v1/whip/broadcaster";

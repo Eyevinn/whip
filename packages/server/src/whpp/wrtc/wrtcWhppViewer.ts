@@ -1,24 +1,24 @@
-import { RTCPeerConnection, RTCDataChannel, RTCConfiguration } from "wrtc";
+import { RTCPeerConnection } from "wrtc";
 import { v4 as uuidv4 } from "uuid";
 
-import { BroadcasterICEServer } from ".";
+import { BroadcasterIceServer } from "../../broadcaster";
 import { EventEmitter } from "events";
-import { ViewerAnswerRequest, ViewerCandidateRequest, ViewerMediaStream, ViewerOfferResponse } from './ViewerRequests'
+import { WhppAnswerRequest, WhppCandidateRequest, WhppMediaStream, WhppOfferResponse } from '../whppRequests'
 import { parse } from 'sdp-transform'
+import { WhppViewer } from '../whppViewer'
 
 const ICE_GATHERING_TIMEOUT = process.env.ICE_GATHERING_TIMEOUT ? parseInt(process.env.ICE_GATHERING_TIMEOUT) : 4000;
 const CONNECTION_TIMEOUT = 60 * 1000;
 
 export interface ViewerOptions {
-  iceServers?: BroadcasterICEServer[];
+  iceServers?: BroadcasterIceServer[];
 }
 
-export class Viewer extends EventEmitter {
+export class WrtcWhppViewer extends EventEmitter implements WhppViewer {
   private channelId: string;
   private viewerId: string;
   private peer: RTCPeerConnection;
   private connectionTimeout: any;
-  private dataChannels: RTCDataChannel[];
 
   constructor(channelId: string, opts) {
     super();
@@ -30,15 +30,11 @@ export class Viewer extends EventEmitter {
       iceServers: opts.iceServers,
     });
 
-    this.dataChannels = <RTCDataChannel>[];
-
     this.peer.onicegatheringstatechange = this.onIceGatheringStateChange.bind(this);
     this.peer.oniceconnectionstatechange = this.onIceConnectionStateChange.bind(this);
     this.peer.onicecandidateerror = this.onIceCandidateError.bind(this);
 
     this.peer.onconnectionstatechange = this.onConnectionStateChange.bind(this);
-
-    this.peer.ondatachannel = this.onEventDataChannel.bind(this);
   }
 
   private onIceGatheringStateChange(e) {
@@ -70,18 +66,6 @@ export class Viewer extends EventEmitter {
     } else if (this.peer.connectionState === "closed") {
 
     }
-  }
-
-  private onEventDataChannel(e) {
-    this.log(`Event data channel established ${e.channel.label}`);
-    const channel = e.channel;
-    channel.onmessage = this.onEventDataChannelMessage.bind(this);
-    this.dataChannels.push(channel);
-  }
-
-  private onEventDataChannelMessage(e) {
-    this.log(`Received message from viewer on channel`, e.data);
-    this.emit("message", e.data);
   }
 
   private async waitUntilIceGatheringStateComplete(): Promise<void> {
@@ -116,15 +100,11 @@ export class Viewer extends EventEmitter {
     console.log(`SFU ${this.viewerId}`, ...args);
   }
 
-  private closeDataChannels() {
-    this.dataChannels.forEach(channel => channel.close());
-  }
-
-  getId() {
+  getId(): string {
     return this.viewerId;
   }
 
-  async handlePost(stream: MediaStream): Promise<ViewerOfferResponse> {
+  async handlePost(stream: MediaStream): Promise<WhppOfferResponse> {
     for (const track of stream.getTracks()) {
       this.log(`Added local track ${track.kind} from ${this.channelId}`);
       this.peer.addTrack(track, stream);
@@ -134,7 +114,7 @@ export class Viewer extends EventEmitter {
     await this.peer.setLocalDescription(offer);
     await this.waitUntilIceGatheringStateComplete();
 
-    const viewerResponse: ViewerOfferResponse = {
+    const viewerResponse: WhppOfferResponse = {
       offer: this.peer.localDescription.sdp,
       mediaStreams: this.getMediaStreams()
     };
@@ -142,7 +122,6 @@ export class Viewer extends EventEmitter {
     this.connectionTimeout = setTimeout(() => {
       clearTimeout(this.connectionTimeout);
       this.log("Connection timeout");
-      this.closeDataChannels();
       this.peer.close();
     }, CONNECTION_TIMEOUT);
 
@@ -150,21 +129,21 @@ export class Viewer extends EventEmitter {
     return viewerResponse;
   }
 
-  async handlePut(request: ViewerAnswerRequest): Promise<void> {
+  async handlePut(request: WhppAnswerRequest): Promise<void> {
     await this.peer.setRemoteDescription({
       type: 'answer',
       sdp: request.answer
     });
   }
 
-  async handlePatch(request: ViewerCandidateRequest): Promise<void> {
+  async handlePatch(request: WhppCandidateRequest): Promise<void> {
     await this.peer.addIceCandidate({ candidate: request.candidate });
   }
 
-  private getMediaStreams(): ViewerMediaStream[] {
+  private getMediaStreams(): WhppMediaStream[] {
     const parsedSdp = parse(this.peer.localDescription.sdp);
     let storedStreamIds = new Set<string>();
-    let mediaStreams: ViewerMediaStream[] = [];
+    let mediaStreams: WhppMediaStream[] = [];
 
     for (let media of parsedSdp.media) {
       const msidSplit = media.msid && media.msid.split(' ');
@@ -180,25 +159,9 @@ export class Viewer extends EventEmitter {
     return mediaStreams;
   }
 
-  send(channelLabel: string, message: any) {
-    const channel = this.dataChannels.find(ch => ch.label === channelLabel);
-    if (!channel) {
-      this.log(`No channel with label ${channelLabel} found, not sending`);
-      return;
-    }
-
-    if (channel.readyState !== "open") {
-      this.log(`Channel with label ${channelLabel} is not open, not sending`);
-      return;
-    }
-    channel.send(JSON.stringify(message));
-  }
-
   destroy() {
     this.log("Remove tracks from senders");
     this.peer.getSenders().map(sender => this.peer.removeTrack(sender));
-    this.log("Close data channels");
-    this.closeDataChannels();
     this.peer.close();
   }
 }

@@ -1,21 +1,22 @@
-import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
-import { MPEGTS, MPEGTSResolution } from "../transform/mpegts";
+import { WrtcWhipResource } from "./wrtcWhipResource";
+import { WhipResourceIceServer, IANA_PREFIX } from "../whipResource";
+import { MPEGTS, MPEGTSResolution } from "../../transform/mpegts";
 
 import ffmpeg from "fluent-ffmpeg";
 
-interface WRTCRTMPOptions {
+interface RtmpWrtcWhipResourceOptions {
   rtmpUrl: string;
   width: number;
   height: number;
 }
 
-export class WRTCRTMP extends WHIPResource {
+export class RtmpWrtcWhipResource extends WrtcWhipResource {
   private rtmpUrl: string;
   private width: number;
   private height: number;
   private output;
 
-  constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[], opts?: WRTCRTMPOptions) {
+  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], opts?: RtmpWrtcWhipResourceOptions) {
     super(sdpOffer, iceServers);
     this.rtmpUrl = opts.rtmpUrl;
     this.width = opts.width;

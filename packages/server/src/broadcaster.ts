@@ -1,12 +1,13 @@
 import fastify, { FastifyInstance } from "fastify";
-import { MediaStream, RTCDataChannel } from "wrtc";
+import { MediaStream } from "wrtc";
 import https from "https";
 
-import api from "./api";
-import { Viewer } from "./viewer";
+import api from "./whpp/whppFastifyApi";
+import { WhppViewer } from "./whpp/whppViewer"
 import { Channel } from "./channel";
+import { MediaStreamsInfo } from "./mediaStreamsInfo"
 
-export interface BroadcasterICEServer {
+export interface BroadcasterIceServer {
   urls: string;
   username?: string;
   credential?: string;
@@ -31,8 +32,9 @@ interface BroadcasterOptions {
   https?: boolean;
   tls?: TLSOptions;
   prefix?: string;
-  iceServers?: BroadcasterICEServer[];
+  iceServers?: BroadcasterIceServer[];
   preRollMpd?: string;
+  useSFU?: boolean;
 }
 
 export class Broadcaster {
@@ -45,7 +47,7 @@ export class Broadcaster {
   private useHttps: boolean;
   private tls?: TLSOptions;
   private prefix: string;
-  private iceServers?: BroadcasterICEServer[];
+  private iceServers?: BroadcasterIceServer[];
   private preRollMpd?: string;
 
   constructor(opts?: BroadcasterOptions) {
@@ -76,35 +78,43 @@ export class Broadcaster {
       preflightContinue: true,
       strictPreflight: false,
     });
-    this.server.register(api, { prefix: this.prefix, broadcaster: this });
+    this.server.register(api, { prefix: this.prefix, broadcaster: this, useSFU: opts?.useSFU });
 
     this.channels = new Map();
   }
 
-  createChannel(channelId: string, stream: MediaStream) {
+  createChannel(channelId: string, stream?: MediaStream, sfuResourceId?: string, mediaStreams?: MediaStreamsInfo) {
     // Check if channel with channelId already exists
     if (this.channels.get(channelId)) {
       throw new Error(`Channel with Id ${channelId} already exists`);
     }
-    const channel = new Channel(channelId, stream);
+    const channel = new Channel(channelId, stream, sfuResourceId, mediaStreams);
     if (this.preRollMpd) {
       channel.assignPreRollMpd(this.preRollMpd);
     }
     this.channels.set(channelId, channel);
   }
 
-  assignBackChannel(channelId: string, dataChannel: RTCDataChannel) {
-    const channel = this.channels.get(channelId);
-    if (!channel) {
-      return;
-    }
-    channel.assignBackChannel(dataChannel);
-  }
-
-  getStreamForChannel(channelId: string): MediaStream {
+  getStreamForChannel(channelId: string): MediaStream | undefined {
     const channel = this.channels.get(channelId);
     if (channel) {
       return channel.getStream();
+    }
+    return undefined;
+  }
+
+  getSFUResourceIdForChannel(channelId: string): string | undefined {
+    const channel = this.channels.get(channelId);
+    if (channel) {
+      return channel.getSFUResourceId();
+    }
+    return undefined;
+  }
+
+  getMediaStreamsForChannel(channelId: string): MediaStreamsInfo | undefined {
+    const channel = this.channels.get(channelId);
+    if (channel) {
+      return channel.getMediaStreams();
     }
     return undefined;
   }
@@ -142,7 +152,7 @@ export class Broadcaster {
     return channel.generateMpdXml(`${this.getBaseUrl()}/channel/${channelId}`, rel);
   }
 
-  addViewer(channelId: string, newViewer: Viewer) {
+  addViewer(channelId: string, newViewer: WhppViewer) {
     const channel = this.channels.get(channelId);
     if (!channel) {
       console.log(`channelId ${channelId} not found`);
@@ -151,7 +161,7 @@ export class Broadcaster {
     channel.addViewer(newViewer);
   }
 
-  removeViewer(channelId: string, viewerToRemove: Viewer) {
+  removeViewer(channelId: string, viewerToRemove: WhppViewer) {
     const channel = this.channels.get(channelId);
     if (!channel) {
       return;
@@ -160,7 +170,7 @@ export class Broadcaster {
     channel.removeViewer(viewerToRemove);
   }
 
-  getViewer(channelId: string, viewerId: string): Viewer|undefined {
+  getViewer(channelId: string, viewerId: string): WhppViewer|undefined {
     const channel = this.channels.get(channelId);
     if (!channel) {
       return undefined;
@@ -181,22 +191,8 @@ export class Broadcaster {
     return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.extPort + this.prefix;
   }
 
-  getIceServers(): BroadcasterICEServer[]|null {
+  getIceServers(): BroadcasterIceServer[]|null {
     return this.iceServers;
-  }
-
-  onMessageFromViewer(channelId: string, viewer: Viewer, message: string) {
-    const channel = this.channels.get(channelId);
-    if (!channel) {
-      return;
-    }
-    const json = JSON.parse(message);
-    console.log(`Received message from viewer ${viewer.getId()}`, json);
-
-    channel.sendMessageOnBackChannel({
-      viewerId: viewer.getId(),
-      message: json,
-    });
   }
 
   listen() {

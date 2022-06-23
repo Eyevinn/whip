@@ -22,21 +22,11 @@ export async function watch(channelUrl, video) {
     const player = new WebRTCPlayer({ 
       video: video, 
       type: adapterType, 
-      iceServers: getIceServers(), 
-      createDataChannels: [ "reactions", "broadcaster" ],
+      iceServers: getIceServers()
     });
     await player.load(new URL(channelUrl));
     return player;
   }
-}
-
-export async function getViewerCount(channelUrl): Promise<number> {
-  const response = await fetch(channelUrl);
-  if (response.ok) {
-    const json = await response.json();
-    return json.viewers;
-  }
-  return -1;
 }
 
 export function getIceServers(): WHIPClientIceServer[] {

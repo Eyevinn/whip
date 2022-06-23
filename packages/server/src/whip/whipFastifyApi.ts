@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { createWHIPResourceFromType, WHIPResourceParams } from "./factory";
-import { WHIPResource, WHIPResourceICEServer } from "./models/WHIPResource";
+import { createWHIPResourceFromType, WHIPResourceParams } from "./whipResourceFactory";
+import { WhipResource, WhipResourceIceServer } from "./whipResource";
 
 type WHIPRequest = FastifyRequest<{ 
   Params: { 
@@ -16,7 +16,7 @@ type WHIPRequest = FastifyRequest<{
 export default function(fastify: FastifyInstance, opts, done) {
   const API_KEY = process.env.NODE_ENV === "development" ? "devkey" : process.env.API_KEY;
 
-  const addIceLinks = (iceServers: WHIPResourceICEServer[], auth): string[] => {
+  const addIceLinks = (iceServers: WhipResourceIceServer[], auth): string[] => {
     if (API_KEY && iceServers.length > 0 && auth === API_KEY) {
       // Only include ICE server config when provided authorization key is correct
       let iceLinks = [];
@@ -36,7 +36,7 @@ export default function(fastify: FastifyInstance, opts, done) {
     return [];
   };
 
-  const addProtocolExtensions = (resource: WHIPResource): string[] => {
+  const addProtocolExtensions = (resource: WhipResource): string[] => {
     let extensions = resource.getProtocolExtensions();
     return extensions;
   };
@@ -64,6 +64,7 @@ export default function(fastify: FastifyInstance, opts, done) {
         resource.assignBroadcaster(opts.instance.getBroadcaster());
       }
 
+      await resource.connect();
       const sdpAnswer = await resource.sdpAnswer();
 
       reply.headers({

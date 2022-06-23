@@ -1,29 +1,18 @@
 import { RTCPeerConnection } from "wrtc";
 import { v4 as uuidv4 } from "uuid";
-import { Broadcaster } from "../broadcaster";
-import { SessionDescription, parse, write } from 'sdp-transform'
+import { Broadcaster } from "../../broadcaster";
+import { SessionDescription, parse } from 'sdp-transform'
+import { WhipResource, WhipResourceIceServer } from "../whipResource";
+import { MediaStreamsInfo } from '../../mediaStreamsInfo'
 
 const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 2000;
-
-export const IANA_PREFIX = "urn:ietf:params:whip:";
-
-// Abstract base class
-
-export interface WHIPResourceICEServer {
-  urls: string;
-  username?: string;
-  credential?: string;
-}
 
 interface IceCredentials {
   ufrag: string;
   pwd: string
 }
 
-// WebRTC signalling workflow
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
-
-export class WHIPResource {
+export class WrtcWhipResource implements WhipResource {
   protected sdpOffer: string;
   protected pc: RTCPeerConnection;
   protected broadcaster: Broadcaster;
@@ -31,13 +20,12 @@ export class WHIPResource {
   private resourceId: string;
   private localSdp: string;
   private remoteSdp: string;
-  private iceServers: WHIPResourceICEServer[];
+  private iceServers: WhipResourceIceServer[];
   private iceCount: number;
-  private dataChannels: RTCDataChannel[];
   private iceCredentials: IceCredentials | undefined = undefined;
   private eTag: string | undefined = undefined;
 
-  constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
+  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[]) {
     this.sdpOffer = sdpOffer;
     this.iceServers = iceServers || [];
     this.pc = new RTCPeerConnection({
@@ -51,15 +39,9 @@ export class WHIPResource {
     this.pc.onicecandidateerror = e => this.log(`icecandidate=${e.url} returned an error with code ${e.errorCode}: ${e.errorText}`);
     this.pc.onconnectionstatechange = async (e) => await this.handleConnectionStateChange();
     this.iceCount = 0;
+  }
 
-    this.dataChannels = [];
-    this.pc.ondatachannel = (e) => {
-      console.log(`[${this.resourceId}]: datachannel=${e.channel.label}`);
-      if (e.channel.label === "backchannel") {
-        this.ondatachannel(e.channel);
-      }
-      this.dataChannels.push(e.channel);
-    }
+  async connect() {
   }
 
   protected log(...args: any[]) {
@@ -72,7 +54,7 @@ export class WHIPResource {
 
   async beforeAnswer() { }
 
-  async sdpAnswer() {
+  async sdpAnswer(): Promise<string> {
     this.log("Received offer from sender");
 
     await this.pc.setRemoteDescription({
@@ -120,15 +102,11 @@ export class WHIPResource {
 
   }
 
-  async ondatachannel(datachannel) {
-
-  }
-
   assignBroadcaster(broadcaster: Broadcaster) {
     this.broadcaster = broadcaster;
   }
 
-  getIceServers(): WHIPResourceICEServer[] {
+  getIceServers(): WhipResourceIceServer[] {
     return this.iceServers;
   }
 
@@ -191,7 +169,7 @@ export class WHIPResource {
     return `${this.iceCredentials.ufrag}:${this.iceCredentials.pwd}`;
   }
 
-  getId(): string {
+  getId() {
     return this.resourceId;
   }
 
@@ -211,12 +189,12 @@ export class WHIPResource {
     };
   }
 
-  async patch(body: string, eTag: string | undefined): Promise<number> {
+  async patch(body: string, eTag?: string): Promise<number> {
     const parsedSdp = parse(body);
 
-    if (!parsedSdp || 
-      parsedSdp.media.length === 0 || 
-      !parsedSdp.media[0].candidates || 
+    if (!parsedSdp ||
+      parsedSdp.media.length === 0 ||
+      !parsedSdp.media[0].candidates ||
       parsedSdp.media[0].candidates.length === 0) {
 
       this.log(`Malformed patch content: ${body}`);
@@ -232,15 +210,26 @@ export class WHIPResource {
     if (searchResult.length === 1) {
       const candidateString = searchResult[0];
       this.log(`Got remote ICE candidate ${candidateString}`);
-      await this.pc.addIceCandidate({candidate: candidateString});
+      await this.pc.addIceCandidate({ candidate: candidateString });
     }
 
     return Promise.resolve(204);
   }
 
+  getMediaStreams(): MediaStreamsInfo {
+    return {
+      audio: {
+        ssrcs: []
+      },
+      video: {
+        ssrcs: [],
+        ssrcGroups: []
+      }
+    };
+  }
+
   destroy() {
     this.log("Destroy requested and closing peer");
-    this.dataChannels.forEach(dc => dc.close());
     this.pc.close();
   }
 }

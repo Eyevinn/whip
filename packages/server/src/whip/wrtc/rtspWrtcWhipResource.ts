@@ -1,5 +1,6 @@
-import { WHIPResource, WHIPResourceICEServer, IANA_PREFIX } from "../models/WHIPResource";
-import { MPEGTS, MPEGTSResolution } from "../transform/mpegts";
+import { WrtcWhipResource } from "./wrtcWhipResource";
+import { MPEGTS, MPEGTSResolution } from "../../transform/mpegts";
+import { WhipResourceIceServer, IANA_PREFIX } from "../whipResource";
 
 import ffmpeg from "fluent-ffmpeg";
 
@@ -25,17 +26,17 @@ export class RTSPResolution {
   }
 }
 
-interface WRTCRTSPOptions {
+interface RtspWrtcWhipResourceOptions {
   server: string;
   resolution: RTSPResolution;
 }
 
-export class WRTCRTSP extends WHIPResource {
+export class RtspWrtcWhipResource extends WrtcWhipResource {
   private rtspServer: string;
   private output;
   private outputResolution: RTSPResolution;
 
-  constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[], opts?: WRTCRTSPOptions) {
+  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], opts?: RtspWrtcWhipResourceOptions) {
     super(sdpOffer, iceServers);
     this.rtspServer = "rtsp://127.0.0.1:8554";
     this.outputResolution = new RTSPResolution(960, 540);

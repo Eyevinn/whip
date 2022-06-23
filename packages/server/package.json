@@ -33,7 +33,7 @@
     "fastify": "^3.27.4",
     "fastify-cors": "^6.0.3",
     "fluent-ffmpeg": "^2.1.2",
-    "node-fetch": "2.6.5",
+    "node-fetch": "^2.6.5",
     "node-pre-gyp": "^0.17.0",
     "sdp-transform": "^2.14.1",
     "uuid": "^8.3.2",

@@ -207,7 +207,8 @@ export class WHIPClient extends EventEmitter {
       this.eTag = response.headers.get("ETag");
       this.log("eTag", this.eTag);
 
-      this.extensions = response.headers.get("Link").split(",").map(v => v.trimStart());
+      const linkHeader = response.headers.get("Link");
+      this.extensions = linkHeader ? linkHeader.split(",").map(v => v.trimStart()) : [];
       this.log("WHIP Resource Extensions", this.extensions);
 
       if (this.resourceResolve) {
@@ -252,13 +253,6 @@ export class WHIPClient extends EventEmitter {
     } else {
       this.error("No authkey is provided so cannot fetch ICE config from endpoint.");
     }
-  }
-
-  setupBackChannel() {
-    const channel = this.peer.createDataChannel("backchannel");
-    channel.onmessage = (ev) => {
-      this.emit("message", ev.data);
-    };
   }
 
   async ingest(mediaStream: MediaStream): Promise<void> {

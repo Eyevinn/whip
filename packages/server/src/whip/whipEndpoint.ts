@@ -4,8 +4,6 @@ import { WhipResource, WhipResourceIceServer } from "./whipResource";
 import api from "./whipFastifyApi";
 import { Broadcaster } from "../broadcaster";
 
-export { Broadcaster };
-
 interface TLSOptions {
   key: string;
   cert: string;

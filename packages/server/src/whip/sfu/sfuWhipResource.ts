@@ -57,7 +57,6 @@ export class SfuWhipResource implements WhipResource {
       return;
     }
 
-    console.log('Channel SFU resource healthy');
     this.channelHealthTimeout = setTimeout(() => {
       this.checkChannelHealth();
     }, 10000);
@@ -120,9 +119,11 @@ export class SfuWhipResource implements WhipResource {
         media.rtcpFb = undefined;
 
       } else if (media.type === 'video') {
-        media.rtp = media.rtp.filter(rtp => rtp.codec === 'VP8' || rtp.codec === 'rtx');
-        let vp8PayloadType = media.rtp.at(0).payload;
-        let vp8RtxPayloadType = media.rtp.at(1).payload;
+        const vp8Codec = media.rtp.find(rtp => rtp.codec === 'VP8');
+        const vp8PayloadType = vp8Codec.payload;
+
+        const rtxFmtp = media.fmtp.find(fmtp => fmtp.config === `apt=${vp8PayloadType}`);
+        const vp8RtxPayloadType = rtxFmtp.payload;
 
         media.rtp = media.rtp.filter(rtp => rtp.payload === vp8PayloadType || rtp.payload === vp8RtxPayloadType);
 

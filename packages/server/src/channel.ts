@@ -1,28 +1,19 @@
 import { MediaStream } from "wrtc";
 import { EventEmitter } from "events";
 import { XMLBuilder } from "fast-xml-parser";
-import { Viewer } from './Viewer'
-import { WHIPResourceMediaStreams } from '../models/WHIPResource'
-
-interface BackChannelMessage {
-  viewerId?: string;
-  message: any;
-}
-
-interface BroadcastMessage {
-  message: any;
-}
+import { WhppViewer } from './whpp/whppViewer'
+import { MediaStreamsInfo } from './mediaStreamsInfo'
 
 export class Channel extends EventEmitter {
   private channelId: string;
   private mediaStream?: MediaStream;
-  private viewers: Map<string, Viewer>;
+  private viewers: Map<string, WhppViewer>;
   private mpdXml: string;
   private preroll: string;
   private sfuResourceId?: string;
-  private mediaStreams?: WHIPResourceMediaStreams;
+  private mediaStreams?: MediaStreamsInfo;
 
-  constructor(channelId: string, mediaStream?: MediaStream, sfuResourceId?: string, mediaStreams?: WHIPResourceMediaStreams) {
+  constructor(channelId: string, mediaStream?: MediaStream, sfuResourceId?: string, mediaStreams?: MediaStreamsInfo) {
     super();
     this.channelId = channelId;
     this.mediaStream = mediaStream;
@@ -41,20 +32,20 @@ export class Channel extends EventEmitter {
     this.preroll = mpdUrl;
   }
 
-  addViewer(newViewer: Viewer) {
+  addViewer(newViewer: WhppViewer) {
     this.viewers.set(newViewer.getId(), newViewer);
     this.log(`Add viewer ${newViewer.getId()} to ${this.channelId}, size ${this.viewers.size}`);
   }
 
-  removeViewer(viewerToRemove: Viewer) {
+  removeViewer(viewerToRemove: WhppViewer) {
     this.viewers.delete(viewerToRemove.getId());
   }
 
-  getViewers(): Viewer[] {
+  getViewers(): WhppViewer[] {
     return Array.from(this.viewers.values());
   }
 
-  getViewer(viewerId: string): Viewer | undefined {
+  getViewer(viewerId: string): WhppViewer | undefined {
     if (!this.viewers.has(viewerId)) {
       return undefined;
     }
@@ -69,7 +60,7 @@ export class Channel extends EventEmitter {
     return this.sfuResourceId;
   }
 
-  getMediaStreams(): WHIPResourceMediaStreams | undefined {
+  getMediaStreams(): MediaStreamsInfo | undefined {
     return this.mediaStreams;
   }
 

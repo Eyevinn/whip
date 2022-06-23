@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { WRTCViewer } from "./WRTCViewer";
-import { ViewerAnswerRequest, ViewerCandidateRequest } from './ViewerRequests'
-import { SFUViewer } from "./SFUViewer";
+import { WrtcWhppViewer } from "./wrtc/wrtcWhppViewer";
+import { WhppAnswerRequest, WhppCandidateRequest } from './whppRequests'
+import { SfuWhppViewer } from "./sfu/sfuWhppViewer";
 
 type BroadcasterRequest = FastifyRequest<{
   Params: {
@@ -14,7 +14,7 @@ type BroadcasterPutRequest = FastifyRequest<{
     channelId: string,
     viewerId: string
   },
-  Body: ViewerAnswerRequest;
+  Body: WhppAnswerRequest;
 }>
 
 type BroadcasterPatchRequest = FastifyRequest<{
@@ -22,7 +22,7 @@ type BroadcasterPatchRequest = FastifyRequest<{
     channelId: string,
     viewerId: string
   },
-  Body: ViewerAnswerRequest;
+  Body: WhppAnswerRequest;
 }>
 
 type BroadcasterPostRequest = FastifyRequest<{
@@ -64,8 +64,8 @@ export default function (fastify: FastifyInstance, opts, done) {
       const iceServers = broadcaster.getIceServers();
 
       const viewer = useSFU ? 
-        new SFUViewer(channelId, broadcaster.getSFUResourceIdForChannel(channelId), broadcaster.getMediaStreamsForChannel(channelId)) : 
-        new WRTCViewer(channelId, { iceServers: iceServers });
+        new SfuWhppViewer(channelId, broadcaster.getSFUResourceIdForChannel(channelId), broadcaster.getMediaStreamsForChannel(channelId)) : 
+        new WrtcWhppViewer(channelId, { iceServers: iceServers });
 
       viewer.on("connect", () => {
         broadcaster.addViewer(channelId, viewer);

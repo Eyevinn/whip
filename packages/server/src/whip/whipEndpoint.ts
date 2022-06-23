@@ -1,8 +1,8 @@
 import fastify, { FastifyInstance } from "fastify";
 import https from "https";
-import { WHIPResource, WHIPResourceICEServer } from "./models/WHIPResource";
-import api from "./api";
-import { Broadcaster } from "./broadcaster";
+import { WhipResource, WhipResourceIceServer } from "./whipResource";
+import api from "./whipFastifyApi";
+import { Broadcaster } from "../broadcaster";
 
 export { Broadcaster };
 
@@ -18,20 +18,20 @@ interface WHIPEndpointOptions {
   hostname?: string;
   https?: boolean;
   tls?: TLSOptions;
-  iceServers?: WHIPResourceICEServer[];
+  iceServers?: WhipResourceIceServer[];
   enabledWrtcPlugins?: string[];
 }
 
-export class WHIPEndpoint {
+export class WhipEndpoint {
   private server: FastifyInstance;
-  private resources: {[id: string]: WHIPResource};
+  private resources: {[id: string]: WhipResource};
   private broadcaster: Broadcaster;
   private port: number;
   private extPort: number;
   private interfaceIp: string;
   private hostname: string;
   private useHttps: boolean;
-  private iceServers?: WHIPResourceICEServer[];
+  private iceServers?: WhipResourceIceServer[];
   private enabledWrtcPlugins: string[];
   private tls?: TLSOptions;
 
@@ -79,7 +79,7 @@ export class WHIPEndpoint {
     return this.broadcaster;
   }
 
-  addResource(resource: WHIPResource) {
+  addResource(resource: WhipResource) {
     this.resources[resource.getId()] = resource;
   }
 
@@ -114,7 +114,7 @@ export class WHIPEndpoint {
     return this.resources[resourceId];
   }
 
-  getIceServers(): WHIPResourceICEServer[]|null {
+  getIceServers(): WhipResourceIceServer[]|null {
     return this.iceServers;
   }
 

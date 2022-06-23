@@ -1,4 +1,5 @@
-import { WHIPEndpoint, Broadcaster } from "./index";
+import { WhipEndpoint } from "./whip/whipEndpoint";
+import { Broadcaster } from "./broadcaster";
 
 import { readFileSync } from "fs";
 
@@ -45,7 +46,7 @@ const broadcaster = new Broadcaster({
 });
 broadcaster.listen();
 
-const endpoint = new WHIPEndpoint({ 
+const endpoint = new WhipEndpoint({ 
   port: parseInt(process.env.PORT || "8000"), 
   extPort: parseInt(process.env.EXT_PORT || "8000"),
   hostname: process.env.WHIP_ENDPOINT_HOSTNAME,

@@ -1,8 +1,9 @@
 import { RTCPeerConnection } from "wrtc";
 import { v4 as uuidv4 } from "uuid";
-import { Broadcaster } from "../broadcaster";
-import { SessionDescription, parse, write } from 'sdp-transform'
-import { WHIPResource, WHIPResourceICEServer, WHIPResourceMediaStreams } from "../models/WHIPResource";
+import { Broadcaster } from "../../broadcaster";
+import { SessionDescription, parse } from 'sdp-transform'
+import { WhipResource, WhipResourceIceServer } from "../whipResource";
+import { MediaStreamsInfo } from '../../mediaStreamsInfo'
 
 const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 2000;
 
@@ -11,7 +12,7 @@ interface IceCredentials {
   pwd: string
 }
 
-export class WRTCWHIPResource implements WHIPResource {
+export class WrtcWhipResource implements WhipResource {
   protected sdpOffer: string;
   protected pc: RTCPeerConnection;
   protected broadcaster: Broadcaster;
@@ -19,12 +20,12 @@ export class WRTCWHIPResource implements WHIPResource {
   private resourceId: string;
   private localSdp: string;
   private remoteSdp: string;
-  private iceServers: WHIPResourceICEServer[];
+  private iceServers: WhipResourceIceServer[];
   private iceCount: number;
   private iceCredentials: IceCredentials | undefined = undefined;
   private eTag: string | undefined = undefined;
 
-  constructor(sdpOffer: string, iceServers?: WHIPResourceICEServer[]) {
+  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[]) {
     this.sdpOffer = sdpOffer;
     this.iceServers = iceServers || [];
     this.pc = new RTCPeerConnection({
@@ -105,7 +106,7 @@ export class WRTCWHIPResource implements WHIPResource {
     this.broadcaster = broadcaster;
   }
 
-  getIceServers(): WHIPResourceICEServer[] {
+  getIceServers(): WhipResourceIceServer[] {
     return this.iceServers;
   }
 
@@ -191,9 +192,9 @@ export class WRTCWHIPResource implements WHIPResource {
   async patch(body: string, eTag?: string): Promise<number> {
     const parsedSdp = parse(body);
 
-    if (!parsedSdp || 
-      parsedSdp.media.length === 0 || 
-      !parsedSdp.media[0].candidates || 
+    if (!parsedSdp ||
+      parsedSdp.media.length === 0 ||
+      !parsedSdp.media[0].candidates ||
       parsedSdp.media[0].candidates.length === 0) {
 
       this.log(`Malformed patch content: ${body}`);
@@ -209,23 +210,23 @@ export class WRTCWHIPResource implements WHIPResource {
     if (searchResult.length === 1) {
       const candidateString = searchResult[0];
       this.log(`Got remote ICE candidate ${candidateString}`);
-      await this.pc.addIceCandidate({candidate: candidateString});
+      await this.pc.addIceCandidate({ candidate: candidateString });
     }
 
     return Promise.resolve(204);
   }
 
-  getMediaStreams(): WHIPResourceMediaStreams {
-    return <WHIPResourceMediaStreams>{
-        audio: {
-            ssrcs: []
-        },
-        video: {
-            ssrcs: [],
-            ssrcGroups: []
-        }
+  getMediaStreams(): MediaStreamsInfo {
+    return {
+      audio: {
+        ssrcs: []
+      },
+      video: {
+        ssrcs: [],
+        ssrcGroups: []
+      }
     };
-}
+  }
 
   destroy() {
     this.log("Destroy requested and closing peer");

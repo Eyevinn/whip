@@ -2,12 +2,12 @@ import fastify, { FastifyInstance } from "fastify";
 import { MediaStream } from "wrtc";
 import https from "https";
 
-import api from "./api";
-import { Viewer } from "./Viewer"
-import { Channel } from "./Channel";
-import { WHIPResourceMediaStreams } from "../models/WHIPResource"
+import api from "./whpp/whppFastifyApi";
+import { WhppViewer } from "./whpp/whppViewer"
+import { Channel } from "./channel";
+import { MediaStreamsInfo } from "./mediaStreamsInfo"
 
-export interface BroadcasterICEServer {
+export interface BroadcasterIceServer {
   urls: string;
   username?: string;
   credential?: string;
@@ -32,7 +32,7 @@ interface BroadcasterOptions {
   https?: boolean;
   tls?: TLSOptions;
   prefix?: string;
-  iceServers?: BroadcasterICEServer[];
+  iceServers?: BroadcasterIceServer[];
   preRollMpd?: string;
   useSFU?: boolean;
 }
@@ -47,7 +47,7 @@ export class Broadcaster {
   private useHttps: boolean;
   private tls?: TLSOptions;
   private prefix: string;
-  private iceServers?: BroadcasterICEServer[];
+  private iceServers?: BroadcasterIceServer[];
   private preRollMpd?: string;
 
   constructor(opts?: BroadcasterOptions) {
@@ -83,7 +83,7 @@ export class Broadcaster {
     this.channels = new Map();
   }
 
-  createChannel(channelId: string, stream?: MediaStream, sfuResourceId?: string, mediaStreams?: WHIPResourceMediaStreams) {
+  createChannel(channelId: string, stream?: MediaStream, sfuResourceId?: string, mediaStreams?: MediaStreamsInfo) {
     // Check if channel with channelId already exists
     if (this.channels.get(channelId)) {
       throw new Error(`Channel with Id ${channelId} already exists`);
@@ -111,7 +111,7 @@ export class Broadcaster {
     return undefined;
   }
 
-  getMediaStreamsForChannel(channelId: string): WHIPResourceMediaStreams | undefined {
+  getMediaStreamsForChannel(channelId: string): MediaStreamsInfo | undefined {
     const channel = this.channels.get(channelId);
     if (channel) {
       return channel.getMediaStreams();
@@ -152,7 +152,7 @@ export class Broadcaster {
     return channel.generateMpdXml(`${this.getBaseUrl()}/channel/${channelId}`, rel);
   }
 
-  addViewer(channelId: string, newViewer: Viewer) {
+  addViewer(channelId: string, newViewer: WhppViewer) {
     const channel = this.channels.get(channelId);
     if (!channel) {
       console.log(`channelId ${channelId} not found`);
@@ -161,7 +161,7 @@ export class Broadcaster {
     channel.addViewer(newViewer);
   }
 
-  removeViewer(channelId: string, viewerToRemove: Viewer) {
+  removeViewer(channelId: string, viewerToRemove: WhppViewer) {
     const channel = this.channels.get(channelId);
     if (!channel) {
       return;
@@ -170,7 +170,7 @@ export class Broadcaster {
     channel.removeViewer(viewerToRemove);
   }
 
-  getViewer(channelId: string, viewerId: string): Viewer|undefined {
+  getViewer(channelId: string, viewerId: string): WhppViewer|undefined {
     const channel = this.channels.get(channelId);
     if (!channel) {
       return undefined;
@@ -191,7 +191,7 @@ export class Broadcaster {
     return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.extPort + this.prefix;
   }
 
-  getIceServers(): BroadcasterICEServer[]|null {
+  getIceServers(): BroadcasterIceServer[]|null {
     return this.iceServers;
   }
 

@@ -198,7 +198,6 @@ export class SfuWhipResource implements WhipResource {
 
     for (let media of parsedAnswer.media) {
       if (media.type === 'audio') {
-
         endpointDescription.audio["payload-type"].id = media.rtp[0].payload;
         endpointDescription.audio["rtp-hdrexts"] = [];
         for (let ext of media.ext) {
@@ -206,7 +205,6 @@ export class SfuWhipResource implements WhipResource {
         }
 
       } else if (media.type === 'video') {
-
         endpointDescription.video["payload-types"][0].id = media.rtp[0].payload;
         endpointDescription.video["payload-types"][1].id = media.rtp[1].payload;
         endpointDescription.video["payload-types"][1].parameters = { 'apt': media.rtp[0].payload.toString() };

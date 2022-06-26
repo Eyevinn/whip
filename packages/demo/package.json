@@ -27,6 +27,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@eyevinn/webrtc-player": "^0.6.0"
+    "@eyevinn/webrtc-player": "^0.6.1"
   }
 }

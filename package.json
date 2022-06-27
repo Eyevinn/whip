@@ -17,6 +17,9 @@
     "Benjamin Wallberg <benjamin.wallberg@eyevinn.se> (Eyevinn Technology AB)",
     "Marcus Spangenberg <marcus.spangenberg@eyevinn.se> (Eyevinn Technology AB)"
   ],
+  "engines": {
+    "node": ">=16"
+  },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

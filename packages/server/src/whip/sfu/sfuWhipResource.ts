@@ -68,17 +68,20 @@ export class SfuWhipResource implements WhipResource {
     parsedSDP.origin.sessionVersion++;
     parsedSDP['extmapAllowMixed'] = undefined;
 
-    let nextMid = 0;
-    let bundleGroupMids = '';
+    if (!parsedSDP.msidSemantic) {
+      parsedSDP.msidSemantic = {
+        semantic: 'WMS',
+        token: ''
+      };
+    }
 
+    let bundleGroupMids = '';
     const transport = endpointDescription['bundle-transport'];
+    let candidatesAdded = false;
 
     for (let media of parsedSDP.media) {
-      media.mid = `${nextMid}`;
       bundleGroupMids = bundleGroupMids === '' ? `${media.mid}` : `${bundleGroupMids} ${media.mid}`
-      nextMid++;
 
-      media.rtcpRsize = undefined;
       media['iceOptions'] = undefined;
       media.iceUfrag = transport.ice.ufrag;
       media.icePwd = transport.ice.pwd;
@@ -88,31 +91,43 @@ export class SfuWhipResource implements WhipResource {
       media.ssrcGroups = undefined;
       media.ssrcs = undefined;
       media.msid = undefined;
+      media.candidates = undefined;
+      media.port = 9;
+      media.rtcp = {
+        port: 9,
+        netType: 'IN',
+        ipVer: 4,
+        address: '0.0.0.0'
+      }
 
-      media.candidates = transport.ice.candidates.map(candidate => {
-        return {
-          foundation: candidate.foundation,
-          component: candidate.component,
-          transport: candidate.protocol,
-          priority: candidate.priority,
-          ip: candidate.ip,
-          port: candidate.port,
-          type: candidate.type,
-          raddr: candidate.relAddr,
-          rport: candidate.relPort,
-          generation: candidate.generation,
-          'network-id': candidate.network
-        };
-      });
+      if (!candidatesAdded) {
+        media.candidates = transport.ice.candidates.map(candidate => {
+          return {
+            foundation: candidate.foundation,
+            component: candidate.component,
+            transport: candidate.protocol,
+            priority: candidate.priority,
+            ip: candidate.ip,
+            port: candidate.port,
+            type: candidate.type,
+            raddr: candidate.relAddr,
+            rport: candidate.relPort,
+            generation: candidate.generation,
+            'network-id': candidate.network
+          };
+        });
+
+        candidatesAdded = true;
+      }
 
       if (media.type === 'audio') {
-        media.rtp = media.rtp.filter(rtp => rtp.codec === 'opus');
+        media.rtp = media.rtp.filter(rtp => rtp.codec.toLowerCase() === 'opus');
         let opusPayloadType = media.rtp.at(0).payload;
 
         media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === opusPayloadType);
         media.payloads = `${opusPayloadType}`;
 
-        media.ext = media.ext.filter(ext => ext.uri === 'urn:ietf:params:rtp-hdrext:ssrc-audio-level' ||
+        media.ext = media.ext && media.ext.filter(ext => ext.uri === 'urn:ietf:params:rtp-hdrext:ssrc-audio-level' ||
           ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time');
 
         media.direction = 'recvonly';
@@ -131,7 +146,7 @@ export class SfuWhipResource implements WhipResource {
         media.payloads = `${vp8PayloadType} ${vp8RtxPayloadType}`;
         media.setup = 'active';
 
-        media.ext = media.ext.filter(ext => ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time' ||
+        media.ext = media.ext && media.ext.filter(ext => ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time' ||
           ext.uri === 'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id');
 
         media.direction = 'recvonly';
@@ -154,6 +169,7 @@ export class SfuWhipResource implements WhipResource {
     this.sfuResourceId = await this.smbProtocol.allocateConference();
 
     const parsedOffer = parse(this.offer);
+
     const endpointDescription = await this.smbProtocol.allocateEndpoint(
       this.sfuResourceId,
       'ingest',
@@ -200,18 +216,15 @@ export class SfuWhipResource implements WhipResource {
       if (media.type === 'audio') {
         endpointDescription.audio["payload-type"].id = media.rtp[0].payload;
         endpointDescription.audio["rtp-hdrexts"] = [];
-        for (let ext of media.ext) {
-          endpointDescription.audio["rtp-hdrexts"].push({ id: ext.value, uri: ext.uri });
-        }
+        media.ext && media.ext.forEach(ext => endpointDescription.audio["rtp-hdrexts"].push({ id: ext.value, uri: ext.uri }));
 
       } else if (media.type === 'video') {
         endpointDescription.video["payload-types"][0].id = media.rtp[0].payload;
         endpointDescription.video["payload-types"][1].id = media.rtp[1].payload;
         endpointDescription.video["payload-types"][1].parameters = { 'apt': media.rtp[0].payload.toString() };
 
-        endpointDescription.video["rtp-hdrexts"] = media.ext.map(ext => {
-          return { id: ext.value, uri: ext.uri };
-        });
+        endpointDescription.video["rtp-hdrexts"] = [];
+        media.ext && media.ext.forEach(ext => endpointDescription.video["rtp-hdrexts"].push({ id: ext.value, uri: ext.uri }));
 
         endpointDescription.video["payload-types"].forEach(payloadType => {
           const rtcpFbs = media.rtcpFb.filter(element => element.payload === payloadType.id);

@@ -155,7 +155,7 @@ export class SfuWhipResource implements WhipResource {
 
         media.ssrcGroups = undefined;
       }
-    } 7
+    }
 
     parsedSDP.groups = [{
       type: 'BUNDLE',

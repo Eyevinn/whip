@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-const SMB_URL = 'http://localhost:8080/conferences/';
+const SMB_URL = process.env.SMB_URL || 'http://localhost:8080/conferences/';
 
 interface SmbCandidate {
   'generation': number;

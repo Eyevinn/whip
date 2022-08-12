@@ -64,6 +64,23 @@ And to use the above STUN/TURN server when developing
 ICE_SERVERS=turn:<username>:<credential>@localhost:3478 npm run dev
 ```
 
+## Run with a local SFU
+
+### Build and run SFU
+
+For requirements, see https://github.com/marcusspangenberg/SymphonyMediaBridge/blob/master/README.md
+
+```
+cd tools
+./start_local_sfu.sh
+```
+
+### Run the development environment in SFU mode
+
+```
+USE_SFU=true npm run dev
+```
+
 ## License (Apache-2.0)
 
 ```

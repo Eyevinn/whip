@@ -81,6 +81,12 @@ cd tools
 USE_SFU=true npm run dev
 ```
 
+To override default URL to SMB the environment variable `SMB_URL` can be set, e.g:
+
+```
+USE_SFU=true SMB_URL=http://localhost:8180/conferences/ npm run dev
+```
+
 ## License (Apache-2.0)
 
 ```

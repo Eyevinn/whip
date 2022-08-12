@@ -1,12 +1,9 @@
 #!/bin/bash
 
-UDP_PORT=$1
-#TCP_PORT=$2
-
 cat > config.json << EOF
 {
   "logStdOut" : true,
-  "port" : 8080,
+  "port" : ${HTTP_PORT},
   "logLevel": "INFO",
   "ice.singlePort": ${UDP_PORT},
   "ice.udpPortRangeLow": 10006,

@@ -300,7 +300,7 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
           'ip': element.ip,
           'relPort': element.rport,
           'relAddr': element.raddr,
-          'foundation': element.foundation,
+          'foundation': element.foundation.toString(),
           'priority': parseInt(element.priority.toString(), 10),
           'type': element.type,
           'network': element["network-id"]

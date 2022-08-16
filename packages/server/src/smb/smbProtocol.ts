@@ -133,6 +133,7 @@ export class SmbProtocol {
     });
 
     if (!response.ok) {
+      console.log(JSON.stringify(request));
       throw new Error("Failed to allocate endpoint");
     }
 
@@ -154,6 +155,7 @@ export class SmbProtocol {
     });
 
     if (!response.ok) {
+      console.log(JSON.stringify(request));
       throw new Error("Failed to configure endpoint");
     }
   }

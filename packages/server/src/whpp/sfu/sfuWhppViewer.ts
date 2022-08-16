@@ -40,17 +40,23 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
       throw 'MediaStream should be undefined with SFUViewer';
     }
 
-    this.endpointDescription =
-      await this.sfuProtocol.allocateEndpoint(this.sfuResourceId, this.viewerId, true, true, true);
-    let offer = this.createOffer();
+    try {
+      this.endpointDescription =
+        await this.sfuProtocol.allocateEndpoint(this.sfuResourceId, this.viewerId, true, true, true);
+      let offer = this.createOffer();
 
-    this.emit("connect");
-    return Promise.resolve({
-      offer: write(offer),
-      mediaStreams: this.mediaStreams.video.ssrcs.flatMap(element => {
-        return { streamId: element.mslabel };
-      })
-    });
+      this.emit("connect");
+      const offerResponse: WhppOfferResponse = {
+        offer: write(offer),
+        mediaStreams: this.mediaStreams.video.ssrcs.flatMap(element => {
+          return { streamId: element.mslabel };
+        })
+      };
+      return offerResponse;
+    } catch (exc) {
+      this.error(exc);
+      throw exc;
+    }
   }
 
   private createOffer(): SessionDescription {
@@ -272,38 +278,49 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
   }
 
   async handlePut(request: WhppAnswerRequest): Promise<void> {
-    this.endpointDescription.audio.ssrcs = [];
-    this.endpointDescription.video.ssrcs = [];
-    this.endpointDescription.video["ssrc-groups"] = [];
+    try {
+      this.endpointDescription.audio.ssrcs = [];
+      this.endpointDescription.video.ssrcs = [];
+      this.endpointDescription.video["ssrc-groups"] = [];
 
-    const parsedAnswer = parse(request.answer);
-    const answerMediaDescription = parsedAnswer.media[0];
-    let transport = this.endpointDescription["bundle-transport"];
-    transport.dtls.type = answerMediaDescription.fingerprint.type;
-    transport.dtls.hash = answerMediaDescription.fingerprint.hash;
-    transport.dtls.setup = answerMediaDescription.setup;
-    transport.ice.ufrag = answerMediaDescription.iceUfrag;
-    transport.ice.pwd = answerMediaDescription.icePwd;
-    transport.ice.candidates = !answerMediaDescription.candidates ? [] : answerMediaDescription.candidates.flatMap(element => {
-      return {
-        'generation': element.generation,
-        'component': element.component,
-        'protocol': element.transport,
-        'port': element.port,
-        'ip': element.ip,
-        'relPort': element.rport,
-        'relAddr': element.raddr,
-        'foundation': element.foundation,
-        'priority': parseInt(element.priority.toString(), 10),
-        'type': element.type,
-        'network': element["network-id"]
-      };
-    });
+      const parsedAnswer = parse(request.answer);
+      const answerMediaDescription = parsedAnswer.media[0];
+      let transport = this.endpointDescription["bundle-transport"];
+      transport.dtls.type = answerMediaDescription.fingerprint.type;
+      transport.dtls.hash = answerMediaDescription.fingerprint.hash;
+      transport.dtls.setup = answerMediaDescription.setup;
+      transport.ice.ufrag = answerMediaDescription.iceUfrag;
+      transport.ice.pwd = answerMediaDescription.icePwd;
+      transport.ice.candidates = !answerMediaDescription.candidates ? [] : answerMediaDescription.candidates.flatMap(element => {
+        return {
+          'generation': element.generation,
+          'component': element.component,
+          'protocol': element.transport,
+          'port': element.port,
+          'ip': element.ip,
+          'relPort': element.rport,
+          'relAddr': element.raddr,
+          'foundation': element.foundation,
+          'priority': parseInt(element.priority.toString(), 10),
+          'type': element.type,
+          'network': element["network-id"]
+        };
+      });
 
-    return this.sfuProtocol.configureEndpoint(this.sfuResourceId, this.viewerId, this.endpointDescription);
+      return this.sfuProtocol.configureEndpoint(this.sfuResourceId, this.viewerId, this.endpointDescription);
+    } catch (exc) {
+      this.error(exc);
+      throw exc;
+    }
   }
 
   async handlePatch(request: WhppCandidateRequest): Promise<void> {
+    try {
+
+    } catch (exc) {
+      this.error(exc);
+      throw exc;
+    }
   }
 
   destroy() {

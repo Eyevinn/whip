@@ -91,11 +91,11 @@ export class SmbProtocol {
     });
 
     if (!allocateResponse.ok) {
-      return;
+      throw new Error("Failed to allocate resource");
     }
 
     const allocateResponseJson = await allocateResponse.json();
-    return Promise.resolve(allocateResponseJson['id']);
+    return allocateResponseJson['id'];
   }
 
   async allocateEndpoint(conferenceId: string,
@@ -133,10 +133,11 @@ export class SmbProtocol {
     });
 
     if (!response.ok) {
-      return Promise.reject();
+      throw new Error("Failed to allocate endpoint");
     }
 
-    return <SmbEndpointDescription>(await response.json());
+    const smbEndpointDescription: SmbEndpointDescription = (await response.json());
+    return smbEndpointDescription;
   }
 
   async configureEndpoint(conferenceId: string, endpointId: string, endpointDescription: SmbEndpointDescription): Promise<void> {
@@ -153,7 +154,7 @@ export class SmbProtocol {
     });
 
     if (!response.ok) {
-      return Promise.reject();
+      throw new Error("Failed to configure endpoint");
     }
   }
 
@@ -169,7 +170,7 @@ export class SmbProtocol {
       return [];
     }
 
-    const responseBody = await response.json();
-    return Promise.resolve(responseBody);
+    const responseBody: string[] = await response.json();
+    return responseBody;
   }
 }

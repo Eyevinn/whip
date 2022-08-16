@@ -94,7 +94,7 @@ export class WhipEndpoint {
     if (resource) {
       return resource.patch(body, eTag);
     }
-    return Promise.resolve(404);
+    return 404;
   }
 
   listResources() {

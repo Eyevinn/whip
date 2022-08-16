@@ -107,9 +107,15 @@ export default function(fastify: FastifyInstance, opts, done) {
   });
 
   fastify.delete("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
-    const { resourceId } = request.params; 
-    await opts.instance.deleteResource(resourceId);
-    reply.code(200).send("OK");
+    try {
+      const { resourceId } = request.params; 
+      await opts.instance.deleteResource(resourceId);
+      reply.code(200).send("OK");
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when trying to delete WHIP resource");
+      reply.code(500).send(err.message);
+    }
   });
 
   fastify.patch("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
@@ -119,7 +125,8 @@ export default function(fastify: FastifyInstance, opts, done) {
     try {
       const statusCode = await opts.instance.patchResource(resourceId, body, request.headers.etag);
       reply.code(statusCode).send();
-    } catch {
+    } catch (e) {
+      console.error(e);
       reply.code(500).send();
     }
   });

@@ -77,8 +77,9 @@ export default function(fastify: FastifyInstance, opts, done) {
         .concat(addProtocolExtensions(resource));
       reply.header("Link", links);
       reply.code(201).send(sdpAnswer);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when trying to create a WHIP resource");
       reply.code(500).send(err.message);
     }
   });
@@ -88,8 +89,9 @@ export default function(fastify: FastifyInstance, opts, done) {
       reply.header("Link", 
         addIceLinks(opts.instance.getIceServers(), request.headers["authorization"]));
       reply.code(204).send();            
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown");
       reply.code(500).send(err.message);
     }
   });
@@ -97,16 +99,23 @@ export default function(fastify: FastifyInstance, opts, done) {
   fastify.get("/whip", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
       reply.code(200).send(opts.instance.listResources().map(r => opts.prefix + "/whip/" + r.type + "/" + r.id));
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when trying to list WHIP resources");
       reply.code(500).send(err.message);
     }
   });
 
   fastify.delete("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
-    const { resourceId } = request.params; 
-    await opts.instance.deleteResource(resourceId);
-    reply.code(200).send("OK");
+    try {
+      const { resourceId } = request.params; 
+      await opts.instance.deleteResource(resourceId);
+      reply.code(200).send("OK");
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when trying to delete WHIP resource");
+      reply.code(500).send(err.message);
+    }
   });
 
   fastify.patch("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
@@ -116,7 +125,8 @@ export default function(fastify: FastifyInstance, opts, done) {
     try {
       const statusCode = await opts.instance.patchResource(resourceId, body, request.headers.etag);
       reply.code(statusCode).send();
-    } catch {
+    } catch (e) {
+      console.error(e);
       reply.code(500).send();
     }
   });

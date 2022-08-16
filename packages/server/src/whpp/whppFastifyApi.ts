@@ -52,8 +52,9 @@ export default function (fastify: FastifyInstance, opts, done) {
         "Accept": [ "application/json", "application/whpp+json" ],
       });
       reply.code(204).send();
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown");
       reply.code(500).send(err.message);
     }
   });
@@ -84,8 +85,9 @@ export default function (fastify: FastifyInstance, opts, done) {
         })
         .send(responseBody);
 
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when handling a new WHPP client connection");
       reply.code(500).send(err.message);
     }
   });
@@ -107,8 +109,9 @@ export default function (fastify: FastifyInstance, opts, done) {
       await viewer.handlePut(request.body);
       reply.code(204).send();
 
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when handling answer from WHPP client");
       reply.code(500).send(err.message);
     }
   });
@@ -130,8 +133,9 @@ export default function (fastify: FastifyInstance, opts, done) {
       await viewer.handlePatch(request.body);
       reply.code(204).send();
 
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when handling ICE candidate");
       reply.code(500).send(err.message);
     }
   });
@@ -147,8 +151,9 @@ export default function (fastify: FastifyInstance, opts, done) {
           "Content-Type": "application/dash+xml",
         }).send(mpdXml);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when generating MPEG-DASH XML");
       reply.code(500).send(err.message);
     }
   });
@@ -162,8 +167,9 @@ export default function (fastify: FastifyInstance, opts, done) {
           resource: broadcaster.getBaseUrl() + "/channel/" + channelId,
         };
       }));
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when trying to list channels");
       reply.code(500).send(err.message);
     }
   });
@@ -176,8 +182,9 @@ export default function (fastify: FastifyInstance, opts, done) {
         channelId: channelId,
         viewers: broadcaster.getViewerCount(channelId),
       });
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown when handling a viewer count request");
       reply.code(500).send(err.message);
     }
   });

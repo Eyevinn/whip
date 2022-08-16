@@ -307,7 +307,7 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
         };
       });
 
-      return this.sfuProtocol.configureEndpoint(this.sfuResourceId, this.viewerId, this.endpointDescription);
+      return await this.sfuProtocol.configureEndpoint(this.sfuResourceId, this.viewerId, this.endpointDescription);
     } catch (exc) {
       this.error(exc);
       throw exc;

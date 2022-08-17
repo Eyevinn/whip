@@ -316,7 +316,7 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
 
   async handlePatch(request: WhppCandidateRequest): Promise<void> {
     try {
-
+      throw new Error("PATCH not supported");
     } catch (exc) {
       this.error(exc);
       throw exc;

@@ -159,6 +159,10 @@ export class WrtcWhppViewer extends EventEmitter implements WhppViewer {
     return mediaStreams;
   }
 
+  supportIceTrickle(): boolean {
+    return true;
+  }
+  
   destroy() {
     this.log("Remove tracks from senders");
     this.peer.getSenders().map(sender => this.peer.removeTrack(sender));

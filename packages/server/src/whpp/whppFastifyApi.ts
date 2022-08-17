@@ -92,6 +92,32 @@ export default function (fastify: FastifyInstance, opts, done) {
     }
   });
 
+  fastify.options("/channel/:channelId/:viewerId", {}, async (request: BroadcasterPatchRequest, reply: FastifyReply) => {
+    const channelId = request.params.channelId;
+    const viewerId = request.params.viewerId;
+
+    console.log(`channelId ${channelId}, viewerId ${viewerId}`);
+
+    try {
+      let allowedMethods = [ "PUT" ];
+      const viewer = broadcaster.getViewer(channelId, viewerId);
+      if (viewer.supportIceTrickle()) {
+        allowedMethods.push("PATCH");
+      }
+
+      reply.headers({
+        "Accept": [ "application/json", "application/whpp+json" ],
+        "Allow": allowedMethods
+      });
+      reply.code(204).send();
+    } catch (e) {
+      console.error(e);
+      const err = new Error("Exception thrown");
+      reply.code(500).send(err.message);
+    }
+
+  });
+
   fastify.put("/channel/:channelId/:viewerId", {}, async (request: BroadcasterPutRequest, reply: FastifyReply) => {
     try {
       const channelId = request.params.channelId;
@@ -130,11 +156,10 @@ export default function (fastify: FastifyInstance, opts, done) {
         return;
       }
 
-      try {
+      if (viewer.supportIceTrickle()) {
         await viewer.handlePatch(request.body);
         reply.code(204).send();
-      } catch (exc) {
-        console.error(exc.message);
+      } else {
         reply.code(405).send();
       }
     } catch (e) {

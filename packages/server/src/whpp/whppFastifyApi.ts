@@ -130,9 +130,13 @@ export default function (fastify: FastifyInstance, opts, done) {
         return;
       }
 
-      await viewer.handlePatch(request.body);
-      reply.code(204).send();
-
+      try {
+        await viewer.handlePatch(request.body);
+        reply.code(204).send();
+      } catch (exc) {
+        console.error(exc.message);
+        reply.code(405).send();
+      }
     } catch (e) {
       console.error(e);
       const err = new Error("Exception thrown when handling ICE candidate");

@@ -323,6 +323,10 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
     }
   }
 
+  supportIceTrickle(): boolean {
+    return false;
+  }
+
   destroy() {
   }
 }

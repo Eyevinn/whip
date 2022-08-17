@@ -6,4 +6,5 @@ export interface WhppViewer {
   handlePut(request: WhppAnswerRequest): Promise<void>;
   handlePatch(request: WhppCandidateRequest): Promise<void>;
   destroy(): void;
+  supportIceTrickle(): boolean;
 }

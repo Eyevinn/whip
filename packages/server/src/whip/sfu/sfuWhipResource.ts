@@ -110,8 +110,8 @@ export class SfuWhipResource implements WhipResource {
             ip: candidate.ip,
             port: candidate.port,
             type: candidate.type,
-            raddr: candidate.relAddr,
-            rport: candidate.relPort,
+            raddr: candidate['rel-addr'],
+            rport: candidate['rel-port'],
             generation: candidate.generation,
             'network-id': candidate.network
           };

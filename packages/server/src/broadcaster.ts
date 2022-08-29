@@ -3,6 +3,7 @@ import { MediaStream } from "wrtc";
 import https from "https";
 
 import api from "./whpp/whppFastifyApi";
+import internalApi from "./broadcaster-api";
 import { WhppViewer } from "./whpp/whppViewer"
 import { Channel } from "./channel";
 import { MediaStreamsInfo } from "./mediaStreamsInfo"
@@ -79,6 +80,7 @@ export class Broadcaster {
       strictPreflight: false,
     });
     this.server.register(api, { prefix: this.prefix, broadcaster: this, useSFU: opts?.useSFU });
+    this.server.register(internalApi, { prefix: "/internal", broadcaster: this });
 
     this.channels = new Map();
   }

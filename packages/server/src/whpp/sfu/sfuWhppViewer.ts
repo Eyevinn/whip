@@ -130,7 +130,7 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
       setup: transport.dtls.setup === 'actpass' ? 'active' : 'actpass',
       direction: <'sendrecv' | 'recvonly' | 'sendonly' | 'inactive' | undefined>'sendonly',
       rtcpMux: 'rtcp-mux',
-      candidates: transport.ice.candidates.flatMap(element => {
+      candidates: transport.ice.candidates.map(element => {
         return {
           foundation: element.foundation,
           component: element.component,
@@ -139,8 +139,8 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
           ip: element.ip,
           port: element.port,
           type: element.type,
-          raddr: element.relAddr,
-          rport: element.relPort,
+          raddr: element['rel-addr'],
+          rport: element['rel-port'],
           generation: element.generation,
           'network-id': element.network
         };

@@ -1,4 +1,4 @@
-import { MediaStream } from "wrtc";
+import { MediaStream } from "@koush/wrtc";
 import { WhipResourceIceServer, IANA_PREFIX } from "../whipResource";
 import { WrtcWhipResource } from "./wrtcWhipResource";
 

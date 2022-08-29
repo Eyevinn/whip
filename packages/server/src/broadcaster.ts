@@ -1,5 +1,5 @@
 import fastify, { FastifyInstance } from "fastify";
-import { MediaStream } from "wrtc";
+import { MediaStream } from "@koush/wrtc";
 import https from "https";
 
 import api from "./whpp/whppFastifyApi";

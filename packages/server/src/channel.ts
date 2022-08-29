@@ -1,4 +1,4 @@
-import { MediaStream } from "wrtc";
+import { MediaStream } from "@koush/wrtc";
 import { EventEmitter } from "events";
 import { XMLBuilder } from "fast-xml-parser";
 import { WhppViewer } from './whpp/whppViewer'

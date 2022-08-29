@@ -1,4 +1,4 @@
-import { nonstandard as WRTCNonstandard } from "wrtc";
+import { nonstandard as WRTCNonstandard } from "@koush/wrtc";
 import { WrtcWhipResource } from "./wrtcWhipResource";
 import { WhipResourceIceServer } from "../whipResource";
 

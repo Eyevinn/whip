@@ -1,4 +1,4 @@
-import { nonstandard as WRTCNonstandard } from "wrtc";
+import { nonstandard as WRTCNonstandard } from "@koush/wrtc";
 import { PassThrough } from "stream";
 import ffmpeg from "fluent-ffmpeg";
 

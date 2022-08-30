@@ -1,4 +1,4 @@
-import { WhipEndpoint } from "./whip/whipEndpoint";
+import { WhipEndpoint } from ".";
 import { Broadcaster } from "./broadcaster";
 import { BroadcasterClient } from "./broadcasterClient";
 

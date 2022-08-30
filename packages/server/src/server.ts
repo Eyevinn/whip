@@ -77,7 +77,10 @@ if (!ONLY_INGEST) {
     enabledWrtcPlugins: [ "broadcaster", "dummy", "rtsp", "rtmp", "sfu-broadcaster" ], 
   });
 
-  const client = new BroadcasterClient({});
+  const client = new BroadcasterClient({
+    url: process.env.EGRESS_API_URL,
+    egressUrl: process.env.EGRESS_URL
+  });
   endpoint.registerBroadcasterClient(client);
   endpoint.listen();
 }

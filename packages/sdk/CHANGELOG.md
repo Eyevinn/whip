@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.10.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.9.1...@eyevinn/whip-web-client@0.10.0) (2022-08-30)
+
+
+### Features
+
+* add entity-tag header support ([b0c3da9](https://github.com/Eyevinn/whip/commit/b0c3da9424856e6baca5bd4ace5019b7c9d2d4c9))
+
+
+### Bug Fixes
+
+* use fork of wrtc library for support on apple silicon ([#83](https://github.com/Eyevinn/whip/issues/83)) ([3cdd9ee](https://github.com/Eyevinn/whip/commit/3cdd9ee8e3522385c032d2bac919dad285e977df))
+
+
+
 ### [0.9.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@0.9.0...@eyevinn/whip-web-client@0.9.1) (2022-05-05)
 
 

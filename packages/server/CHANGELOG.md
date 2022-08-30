@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.15.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.14.0...@eyevinn/whip-endpoint@0.15.0) (2022-08-30)
+
+
+### Features
+
+* add entity-tag header support ([b0c3da9](https://github.com/Eyevinn/whip/commit/b0c3da9424856e6baca5bd4ace5019b7c9d2d4c9))
+* possibility to separate WHIP from egress endpoint ([#86](https://github.com/Eyevinn/whip/issues/86)) ([579ac55](https://github.com/Eyevinn/whip/commit/579ac55e1eff52b419c51d6779932578980e034a))
+* RTMP module for restreaming to RTMP endpoint ([#64](https://github.com/Eyevinn/whip/issues/64)) ([376c220](https://github.com/Eyevinn/whip/commit/376c220fc231a9455087d16087a46a66a05bfffd))
+* support local sfu ([fea72e1](https://github.com/Eyevinn/whip/commit/fea72e194eb3306239cad2ba6d08f5b057aee54d))
+
+
+### Bug Fixes
+
+* actually support application/whpp+json content type as the standard says ([#68](https://github.com/Eyevinn/whip/issues/68)) ([0f2a41e](https://github.com/Eyevinn/whip/commit/0f2a41e4ac8874b4372e1c93edd5949d9aef0e6f))
+* fix formatting issue with srflx candidates ([#85](https://github.com/Eyevinn/whip/issues/85)) ([6dfc38f](https://github.com/Eyevinn/whip/commit/6dfc38f6809b33de062c23b493254a760c781671))
+* handle missing label/mslabel ([2c24383](https://github.com/Eyevinn/whip/commit/2c24383be8c96a5f10788094b7caef81b4e988bd))
+* handle offers from mpegts-client in sfu mode ([#74](https://github.com/Eyevinn/whip/issues/74)) ([b877a29](https://github.com/Eyevinn/whip/commit/b877a29584b4042c64badb3b46a275663d65533d))
+* handle uncaught exception without crashing ([#77](https://github.com/Eyevinn/whip/issues/77)) ([43c9ebf](https://github.com/Eyevinn/whip/commit/43c9ebf1577bf1a77f434510cb7c4c9c02660b5a))
+* ice candidate foundation -> string ([fb41d19](https://github.com/Eyevinn/whip/commit/fb41d19919186db1e41a49283c0a44eaf8fefe61))
+* possible to set Symphony Media Bridge URL ([#76](https://github.com/Eyevinn/whip/issues/76)) ([2c3871b](https://github.com/Eyevinn/whip/commit/2c3871bbf3ccdc8885c1d48e42b0d287bc63c68a))
+* return error code if PATCH is not supported ([#79](https://github.com/Eyevinn/whip/issues/79)) ([166a058](https://github.com/Eyevinn/whip/commit/166a05835f13e49b1b6abc4c4683e9be4ae0309a))
+* safari compatibility with sfu ([#71](https://github.com/Eyevinn/whip/issues/71)) ([76f871a](https://github.com/Eyevinn/whip/commit/76f871acc4b6265d3049e72628e95df0bf18bff0))
+* use fork of wrtc library for support on apple silicon ([#83](https://github.com/Eyevinn/whip/issues/83)) ([3cdd9ee](https://github.com/Eyevinn/whip/commit/3cdd9ee8e3522385c032d2bac919dad285e977df))
+* WHPP viewer endpoint should signal if PATCH method is allowed ([#81](https://github.com/Eyevinn/whip/issues/81)) ([1aa13db](https://github.com/Eyevinn/whip/commit/1aa13db5987492027ba12ab59fcebee06f6761d4))
+
+
+
 ## [0.14.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.13.2...@eyevinn/whip-endpoint@0.14.0) (2022-05-17)
 
 

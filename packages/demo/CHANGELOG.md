@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.13.0...@eyevinn/whip-web-client-demo@0.14.0) (2022-08-30)
+
+
+### Features
+
+* RTMP module for restreaming to RTMP endpoint ([#64](https://github.com/Eyevinn/whip/issues/64)) ([376c220](https://github.com/Eyevinn/whip/commit/376c220fc231a9455087d16087a46a66a05bfffd))
+
+
+
 ## [0.13.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.12.0...@eyevinn/whip-web-client-demo@0.13.0) (2022-05-17)
 
 

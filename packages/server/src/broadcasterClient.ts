@@ -14,7 +14,7 @@ export class BroadcasterClient {
 
   constructor(opts: BroadcasterClientOptions) {
     this.url = new URL(opts.url || "http://localhost:8001/api");
-    this.egressUrl = new URL(opts.egressUrl || "http://localhost:8001/whpp/channel");
+    this.egressUrl = new URL(opts.egressUrl || "http://localhost:8001/whpp");
   }
 
   async createChannel(channelId: string, sfuResourceId?: string, mediaStreams?: MediaStreamsInfo) {

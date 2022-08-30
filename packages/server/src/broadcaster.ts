@@ -13,7 +13,7 @@ export interface BroadcasterIceServer {
   credential?: string;
 }
 
-interface LinkTypes {
+export interface LinkTypes {
   list: string;
   channel: string;
   mpd: string;

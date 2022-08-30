@@ -87,6 +87,20 @@ To override default URL to SMB the environment variable `SMB_URL` can be set, e.
 USE_SFU=true SMB_URL=http://localhost:8180/conferences/ npm run dev
 ```
 
+### Run the development environment in SFU mode and with @eyevinn/wrtc-egress endpoint
+
+To use the external @eyevinn/wrtc-egress endpoint set the environment variable `ONLY_INGEST` to `true`.
+
+```
+USE_SFU=true ONLY_INGEST=true npm run dev
+```
+
+To override default URL to egress endpoint set the environment variables `EGRESS_API_URL` and `EGRESS_URL`.
+
+```
+USE_SFU=true ONLY_INGEST=true EGRESS_API_URL=http://localhost:8001/api EGRESS_URL=http://localhost:8001/whpp npm run dev
+```
+
 ## License (Apache-2.0)
 
 ```

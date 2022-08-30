@@ -4,6 +4,7 @@ import { Broadcaster } from "../../broadcaster";
 import { SessionDescription, parse } from 'sdp-transform'
 import { WhipResource, WhipResourceIceServer } from "../whipResource";
 import { MediaStreamsInfo } from '../../mediaStreamsInfo'
+import { BroadcasterClient } from "../../broadcasterClient";
 
 const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 2000;
 
@@ -104,6 +105,10 @@ export class WrtcWhipResource implements WhipResource {
 
   assignBroadcaster(broadcaster: Broadcaster) {
     this.broadcaster = broadcaster;
+  }
+
+  assignBroadcasterClient(broadcaster: BroadcasterClient) {
+    // no op
   }
 
   getIceServers(): WhipResourceIceServer[] {

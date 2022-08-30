@@ -3,6 +3,7 @@ import https from "https";
 import { WhipResource, WhipResourceIceServer } from "./whipResource";
 import api from "./whipFastifyApi";
 import { Broadcaster } from "../broadcaster";
+import { BroadcasterClient } from "../broadcasterClient";
 
 interface TLSOptions {
   key: string;
@@ -23,7 +24,8 @@ interface WHIPEndpointOptions {
 export class WhipEndpoint {
   private server: FastifyInstance;
   private resources: {[id: string]: WhipResource};
-  private broadcaster: Broadcaster;
+  private broadcaster?: Broadcaster = undefined;
+  private broadcasterClient?: BroadcasterClient = undefined;
   private port: number;
   private extPort: number;
   private interfaceIp: string;
@@ -69,12 +71,24 @@ export class WhipEndpoint {
     this.broadcaster = broadcaster;
   }
 
+  registerBroadcasterClient(client: BroadcasterClient) {
+    this.broadcasterClient = client;
+  }
+
   hasBroadcaster(): boolean {
-    return this.broadcaster !== null;
+    return this.broadcaster !== undefined;
   }
 
   getBroadcaster(): Broadcaster {
     return this.broadcaster;
+  }
+
+  hasBroadcasterClient(): boolean {
+    return this.broadcasterClient !== undefined;
+  }
+
+  getBroadcasterClient(): BroadcasterClient {
+    return this.broadcasterClient;
   }
 
   addResource(resource: WhipResource) {

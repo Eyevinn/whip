@@ -60,8 +60,11 @@ export default function(fastify: FastifyInstance, opts, done) {
         opts.instance.getEnabledPlugins(), 
         opts.instance.getIceServers());
       opts.instance.addResource(resource);
+      console.log(opts.instance.hasBroadcaster());
       if (opts.instance.hasBroadcaster()) {
         resource.assignBroadcaster(opts.instance.getBroadcaster());
+      } else if (opts.instance.hasBroadcasterClient()) {
+        resource.assignBroadcasterClient(opts.instance.getBroadcasterClient());
       }
 
       await resource.connect();

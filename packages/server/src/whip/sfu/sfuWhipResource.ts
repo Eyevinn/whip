@@ -5,10 +5,12 @@ import { parse, SessionDescription, write } from 'sdp-transform'
 import { v4 as uuidv4 } from "uuid";
 import { SmbEndpointDescription, SmbProtocol } from "../../smb/smbProtocol";
 import { clearTimeout } from "timers";
+import { BroadcasterClient } from '../../broadcasterClient';
 
 export class SfuWhipResource implements WhipResource {
   private resourceId: string;
   private broadcaster?: Broadcaster = undefined;
+  private broadcasterClient?: BroadcasterClient = undefined;
   private sfuResourceId?: string = undefined;
   private offer: string;
   private answer?: string = undefined;
@@ -39,7 +41,11 @@ export class SfuWhipResource implements WhipResource {
 
   async connect() {
     await this.setupSfu();
-    this.broadcaster.createChannel(this.channelId, undefined, this.sfuResourceId, this.mediaStreams);
+    if (this.broadcaster) {
+      this.broadcaster.createChannel(this.channelId, undefined, this.sfuResourceId, this.mediaStreams);
+    } else if (this.broadcasterClient) {
+      await this.broadcasterClient.createChannel(this.channelId, this.sfuResourceId, this.mediaStreams);
+    }
     this.checkChannelHealth();
   }
 
@@ -48,12 +54,20 @@ export class SfuWhipResource implements WhipResource {
       const result = await this.smbProtocol.getConferences();
       if (result.find(element => element === this.sfuResourceId) === undefined) {
         console.log(`SFU resource does not exist, deleting channel ${this.channelId}`);
-        this.broadcaster.removeChannel(this.channelId);
+        if (this.broadcaster) {
+          this.broadcaster.removeChannel(this.channelId);
+        } else if (this.broadcasterClient) {
+          await this.broadcasterClient.removeChannel(this.channelId);
+        }
         return;
       }
     } catch (error) {
       console.log(`SFU not responding, deleting channel ${this.channelId}`);
-      this.broadcaster.removeChannel(this.channelId);
+      if (this.broadcaster) {
+        this.broadcaster.removeChannel(this.channelId);
+      } else if (this.broadcasterClient) {
+        await this.broadcasterClient.removeChannel(this.channelId);
+      }
       return;
     }
 
@@ -284,12 +298,13 @@ export class SfuWhipResource implements WhipResource {
   }
 
   getProtocolExtensions(): string[] {
-    const linkTypes = this.broadcaster.getLinkTypes(IANA_PREFIX);
+    const broadcaster = this.broadcaster || this.broadcasterClient;
+    const linkTypes = broadcaster.getLinkTypes(IANA_PREFIX);
     return [
-      `<${this.broadcaster.getBaseUrl()}/channel>;rel=${linkTypes.list}`,
-      `<${this.broadcaster.getBaseUrl()}/channel/${this.channelId}>;rel=${linkTypes.channel}`,
-      `<${this.broadcaster.getBaseUrl()}/mpd/${this.channelId}>;rel=${linkTypes.mpd}`,
-    ]
+      `<${broadcaster.getBaseUrl()}/channel>;rel=${linkTypes.list}`,
+      `<${broadcaster.getBaseUrl()}/channel/${this.channelId}>;rel=${linkTypes.channel}`,
+      `<${broadcaster.getBaseUrl()}/mpd/${this.channelId}>;rel=${linkTypes.mpd}`,
+    ];
   }
 
   sdpAnswer(): Promise<string> {
@@ -302,6 +317,10 @@ export class SfuWhipResource implements WhipResource {
 
   assignBroadcaster(broadcaster: Broadcaster) {
     this.broadcaster = broadcaster;
+  }
+
+  assignBroadcasterClient(broadcaster: BroadcasterClient) {
+    this.broadcasterClient = broadcaster;
   }
 
   getIceServers(): WhipResourceIceServer[] {

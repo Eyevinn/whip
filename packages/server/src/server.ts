@@ -1,6 +1,4 @@
-import { WhipEndpoint } from ".";
-import { Broadcaster } from "./broadcaster";
-import { BroadcasterClient } from "./broadcasterClient";
+import { WhipEndpoint, Broadcaster, BroadcasterClient } from ".";
 
 import { readFileSync } from "fs";
 

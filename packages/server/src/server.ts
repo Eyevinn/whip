@@ -1,4 +1,4 @@
-import { WhipEndpoint, Broadcaster, BroadcasterClient } from ".";
+import { WhipEndpoint, Broadcaster, BroadcasterClient, BroadcasterClientSfuPair } from ".";
 
 import { readFileSync } from "fs";
 
@@ -79,6 +79,9 @@ if (!ONLY_INGEST) {
     url: process.env.EGRESS_API_URL,
     egressUrl: process.env.EGRESS_URL
   });
-  endpoint.registerBroadcasterClient(client);
+  endpoint.registerBroadcasterClient({
+    client: client, 
+    sfuUrl: 'http://localhost:8081/conferences/'
+  });
   endpoint.listen();
 }

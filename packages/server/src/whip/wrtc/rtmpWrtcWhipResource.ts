@@ -59,12 +59,6 @@ export class RtmpWrtcWhipResource extends WrtcWhipResource {
     return "rtmp";
   }
 
-  getProtocolExtensions(): string[] {
-    return [
-      `<${this.getOutputPath()}>;rel=${IANA_PREFIX}eyevinn-wrtc-rtmp`,
-    ]
-  }
-
   asObject(): any {
     return {
       rtmpUrl: this.getOutputPath()

@@ -1,7 +1,5 @@
 import fetch from 'node-fetch';
 
-const SMB_URL = process.env.SMB_URL || 'http://localhost:8080/conferences/';
-
 interface SmbCandidate {
   'generation': number;
   'component': number;
@@ -81,8 +79,8 @@ export interface SmbEndpointDescription {
 }
 
 export class SmbProtocol {
-  async allocateConference(): Promise<string> {
-    const allocateResponse = await fetch(SMB_URL, {
+  async allocateConference(smbUrl: string): Promise<string> {
+    const allocateResponse = await fetch(smbUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -98,7 +96,8 @@ export class SmbProtocol {
     return allocateResponseJson['id'];
   }
 
-  async allocateEndpoint(conferenceId: string,
+  async allocateEndpoint(smbUrl: string,
+    conferenceId: string,
     endpointId: string,
     audio: boolean,
     video: boolean,
@@ -123,7 +122,7 @@ export class SmbProtocol {
       request["data"] = {};
     }
 
-    const url = SMB_URL + conferenceId + '/' + endpointId;
+    const url = smbUrl + conferenceId + '/' + endpointId;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -141,11 +140,11 @@ export class SmbProtocol {
     return smbEndpointDescription;
   }
 
-  async configureEndpoint(conferenceId: string, endpointId: string, endpointDescription: SmbEndpointDescription): Promise<void> {
+  async configureEndpoint(smbUrl: string, conferenceId: string, endpointId: string, endpointDescription: SmbEndpointDescription): Promise<void> {
     let request = JSON.parse(JSON.stringify(endpointDescription));
     request["action"] = "configure";
 
-    const url = SMB_URL + conferenceId + '/' + endpointId;
+    const url = smbUrl + conferenceId + '/' + endpointId;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -160,9 +159,8 @@ export class SmbProtocol {
     }
   }
 
-  async getConferences(): Promise<string[]> {
-    const url = SMB_URL;
-    const response = await fetch(url, {
+  async getConferences(smbUrl: string): Promise<string[]> {
+    const response = await fetch(smbUrl, {
       method: "GET",
       headers: {
       }

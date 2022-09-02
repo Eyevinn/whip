@@ -6,6 +6,8 @@ import { SmbEndpointDescription, SmbProtocol } from "../../smb/smbProtocol";
 import { MediaStreamsInfo } from '../../mediaStreamsInfo'
 import { SessionDescription, write, parse } from "sdp-transform";
 
+const SMB_URL = process.env.SMB_URL || 'http://localhost:8080/conferences/';
+
 export class SfuWhppViewer extends EventEmitter implements WhppViewer {
   private sfuResourceId: string;
   private viewerId: string;
@@ -42,7 +44,7 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
 
     try {
       this.endpointDescription =
-        await this.sfuProtocol.allocateEndpoint(this.sfuResourceId, this.viewerId, true, true, true);
+        await this.sfuProtocol.allocateEndpoint(SMB_URL, this.sfuResourceId, this.viewerId, true, true, true);
       let offer = this.createOffer();
 
       this.emit("connect");
@@ -307,7 +309,7 @@ export class SfuWhppViewer extends EventEmitter implements WhppViewer {
         };
       });
 
-      return await this.sfuProtocol.configureEndpoint(this.sfuResourceId, this.viewerId, this.endpointDescription);
+      return await this.sfuProtocol.configureEndpoint(SMB_URL, this.sfuResourceId, this.viewerId, this.endpointDescription);
     } catch (exc) {
       this.error(exc);
       throw exc;

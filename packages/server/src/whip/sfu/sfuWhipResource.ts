@@ -5,13 +5,20 @@ import { parse, SessionDescription, write } from 'sdp-transform'
 import { v4 as uuidv4 } from "uuid";
 import { SmbEndpointDescription, SmbProtocol } from "../../smb/smbProtocol";
 import { clearTimeout } from "timers";
-import { BroadcasterClient } from '../../broadcasterClient';
+import { BroadcasterClientSfuPair } from '../../broadcasterClient';
+
+const SMB_URL = process.env.SMB_ORIGIN_URL || 'http://localhost:8080/conferences/';
+
+interface EgressResource {
+  broadcasterClientSfuPair: BroadcasterClientSfuPair;
+  sfuResourceId?: string;
+}
 
 export class SfuWhipResource implements WhipResource {
   private resourceId: string;
   private broadcaster?: Broadcaster = undefined;
-  private broadcasterClient?: BroadcasterClient = undefined;
-  private sfuResourceId?: string = undefined;
+  private egressResources: EgressResource[] = [];
+  private sfuOriginResourceId?: string = undefined;
   private offer: string;
   private answer?: string = undefined;
   private channelId?: string = undefined;
@@ -41,23 +48,32 @@ export class SfuWhipResource implements WhipResource {
 
   async connect() {
     await this.setupSfu();
+
+    console.log(`connect ${this.broadcaster !== undefined} ${this.egressResources.length}`);
+
     if (this.broadcaster) {
-      this.broadcaster.createChannel(this.channelId, undefined, this.sfuResourceId, this.mediaStreams);
-    } else if (this.broadcasterClient) {
-      await this.broadcasterClient.createChannel(this.channelId, this.sfuResourceId, this.mediaStreams);
+      this.broadcaster.createChannel(this.channelId, undefined, this.sfuOriginResourceId, this.mediaStreams);
+    } else if (this.egressResources.length !== 0) {
+      this.egressResources.forEach(async (element) => {
+        console.log(`connect element ${JSON.stringify(element)}`);
+        await element.broadcasterClientSfuPair.client.createChannel(this.channelId, element.sfuResourceId, this.mediaStreams);
+      });
+      
     }
     this.checkChannelHealth();
   }
 
   private async checkChannelHealth() {
     try {
-      const result = await this.smbProtocol.getConferences();
-      if (result.find(element => element === this.sfuResourceId) === undefined) {
+      const result = await this.smbProtocol.getConferences(SMB_URL);
+      if (result.find(element => element === this.sfuOriginResourceId) === undefined) {
         console.log(`SFU resource does not exist, deleting channel ${this.channelId}`);
         if (this.broadcaster) {
           this.broadcaster.removeChannel(this.channelId);
-        } else if (this.broadcasterClient) {
-          await this.broadcasterClient.removeChannel(this.channelId);
+        } else if (this.egressResources.length !== 0) {
+          this.egressResources.forEach(async (element) => {
+            await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
+          });
         }
         return;
       }
@@ -65,8 +81,10 @@ export class SfuWhipResource implements WhipResource {
       console.log(`SFU not responding, deleting channel ${this.channelId}`);
       if (this.broadcaster) {
         this.broadcaster.removeChannel(this.channelId);
-      } else if (this.broadcasterClient) {
-        await this.broadcasterClient.removeChannel(this.channelId);
+      } else if (this.egressResources.length !== 0) {
+        this.egressResources.forEach(async (element) => {
+          await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
+        });
       }
       return;
     }
@@ -179,13 +197,70 @@ export class SfuWhipResource implements WhipResource {
     this.answer = write(parsedSDP);
   }
 
+  private async setupEdgeSfu(smbEdgeUrl: string, ingestorOffer: SessionDescription): Promise<string> {
+    let sfuEdgeResourceId = await this.smbProtocol.allocateConference(smbEdgeUrl);
+
+    let audioSsrc: string | undefined = undefined;
+    let videoMainSsrc: string | undefined = undefined;
+    let videoRtxSsrc: string | undefined = undefined;
+
+    let offerAudio = ingestorOffer.media.find(element => element.type === 'audio');
+    if (offerAudio && offerAudio.ssrcs) {
+      audioSsrc = offerAudio.ssrcs.at(0).id.toString();
+    }
+
+    let offerVideo = ingestorOffer.media.find(element => element.type === 'video');
+    if (offerVideo && offerVideo.ssrcs) {
+      videoMainSsrc = offerVideo.ssrcs.at(0).id.toString();
+      videoRtxSsrc = offerVideo.ssrcs.at(1).id.toString();
+    }
+
+    console.log(`Edge forward audio ${audioSsrc}, video ${videoMainSsrc} ${videoRtxSsrc}`);
+
+    const edgeEndpointDesc = await this.smbProtocol.allocateEndpoint(
+      smbEdgeUrl,
+      sfuEdgeResourceId,
+      'forward_edge_in',
+      offerAudio !== undefined,
+      offerVideo !== undefined,
+      false);
+
+    const originEndpointDesc = await this.smbProtocol.allocateEndpoint(
+      SMB_URL,
+      this.sfuOriginResourceId,
+      'forward_origin_out',
+      ingestorOffer.media.find(element => element.type === 'audio') !== undefined,
+      ingestorOffer.media.find(element => element.type === 'video') !== undefined,
+      ingestorOffer.media.find(element => element.type === 'application') !== undefined);
+
+    originEndpointDesc.audio.ssrcs = [audioSsrc];
+    originEndpointDesc.video.ssrcs = [videoMainSsrc, videoRtxSsrc];
+    originEndpointDesc.video['ssrc-groups'] = [{
+      semantics: 'FID',
+      ssrcs: [videoMainSsrc, videoRtxSsrc]
+    }];
+
+    edgeEndpointDesc.audio.ssrcs = [];
+    edgeEndpointDesc.video.ssrcs = [];
+    edgeEndpointDesc['bundle-transport'].dtls.setup = 'active';
+
+    console.log(`Configuring edge with\n${JSON.stringify(originEndpointDesc)}`);
+    console.log(`Configuring origin with\n${JSON.stringify(edgeEndpointDesc)}`);
+
+    this.smbProtocol.configureEndpoint(smbEdgeUrl, sfuEdgeResourceId, 'forward_edge_in', originEndpointDesc);
+    this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, 'forward_origin_out', edgeEndpointDesc);
+
+    return sfuEdgeResourceId;
+  }
+
   private async setupSfu() {
-    this.sfuResourceId = await this.smbProtocol.allocateConference();
+    this.sfuOriginResourceId = await this.smbProtocol.allocateConference(SMB_URL);
 
     const parsedOffer = parse(this.offer);
 
     const endpointDescription = await this.smbProtocol.allocateEndpoint(
-      this.sfuResourceId,
+      SMB_URL,
+      this.sfuOriginResourceId,
       'ingest',
       parsedOffer.media.find(element => element.type === 'audio') !== undefined,
       parsedOffer.media.find(element => element.type === 'video') !== undefined,
@@ -253,7 +328,11 @@ export class SfuWhipResource implements WhipResource {
     }
 
     this.extractMediaStreams(parsedOffer);
-    await this.smbProtocol.configureEndpoint(this.sfuResourceId, 'ingest', endpointDescription);
+    await this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, 'ingest', endpointDescription);
+
+    this.egressResources.forEach(async (element) => {
+      element.sfuResourceId = await this.setupEdgeSfu(element.broadcasterClientSfuPair.sfuUrl, parsedOffer);
+    });
   }
 
   // Extract media stream information from the WHIP client offer
@@ -297,16 +376,6 @@ export class SfuWhipResource implements WhipResource {
     videoMediaStreams.forEach(value => this.mediaStreams.video.ssrcs.push(value));
   }
 
-  getProtocolExtensions(): string[] {
-    const broadcaster = this.broadcaster || this.broadcasterClient;
-    const linkTypes = broadcaster.getLinkTypes(IANA_PREFIX);
-    return [
-      `<${broadcaster.getBaseUrl()}/channel>;rel=${linkTypes.list}`,
-      `<${broadcaster.getBaseUrl()}/channel/${this.channelId}>;rel=${linkTypes.channel}`,
-      `<${broadcaster.getBaseUrl()}/mpd/${this.channelId}>;rel=${linkTypes.mpd}`,
-    ];
-  }
-
   sdpAnswer(): Promise<string> {
     if (!this.answer) {
       return Promise.reject();
@@ -316,11 +385,20 @@ export class SfuWhipResource implements WhipResource {
   }
 
   assignBroadcaster(broadcaster: Broadcaster) {
+    console.log('assignBroadcaster');
     this.broadcaster = broadcaster;
   }
 
-  assignBroadcasterClient(broadcaster: BroadcasterClient) {
-    this.broadcasterClient = broadcaster;
+  assignBroadcasterClients(broadcasterClientSfuPairs: BroadcasterClientSfuPair[]) {
+    console.log(`assignBroadcasterClients ${JSON.stringify(broadcasterClientSfuPairs)}`);
+    this.egressResources = broadcasterClientSfuPairs.map((element) => {
+      return {
+        broadcasterClientSfuPair: element, 
+        sfuResourceId: undefined
+      }
+    });
+
+    console.log(JSON.stringify(broadcasterClientSfuPairs));
   }
 
   getIceServers(): WhipResourceIceServer[] {

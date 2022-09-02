@@ -185,12 +185,12 @@ let sfuWhipResource: SfuWhipResource | undefined;
 
 describe('SfuWhipResource tests', () => {
   beforeEach(() => {
-    sfuWhipResource = new SfuWhipResource(() => instance(smbProtocol), SDP, 'channelId');
+    sfuWhipResource = new SfuWhipResource(false, () => instance(smbProtocol), SDP, 'channelId');
     sfuWhipResource.assignBroadcaster(instance(broadcaster));
 
-    when(smbProtocol.allocateConference()).thenResolve('conferenceId');
-    when(smbProtocol.allocateEndpoint(anything(), anything(), anything(), anything(), anything())).thenResolve(JSON.parse(ENDPOINT_DESCRIPTION));
-    when(smbProtocol.getConferences()).thenResolve([]);
+    when(smbProtocol.allocateConference(anyString())).thenResolve('conferenceId');
+    when(smbProtocol.allocateEndpoint(anyString(), anything(), anything(), anything(), anything(), anything())).thenResolve(JSON.parse(ENDPOINT_DESCRIPTION));
+    when(smbProtocol.getConferences(anyString())).thenResolve([]);
   })
 
   afterEach(() => {
@@ -200,10 +200,10 @@ describe('SfuWhipResource tests', () => {
 
   it('connect, no datachannel', async () => {
     await sfuWhipResource?.connect();
-    verify(smbProtocol.allocateConference()).once();
-    verify(smbProtocol.allocateEndpoint('conferenceId', anyString(), true, true, false)).once();
+    verify(smbProtocol.allocateConference(anyString())).once();
+    verify(smbProtocol.allocateEndpoint(anyString(), 'conferenceId', anyString(), true, true, false)).once();
 
-    verify(smbProtocol.configureEndpoint('conferenceId', anyString(), anything())).once();
+    verify(smbProtocol.configureEndpoint(anyString(), 'conferenceId', anyString(), anything())).once();
     
     const sdpAnswer = await sfuWhipResource?.sdpAnswer();
     expect(sdpAnswer).not.eq(undefined);

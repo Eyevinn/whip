@@ -55,21 +55,6 @@ export class BroadcasterWrtcWhipResource extends WrtcWhipResource {
     return "broadcaster";
   }
 
-  getProtocolExtensions(): string[] {
-    const linkTypes = this.broadcaster.getLinkTypes(IANA_PREFIX);
-    return [
-      `<${this.broadcaster.getBaseUrl()}/channel>;rel=${linkTypes.list}`,
-      `<${this.broadcaster.getBaseUrl()}/channel/${this.channelId}>;rel=${linkTypes.channel}`,
-      `<${this.broadcaster.getBaseUrl()}/mpd/${this.channelId}>;rel=${linkTypes.mpd}`,
-    ]
-    /*
-    return [
-      `<${this.broadcaster.getBaseUrl()}/channel>;rel=${IANA_PREFIX}eyevinn-wrtc-channel-list`,
-      `<${this.broadcaster.getBaseUrl()}/channel/${this.getId()}>;rel=${IANA_PREFIX}eyevinn-wrtc-channel`,
-    ]
-    */
-  }
-
   asObject(): any {
     return {
       channel: `${this.broadcaster.getBaseUrl()}/channel/${this.channelId}`,

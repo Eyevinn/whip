@@ -36,11 +36,6 @@ export default function(fastify: FastifyInstance, opts, done) {
     return [];
   };
 
-  const addProtocolExtensions = (resource: WhipResource): string[] => {
-    let extensions = resource.getProtocolExtensions();
-    return extensions;
-  };
-
   fastify.addContentTypeParser('application/sdp', { parseAs: "string" }, (req, body, done) => {
     done(null, body);
   })
@@ -64,7 +59,7 @@ export default function(fastify: FastifyInstance, opts, done) {
       if (opts.instance.hasBroadcaster()) {
         resource.assignBroadcaster(opts.instance.getBroadcaster());
       } else if (opts.instance.hasBroadcasterClient()) {
-        resource.assignBroadcasterClient(opts.instance.getBroadcasterClient());
+        resource.assignBroadcasterClients(opts.instance.getBroadcasterClientSfuPairs());
       }
 
       await resource.connect();
@@ -76,8 +71,7 @@ export default function(fastify: FastifyInstance, opts, done) {
         "ETag": resource.getETag()
       });
       
-      const links = addIceLinks(resource.getIceServers(), request.headers["authorization"])
-        .concat(addProtocolExtensions(resource));
+      const links = addIceLinks(resource.getIceServers(), request.headers["authorization"]);
       reply.header("Link", links);
       reply.code(201).send(sdpAnswer);
     } catch (e) {

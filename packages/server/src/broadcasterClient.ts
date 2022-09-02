@@ -8,6 +8,11 @@ export interface BroadcasterClientOptions {
   egressUrl?: string;
 }
 
+export interface BroadcasterClientSfuPair {
+  client: BroadcasterClient;
+  sfuUrl: string;
+}
+
 export class BroadcasterClient {
   private url: URL;
   private egressUrl: URL;
@@ -40,18 +45,6 @@ export class BroadcasterClient {
     });
     if (response.ok) {
       console.log(`Removed channel ${channelId} from egress endpoint`);
-    }
-  }
-  
-  getBaseUrl(): string {
-    return this.egressUrl.href;
-  }
-
-  getLinkTypes(prefix): LinkTypes {
-    return {
-      list: prefix + "whpp-list",
-      channel: prefix + "whpp",
-      mpd: "urn:mpeg:dash:schema:mpd:2011",
     }
   }
 }

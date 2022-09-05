@@ -1,4 +1,3 @@
-import { Broadcaster } from '../../broadcaster'
 import { WhipResource, WhipResourceIceServer, IANA_PREFIX } from "../whipResource";
 import { MediaStreamsInfo, MediaStreamsInfoSsrc } from '../../mediaStreamsInfo'
 import { parse, SessionDescription, write } from 'sdp-transform'
@@ -16,7 +15,6 @@ interface EgressResource {
 
 export class SfuWhipResource implements WhipResource {
   private resourceId: string;
-  private broadcaster?: Broadcaster = undefined;
   private egressResources: EgressResource[] = [];
   private sfuOriginResourceId?: string = undefined;
   private offer: string;
@@ -49,17 +47,11 @@ export class SfuWhipResource implements WhipResource {
   async connect() {
     await this.setupSfu();
 
-    console.log(`connect ${this.broadcaster !== undefined} ${this.egressResources.length}`);
-
-    if (this.broadcaster) {
-      this.broadcaster.createChannel(this.channelId, undefined, this.sfuOriginResourceId, this.mediaStreams);
-    } else if (this.egressResources.length !== 0) {
-      this.egressResources.forEach(async (element) => {
-        console.log(`connect element ${JSON.stringify(element)}`);
-        await element.broadcasterClientSfuPair.client.createChannel(this.channelId, element.sfuResourceId, this.mediaStreams);
-      });
+    this.egressResources.forEach(async (element) => {
+      console.log(`connect element ${JSON.stringify(element)}`);
+      await element.broadcasterClientSfuPair.client.createChannel(this.channelId, element.sfuResourceId, this.mediaStreams);
+    });
       
-    }
     this.checkChannelHealth();
   }
 
@@ -68,24 +60,17 @@ export class SfuWhipResource implements WhipResource {
       const result = await this.smbProtocol.getConferences(SMB_URL);
       if (result.find(element => element === this.sfuOriginResourceId) === undefined) {
         console.log(`SFU resource does not exist, deleting channel ${this.channelId}`);
-        if (this.broadcaster) {
-          this.broadcaster.removeChannel(this.channelId);
-        } else if (this.egressResources.length !== 0) {
-          this.egressResources.forEach(async (element) => {
-            await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-          });
-        }
+        this.egressResources.forEach(async (element) => {
+          await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
+        });
+
         return;
       }
     } catch (error) {
       console.log(`SFU not responding, deleting channel ${this.channelId}`);
-      if (this.broadcaster) {
-        this.broadcaster.removeChannel(this.channelId);
-      } else if (this.egressResources.length !== 0) {
-        this.egressResources.forEach(async (element) => {
-          await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-        });
-      }
+      this.egressResources.forEach(async (element) => {
+        await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
+      });
       return;
     }
 
@@ -330,9 +315,10 @@ export class SfuWhipResource implements WhipResource {
     this.extractMediaStreams(parsedOffer);
     await this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, 'ingest', endpointDescription);
 
-    this.egressResources.forEach(async (element) => {
-      element.sfuResourceId = await this.setupEdgeSfu(element.broadcasterClientSfuPair.sfuUrl, parsedOffer);
-    });
+    for (let egressResource of this.egressResources) {
+      egressResource.sfuResourceId = await this.setupEdgeSfu(egressResource.broadcasterClientSfuPair.sfuUrl, parsedOffer);
+    }
+    console.log(`egressResources ${JSON.stringify(this.egressResources)}`);
   }
 
   // Extract media stream information from the WHIP client offer
@@ -382,11 +368,6 @@ export class SfuWhipResource implements WhipResource {
     }
 
     return Promise.resolve(this.answer);
-  }
-
-  assignBroadcaster(broadcaster: Broadcaster) {
-    console.log('assignBroadcaster');
-    this.broadcaster = broadcaster;
   }
 
   assignBroadcasterClients(broadcasterClientSfuPairs: BroadcasterClientSfuPair[]) {

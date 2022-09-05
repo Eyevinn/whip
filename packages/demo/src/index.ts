@@ -122,12 +122,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   const paramB64Json =
     document.querySelector<HTMLInputElement>("#param-b64json");
 
-  const broadcasterType = process.env.USE_SFU && process.env.USE_SFU === 'true' ? 'sfu-broadcaster' : 'broadcaster';
-
   let authkey;
   if (process.env.NODE_ENV === "development") {
     const protocol = process.env.TLS_TERMINATION_ENABLED ? "https" : "http";
-    input.value = `${protocol}://${window.location.hostname}:8000/api/v1/whip/` + broadcasterType;
+    input.value = `${protocol}://${window.location.hostname}:8000/api/v1/whip/sfu-broadcaster`;
     authkey = "devkey";
   } else if (process.env.NODE_ENV === "awsdev") {
     input.value = "https://whip.dev.eyevinn.technology/api/v1/whip/broadcaster";

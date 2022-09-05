@@ -1,12 +1,6 @@
 import fetch from 'node-fetch';
 
-import { LinkTypes } from "./broadcaster";
 import { MediaStreamsInfo } from "./mediaStreamsInfo";
-
-export interface BroadcasterClientOptions {
-  url?: string;
-  egressUrl?: string;
-}
 
 export interface BroadcasterClientSfuPair {
   client: BroadcasterClient;
@@ -15,11 +9,9 @@ export interface BroadcasterClientSfuPair {
 
 export class BroadcasterClient {
   private url: URL;
-  private egressUrl: URL;
-
-  constructor(opts: BroadcasterClientOptions) {
-    this.url = new URL(opts.url || "http://localhost:8001/api");
-    this.egressUrl = new URL(opts.egressUrl || "http://localhost:8001/whpp");
+  
+  constructor(url: string) {
+    this.url = new URL(url);
   }
 
   async createChannel(channelId: string, sfuResourceId?: string, mediaStreams?: MediaStreamsInfo) {

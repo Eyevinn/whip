@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   sfu-origin:
-    image: eyevinntechnology/wrtc-sfu:latest
+    image: eyevinntechnology/wrtc-sfu:v0.1.1
     cap_add:
       - SYS_NICE
     ulimits:
@@ -19,7 +19,7 @@ services:
       - "8080:8080/tcp"
       - "12000:12000/udp"
   sfu-edge:
-    image: eyevinntechnology/wrtc-sfu:latest
+    image: eyevinntechnology/wrtc-sfu:v0.1.1
     cap_add:
       - SYS_NICE
     ulimits:

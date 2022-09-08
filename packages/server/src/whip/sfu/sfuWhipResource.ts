@@ -49,7 +49,13 @@ export class SfuWhipResource implements WhipResource {
 
     this.egressResources.forEach(async (element) => {
       console.log(`connect element ${JSON.stringify(element)}`);
-      await element.broadcasterClientSfuPair.client.createChannel(this.channelId, element.sfuResourceId, this.mediaStreams);
+      try {
+        await element.broadcasterClientSfuPair.client.createChannel(this.channelId, element.sfuResourceId, this.mediaStreams);
+      } catch (e) {
+        console.log(`Delete and retry creating channel ${this.channelId} on egress`);
+        await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
+        await element.broadcasterClientSfuPair.client.createChannel(this.channelId, element.sfuResourceId, this.mediaStreams);
+      }
     });
       
     this.checkChannelHealth();
@@ -407,6 +413,9 @@ export class SfuWhipResource implements WhipResource {
   }
 
   destroy() {
+    this.egressResources.forEach(async (element) => {
+      await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
+    });
     if (this.channelHealthTimeout) {
       clearTimeout(this.channelHealthTimeout);
       this.channelHealthTimeout = undefined;

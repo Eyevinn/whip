@@ -28,6 +28,8 @@ export class BroadcasterClient {
     });
     if (response.ok) {
       console.log(`Created channel ${channelId} on egress endpoint`);
+    } else {
+      throw new Error(`Failed to create channel  ${channelId}`);
     }
   }
 

@@ -1,33 +1,6 @@
 import { WHIPClient, WHIPClientOptions } from "../../sdk/src/index";
 import { getIceServers } from "./util";
 
-function createWatchLink(channel) {
-  const link = document.createElement("a");
-  link.href = `watch.html?locator=${encodeURIComponent(channel.resource)}`;
-  link.innerText = `Watch Channel`;
-  link.target = "_blank";
-  return link;
-}
-
-function createWebPlayerLink(channel) {
-  const link = document.createElement("a");
-  link.href = `https://web.player.eyevinn.technology?manifest=${encodeURIComponent(channel.resource)}`;
-  link.innerText = `Watch in Eyevinn Web Player`;
-  link.target = "_blank";
-  return link;
-}
-
-async function getChannelUrl(client: WHIPClient): Promise<string> {
-  let channelListUrl: string;
-  (await client.getResourceExtensions()).forEach(link => {
-    if (link.match(/rel=urn:ietf:params:whip:whpp-list/) || link.match(/rel=urn:ietf:params:whip:eyevinn-wrtc-channel-list/)) {
-      const m = link.match(/<?([^>]*)>/);
-      channelListUrl = m[1];
-    }
-  });
-  return channelListUrl;
-}
-
 async function createClientItem(client: WHIPClient) {
   const details = document.createElement("details");
   const summary = document.createElement("summary");
@@ -35,8 +8,6 @@ async function createClientItem(client: WHIPClient) {
   const deleteBtn = document.createElement("button");
 
   summary.innerText = await client.getResourceUrl();
-
-  const channelListUrl = await getChannelUrl(client);
 
   const links = await client.getResourceExtensions();
   links.filter(v => v.match(/urn:ietf:params:whip:/) || v.match(/urn:mpeg:dash:schema:mpd/)).forEach(l => {
@@ -54,7 +25,6 @@ async function createClientItem(client: WHIPClient) {
   deleteBtn.onclick = async () => { 
     await client.destroy();
     details.parentNode?.removeChild(details);
-    updateChannelList(channelListUrl);
   }
 
   details.appendChild(summary);
@@ -62,25 +32,6 @@ async function createClientItem(client: WHIPClient) {
   details.appendChild(deleteBtn);
 
   return details;
-}
-
-async function updateChannelList(channelListUrl?: string) {
-  if (!channelListUrl) {
-    return;
-  }
-
-  const channels = document.querySelector("#channels");
-  channels.innerHTML = ""
-  const response = await fetch(channelListUrl);
-  if (response.ok) {
-    const json = await response.json();
-    if (json.length > 0) {
-      json.map((channel) => {
-        channels.appendChild(createWatchLink(channel));
-        channels.appendChild(createWebPlayerLink(channel));
-      });
-    }
-  }
 }
 
 async function ingest(client: WHIPClient, mediaStream: MediaStream) {
@@ -92,8 +43,6 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   await client.ingest(mediaStream);
 
   resources.appendChild(await createClientItem(client));
-
-  updateChannelList(await getChannelUrl(client));
 }
 
 async function createClient(url: string, iceConfigRemote: boolean, opts: WHIPClientOptions) {

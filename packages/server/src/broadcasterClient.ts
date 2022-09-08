@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { v4 as uuidv4 } from "uuid";
 
 import { MediaStreamsInfo } from "./mediaStreamsInfo";
 
@@ -9,9 +10,15 @@ export interface BroadcasterClientSfuPair {
 
 export class BroadcasterClient {
   private url: URL;
+  private id: string;
   
-  constructor(url: string) {
+  constructor(url: string, id?: string) {
     this.url = new URL(url);
+    this.id = id || uuidv4(); 
+  }
+
+  getId(): string {
+    return this.id;
   }
 
   async createChannel(channelId: string, sfuResourceId?: string, mediaStreams?: MediaStreamsInfo) {

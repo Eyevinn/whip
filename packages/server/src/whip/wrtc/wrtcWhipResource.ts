@@ -103,6 +103,9 @@ export class WrtcWhipResource implements WhipResource {
     // no op
   }
 
+  setOriginSfuUrl(url: string) {
+  }
+
   getIceServers(): WhipResourceIceServer[] {
     return this.iceServers;
   }

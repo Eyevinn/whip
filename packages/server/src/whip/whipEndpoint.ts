@@ -24,6 +24,7 @@ export class WhipEndpoint {
   private server: FastifyInstance;
   private resources: {[id: string]: WhipResource};
   private broadcasterClientSfuPairs: BroadcasterClientSfuPair[] = [];
+  private originSfuUrl?: string = undefined;
   private port: number;
   private extPort: number;
   private interfaceIp: string;
@@ -69,12 +70,20 @@ export class WhipEndpoint {
     this.broadcasterClientSfuPairs.push(broadcasterClientSfuPair);
   }
 
+  setOriginSfuUrl(url: string) {
+    this.originSfuUrl = url;
+  }
+
   hasBroadcasterClient(): boolean {
     return this.broadcasterClientSfuPairs.length !== 0;
   }
 
   getBroadcasterClientSfuPairs(): BroadcasterClientSfuPair[] {
     return this.broadcasterClientSfuPairs;
+  }
+
+  getOriginSfuUrl(): string {
+    return this.originSfuUrl;
   }
 
   addResource(resource: WhipResource) {

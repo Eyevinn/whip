@@ -188,6 +188,7 @@ let sfuWhipResource: SfuWhipResource | undefined;
 describe('SfuWhipResource tests', () => {
   beforeEach(() => {
     sfuWhipResource = new SfuWhipResource(() => instance(smbProtocol), SDP, 'channelId');
+    sfuWhipResource.setOriginSfuUrl(SMB_ORIGIN_URL);
     sfuWhipResource.assignBroadcasterClients([{
       client: instance(broadcasterClient),
       sfuUrl: SMB_EDGE_URL

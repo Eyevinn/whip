@@ -59,6 +59,7 @@ export default function(fastify: FastifyInstance, opts, done) {
       if (opts.instance.hasBroadcasterClient()) {
         resource.assignBroadcasterClients(opts.instance.getBroadcasterClientSfuPairs());
       }
+      resource.setOriginSfuUrl(opts.instance.getOriginSfuUrl());
 
       await resource.connect();
       const sdpAnswer = await resource.sdpAnswer();

@@ -6,8 +6,6 @@ import { SmbEndpointDescription, SmbProtocol } from "../../smb/smbProtocol";
 import { clearTimeout } from "timers";
 import { BroadcasterClientSfuPair } from '../../broadcasterClient';
 
-const SMB_URL = process.env.SMB_ORIGIN_URL || 'http://localhost:8080/conferences/';
-
 interface EgressResource {
   broadcasterClientSfuPair: BroadcasterClientSfuPair;
   sfuResourceId?: string;
@@ -19,6 +17,7 @@ export class SfuWhipResource implements WhipResource {
   private sfuOriginResourceId?: string = undefined;
   private offer: string;
   private answer?: string = undefined;
+  private smbOriginUrl?: string = undefined;
   private channelId?: string = undefined;
   private eTag: string;
   private mediaStreams: MediaStreamsInfo;
@@ -45,6 +44,12 @@ export class SfuWhipResource implements WhipResource {
   }
 
   async connect() {
+    if (!this.smbOriginUrl) {
+      const error = 'No origin SFU configured';
+      console.error(error);
+      throw error;
+    }
+
     await this.setupSfu();
 
     this.egressResources.forEach(async (element) => {
@@ -63,7 +68,7 @@ export class SfuWhipResource implements WhipResource {
 
   private async checkChannelHealth() {
     try {
-      const result = await this.smbProtocol.getConferences(SMB_URL);
+      const result = await this.smbProtocol.getConferences(this.smbOriginUrl);
       if (result.find(element => element === this.sfuOriginResourceId) === undefined) {
         console.log(`SFU resource does not exist, deleting channel ${this.channelId}`);
         this.egressResources.forEach(async (element) => {
@@ -219,7 +224,7 @@ export class SfuWhipResource implements WhipResource {
     const originOutEndpointId = uuidv4();
 
     const originEndpointDesc = await this.smbProtocol.allocateEndpoint(
-      SMB_URL,
+      this.smbOriginUrl,
       this.sfuOriginResourceId,
       originOutEndpointId,
       ingestorOffer.media.find(element => element.type === 'audio') !== undefined,
@@ -241,18 +246,18 @@ export class SfuWhipResource implements WhipResource {
     console.log(`Configuring origin with\n${JSON.stringify(edgeEndpointDesc)}`);
 
     this.smbProtocol.configureEndpoint(smbEdgeUrl, sfuEdgeResourceId, 'forward_edge_in', originEndpointDesc);
-    this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, originOutEndpointId, edgeEndpointDesc);
+    this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, originOutEndpointId, edgeEndpointDesc);
 
     return sfuEdgeResourceId;
   }
 
   private async setupSfu() {
-    this.sfuOriginResourceId = await this.smbProtocol.allocateConference(SMB_URL);
+    this.sfuOriginResourceId = await this.smbProtocol.allocateConference(this.smbOriginUrl);
 
     const parsedOffer = parse(this.offer);
 
     const endpointDescription = await this.smbProtocol.allocateEndpoint(
-      SMB_URL,
+      this.smbOriginUrl,
       this.sfuOriginResourceId,
       'ingest',
       parsedOffer.media.find(element => element.type === 'audio') !== undefined,
@@ -321,7 +326,7 @@ export class SfuWhipResource implements WhipResource {
     }
 
     this.extractMediaStreams(parsedOffer);
-    await this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, 'ingest', endpointDescription);
+    await this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, 'ingest', endpointDescription);
 
     for (let egressResource of this.egressResources) {
       egressResource.sfuResourceId = await this.setupEdgeSfu(egressResource.broadcasterClientSfuPair.sfuUrl, parsedOffer);
@@ -388,6 +393,10 @@ export class SfuWhipResource implements WhipResource {
     });
 
     console.log(JSON.stringify(broadcasterClientSfuPairs));
+  }
+
+  setOriginSfuUrl(url: string) {
+    this.smbOriginUrl = url;
   }
 
   getIceServers(): WhipResourceIceServer[] {

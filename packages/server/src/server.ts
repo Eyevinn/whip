@@ -53,6 +53,7 @@ let sfuConfigData = <SfuConfigData>JSON.parse(sfuConfigFileContents.toString());
 
 console.log(`Using SFU config data: ${JSON.stringify(sfuConfigData)}`);
 
+endpoint.setOriginSfuUrl(sfuConfigData.origin);
 sfuConfigData.edges.forEach(element => {
   endpoint.registerBroadcasterClient({
     client: new BroadcasterClient(element.egress), 

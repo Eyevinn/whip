@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.14.0...@eyevinn/whip-web-client-demo@1.0.0) (2022-09-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* support origin/edge sfu topologies (#88)
+
+### Features
+
+* support origin/edge sfu topologies ([#88](https://github.com/Eyevinn/whip/issues/88)) ([dd8ffde](https://github.com/Eyevinn/whip/commit/dd8ffde5e76193d25a021dd2fd9bada11e9ace2a))
+
+
+
 ## [0.14.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@0.13.0...@eyevinn/whip-web-client-demo@0.14.0) (2022-08-30)
 
 

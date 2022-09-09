@@ -13,10 +13,17 @@ async function createClientItem(client: WHIPClient) {
   links.filter(v => v.match(/urn:ietf:params:whip:/) || v.match(/urn:mpeg:dash:schema:mpd/)).forEach(l => {
     const m = l.match(/<?([^>]*)>;\s*rel=([^;]*)/);
     if (m) {
-      const [_, url, rel] = m;
+      const [_, u, rel] = m;
 
       const link = document.createElement("li");
-      link.innerHTML = `<a target="_blank" href="${url}">${url}</a> (${rel})`;
+      const url = new URL(u);
+      if (rel === "urn:ietf:params:whip:whpp") {
+        const playerUrl = new URL("https://web.player.eyevinn.technology");
+        playerUrl.searchParams.append("manifest", url.href);
+        link.innerHTML = `<a target="_blank" href="${playerUrl.href}">${url.href}</a> (${rel})`;
+      } else {
+        link.innerHTML = `<a target="_blank" href="${url.href}">${url.href}</a> (${rel})`;
+      }
       extensions.appendChild(link);
     }
   });

@@ -16,7 +16,7 @@ npm install --save @eyevinn/whip-endpoint
 ## Usage (WebRTC Broadcasting)
 
 Start a WHIP endpoint on port 8000 and register a WebRTC SFU broadcaster client that
-creates the channels on the egress endpoint. Example using [@eyevinn/wrtc-egress](https://github.com/Eyevinn/wrtc-egress) library as Egress endpoint and Symphony Media Bridge as media server (SFU).
+creates the channels on the egress endpoint. Example using [@eyevinn/wrtc-egress](https://github.com/Eyevinn/wrtc-egress) library as Egress endpoint and Symphony Media Bridge as origin and edge media server (SFU).
 
 ```javascript
 import { WhipEndpoint } from "@eyevinn/whip-endpoint";
@@ -29,16 +29,18 @@ const endpoint = new WhipEndpoint({
   enabledWrtcPlugins: [ "sfu-broadcaster" ], 
 });
 
-endpoint.setOriginSfuUrl("http://<sfu-host>/conferences/");
+endpoint.setOriginSfuUrl("http://<sfu-origin>/conferences/");
 endpoint.registerBroadcasterClient({
   client: new BroadcasterClient("http://<wrtc-egress-endpoint>/api"), 
-  sfuUrl: "http://<sfu-host>/conferences/"
+  sfuUrl: "http://<sfu-edge>/conferences/"
 });
 endpoint.listen();
 ```
 
-The WHIP endpoint for the sfu-broadcaster is then available on `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>` and you will point your WHIP compatible producer to this endpoint.
-Access the channel using the provided protocol that the Egress endpoint provides. For example using the [WebRTC HTTP Playback Protocol (WHPP)](https://github.com/Eyevinn/webrtc-http-playback-protocol) and the channel url `http://<wrtc-egress-endpoint>/whpp/channel/<channelId>`. The [Eyevinn WebRTC Player](https://webrtc.player.eyevinn.technology) has built-in support for WHPP and can be used to try it out.
+The WHIP endpoint for the sfu-broadcaster is then available on `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>` and this is where you will point your WHIP compatible producer to this endpoint.
+Then you can access the channel using the provided protocol that the Egress endpoint provides. 
+
+For example using the [WebRTC HTTP Playback Protocol (WHPP)](https://github.com/Eyevinn/webrtc-http-playback-protocol) and the channel url `http://<wrtc-egress-endpoint>/whpp/channel/<channelId>`. The [Eyevinn WebRTC Player](https://webrtc.player.eyevinn.technology) has built-in support for WHPP and can be used to try this out.
 
 ### TLS Termination example
 
@@ -77,11 +79,10 @@ Available WHIP endpoint options are:
 }
 ```
 
-The WHIP endpoint for the sfu-broadcaster is then available on `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster` and you will point your WHIP compatible producer to this endpoint.
-
-And the WHIP endpoint for the RTSP output is available on `http://<whiphost>:8000/api/v2/whip/rtsp`.
-
-Included is also a dummy endpoint if you just want to test the connectivity. Use `http://<whiphost>:8000/api/v2/whip/dummy` in that case.
+The included plugins then provides the following endpoints:
+- sfu-broadcaster: `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>`
+- rtsp: `http://<whiphost>:8000/api/v2/whip/rtsp`
+- rtmp: `http://<whiphost>:8000/api/v2/whip/rtmp`
 
 ### Environment variables
 

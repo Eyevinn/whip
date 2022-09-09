@@ -216,10 +216,12 @@ export class SfuWhipResource implements WhipResource {
       offerVideo !== undefined,
       false);
 
+    const originOutEndpointId = uuidv4();
+
     const originEndpointDesc = await this.smbProtocol.allocateEndpoint(
       SMB_URL,
       this.sfuOriginResourceId,
-      'forward_origin_out',
+      originOutEndpointId,
       ingestorOffer.media.find(element => element.type === 'audio') !== undefined,
       ingestorOffer.media.find(element => element.type === 'video') !== undefined,
       ingestorOffer.media.find(element => element.type === 'application') !== undefined);
@@ -239,7 +241,7 @@ export class SfuWhipResource implements WhipResource {
     console.log(`Configuring origin with\n${JSON.stringify(edgeEndpointDesc)}`);
 
     this.smbProtocol.configureEndpoint(smbEdgeUrl, sfuEdgeResourceId, 'forward_edge_in', originEndpointDesc);
-    this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, 'forward_origin_out', edgeEndpointDesc);
+    this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, originOutEndpointId, edgeEndpointDesc);
 
     return sfuEdgeResourceId;
   }

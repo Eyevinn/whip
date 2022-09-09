@@ -1,0 +1,9 @@
+{
+    "origin": "http://localhost:8080/conferences/",
+    "edges": [
+        {
+            "sfu": "http://localhost:8080/conferences/",
+            "egress": "http://localhost:8001/api"
+        }
+    ]
+}

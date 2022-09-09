@@ -58,7 +58,7 @@ export class WhipEndpoint {
       preflightContinue: true,
       strictPreflight: false,
     });
-    this.server.register(api, { prefix: "/api/v1", instance: this });
+    this.server.register(api, { prefix: "/api/v2", instance: this });
     this.server.get("/", async () => {
       return "OK\n";
     });

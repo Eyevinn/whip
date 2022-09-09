@@ -21,7 +21,7 @@ Install all dependencies
 npm install
 ```
 
-Run development environment which will launch a demo / test page at http://localhost:1234 and a WHIP endpoint at http://localhost:8000/api/v1
+Run development environment which will launch a demo / test page at http://localhost:1234 and a WHIP endpoint at http://localhost:8000/api/v2
 
 ```
 npm run dev

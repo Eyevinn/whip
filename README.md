@@ -13,6 +13,8 @@ Client and Server modules for WebRTC HTTP Ingestion Protocol (WHIP)
 
 ## Getting started
 
+This will setup a WHIP endpoint, a demo ingest client and an WHPP based egress endpoint to be able to test end-to-end.
+
 Install all dependencies
 
 ```
@@ -25,13 +27,18 @@ Run development environment which will launch a demo / test page at http://local
 npm run dev
 ```
 
+Start media server and WHPP egress endoint as docker containers
+
+```
+docker-compose -f docker-compose-sfu.yml up
+```
+
 ### With TLS termination
 
 ```
 NODE_ENV=development \ 
 TLS_TERMINATION_ENABLED=true \
 WHIP_ENDPOINT_USE_HTTPS=true \
-BROADCAST_USE_HTTPS=true \
 npm run dev
 ```
 
@@ -45,60 +52,6 @@ To fetch ICE config from remote
 
 ```
 API_KEY=<secret> ICE_CONFIG_REMOTE=1 NODE_ENV=production npm run dev
-```
-
-## TURN server
-
-To run a TURN server locally you can use the Docker container of [coturn](https://hub.docker.com/r/coturn/coturn).
-
-```
-docker run -d -p 3478:3478 -p 3478:3478/udp -p 5349:5349 -p 5349:5349/udp -p 49160-49200:49160-49200/udp \
-       coturn/coturn -n --log-file=stdout \
-                        --external-ip='$(detect-external-ip)' \
-                        --min-port=49160 --max-port=49200
-```
-
-And to use the above STUN/TURN server when developing
-
-```
-ICE_SERVERS=turn:<username>:<credential>@localhost:3478 npm run dev
-```
-
-## Run with a local SFU
-
-### Build and run SFU
-
-For requirements, see https://github.com/marcusspangenberg/SymphonyMediaBridge/blob/master/README.md
-
-```
-cd tools
-./start_local_sfu.sh
-```
-
-### Run the development environment in SFU mode
-
-```
-USE_SFU=true npm run dev
-```
-
-To override default URL to SMB the environment variable `SMB_URL` can be set, e.g:
-
-```
-USE_SFU=true SMB_URL=http://localhost:8180/conferences/ npm run dev
-```
-
-### Run the development environment in SFU mode and with [@eyevinn/wrtc-egress](https://www.npmjs.com/package/@eyevinn/wrtc-egress) endpoint
-
-To use the external @eyevinn/wrtc-egress endpoint set the environment variable `ONLY_INGEST` to `true`.
-
-```
-USE_SFU=true ONLY_INGEST=true npm run dev
-```
-
-To override default URL to egress endpoint set the environment variables `EGRESS_API_URL` and `EGRESS_URL`.
-
-```
-USE_SFU=true ONLY_INGEST=true EGRESS_API_URL=http://localhost:8001/api EGRESS_URL=http://localhost:8001/whpp npm run dev
 ```
 
 ## License (Apache-2.0)

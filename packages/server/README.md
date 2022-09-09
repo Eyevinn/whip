@@ -29,9 +29,10 @@ const endpoint = new WhipEndpoint({
   enabledWrtcPlugins: [ "sfu-broadcaster" ], 
 });
 
+endpoint.setOriginSfuUrl("http://<sfu-host>/conferences/");
 endpoint.registerBroadcasterClient({
   client: new BroadcasterClient("http://<wrtc-egress-endpoint>/api"), 
-  sfuUrl: "http://<egress-sfu>/conferences/"
+  sfuUrl: "http://<sfu-host>/conferences/"
 });
 endpoint.listen();
 ```

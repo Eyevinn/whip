@@ -45,7 +45,7 @@ const endpoint = new WhipEndpoint({
 
 interface SfuConfigData {
   origin: string;
-  edges: {sfu: string; egress: string; id?: string;}[];
+  edges: {sfu: string; egress: string;}[];
 };
 
 let sfuConfigFileContents = readFileSync(sfuConfigFile);
@@ -55,7 +55,7 @@ console.log(`Using SFU config data: ${JSON.stringify(sfuConfigData)}`);
 
 sfuConfigData.edges.forEach(element => {
   endpoint.registerBroadcasterClient({
-    client: new BroadcasterClient(element.egress, element.id), 
+    client: new BroadcasterClient(element.egress), 
     sfuUrl: element.sfu
   });
 });

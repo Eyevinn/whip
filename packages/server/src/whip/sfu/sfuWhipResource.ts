@@ -188,7 +188,7 @@ export class SfuWhipResource implements WhipResource {
     this.answer = write(parsedSDP);
   }
 
-  private async setupEdgeSfu(smbEdgeUrl: string, egressId: string, ingestorOffer: SessionDescription): Promise<string> {
+  private async setupEdgeSfu(smbEdgeUrl: string, ingestorOffer: SessionDescription): Promise<string> {
     let sfuEdgeResourceId = await this.smbProtocol.allocateConference(smbEdgeUrl);
 
     let audioSsrc: string | undefined = undefined;
@@ -216,11 +216,10 @@ export class SfuWhipResource implements WhipResource {
       offerVideo !== undefined,
       false);
 
-    const forwardOriginOut = 'forward_origin_out-' + egressId;
     const originEndpointDesc = await this.smbProtocol.allocateEndpoint(
       SMB_URL,
       this.sfuOriginResourceId,
-      forwardOriginOut,
+      'forward_origin_out',
       ingestorOffer.media.find(element => element.type === 'audio') !== undefined,
       ingestorOffer.media.find(element => element.type === 'video') !== undefined,
       ingestorOffer.media.find(element => element.type === 'application') !== undefined);
@@ -240,7 +239,7 @@ export class SfuWhipResource implements WhipResource {
     console.log(`Configuring origin with\n${JSON.stringify(edgeEndpointDesc)}`);
 
     this.smbProtocol.configureEndpoint(smbEdgeUrl, sfuEdgeResourceId, 'forward_edge_in', originEndpointDesc);
-    this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, forwardOriginOut, edgeEndpointDesc);
+    this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, 'forward_origin_out', edgeEndpointDesc);
 
     return sfuEdgeResourceId;
   }
@@ -323,10 +322,7 @@ export class SfuWhipResource implements WhipResource {
     await this.smbProtocol.configureEndpoint(SMB_URL, this.sfuOriginResourceId, 'ingest', endpointDescription);
 
     for (let egressResource of this.egressResources) {
-      egressResource.sfuResourceId = 
-        await this.setupEdgeSfu(egressResource.broadcasterClientSfuPair.sfuUrl, 
-          egressResource.broadcasterClientSfuPair.client.getId(),
-          parsedOffer);
+      egressResource.sfuResourceId = await this.setupEdgeSfu(egressResource.broadcasterClientSfuPair.sfuUrl, parsedOffer);
     }
     console.log(`egressResources ${JSON.stringify(this.egressResources)}`);
   }

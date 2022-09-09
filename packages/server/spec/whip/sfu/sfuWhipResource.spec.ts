@@ -1,7 +1,7 @@
 import { mock, reset, instance, when, anything, verify, anyString } from 'ts-mockito'
 import { SmbProtocol } from '../../../src/smb/smbProtocol'
 import { SfuWhipResource } from '../../../src/whip/sfu/sfuWhipResource'
-import { Broadcaster } from '../../../src/broadcaster'
+import { BroadcasterClient } from '../../../src/broadcasterClient'
 import { expect } from 'chai'
 
 const SDP = "v=0\r\n" +
@@ -178,33 +178,44 @@ const SDP = "v=0\r\n" +
   "a=ssrc:2484338656 msid:nBMIpOJLdfkNjudsR17FxgUxBVVElIyGvZLg fe404de6-a422-4d48-b387-661489b9aeec\r\n";
 
 const ENDPOINT_DESCRIPTION = '{"audio":{"payload-type":{"channels":2,"clockrate":48000,"id":111,"name":"opus","parameters":{"minptime":"10","useinbandfec":"1"},"rtcp-fbs":[]},"rtp-hdrexts":[{"id":1,"uri":"urn:ietf:params:rtp-hdrext:ssrc-audio-level"},{"id":3,"uri":"http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"}],"ssrcs":[1202833541]},"bundle-transport":{"dtls":{"hash":"C6:7E:28:15:15:EE:94:27:97:B2:2E:FB:C9:0F:F9:10:98:F6:D4:93:FA:6E:BD:C9:C9:83:EB:F9:6C:FD:F2:44","setup":"actpass","type":"sha-256"},"ice":{"candidates":[{"component":1,"foundation":"388263418592","generation":0,"ip":"10.247.169.157","network":1,"port":15624,"priority":142541055,"protocol":"udp","type":"host"}],"pwd":"5hjxS4H1Lu853HWahE52d4TW","ufrag":"s4VRnuPHoTgTT2"},"rtcp-mux":true},"video":{"payload-types":[{"clockrate":90000,"id":100,"name":"VP8","parameters":{},"rtcp-fbs":[{"type":"goog-remb"},{"type":"nack"},{"subtype":"pli","type":"nack"}]},{"clockrate":90000,"id":96,"name":"rtx","parameters":{"apt":"100"},"rtcp-fbs":[]}],"rtp-hdrexts":[{"id":3,"uri":"http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"},{"id":4,"uri":"urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id"}],"ssrc-attributes":[],"ssrc-groups":[],"ssrcs":[871456177]}}';
+const SMB_ORIGIN_URL = 'http://localhost:8080/conferences/';
+const SMB_EDGE_URL = 'http://localhost:8081/conferences/';
 
-const broadcaster = mock(Broadcaster);
+const broadcasterClient = mock(BroadcasterClient);
 const smbProtocol = mock(SmbProtocol);
 let sfuWhipResource: SfuWhipResource | undefined;
 
 describe('SfuWhipResource tests', () => {
   beforeEach(() => {
     sfuWhipResource = new SfuWhipResource(() => instance(smbProtocol), SDP, 'channelId');
-    sfuWhipResource.assignBroadcaster(instance(broadcaster));
+    sfuWhipResource.setOriginSfuUrl(SMB_ORIGIN_URL);
+    sfuWhipResource.assignBroadcasterClients([{
+      client: instance(broadcasterClient),
+      sfuUrl: SMB_EDGE_URL
+    }]);
 
-    when(smbProtocol.allocateConference()).thenResolve('conferenceId');
-    when(smbProtocol.allocateEndpoint(anything(), anything(), anything(), anything(), anything())).thenResolve(JSON.parse(ENDPOINT_DESCRIPTION));
-    when(smbProtocol.getConferences()).thenResolve([]);
+    when(smbProtocol.allocateConference(SMB_ORIGIN_URL)).thenResolve('originId');
+    when(smbProtocol.allocateConference(SMB_EDGE_URL)).thenResolve('edgeId');
+    when(smbProtocol.allocateEndpoint(anyString(), anything(), anything(), anything(), anything(), anything())).thenResolve(JSON.parse(ENDPOINT_DESCRIPTION));
+    when(smbProtocol.getConferences(anyString())).thenResolve([]);
   })
 
   afterEach(() => {
-    reset(broadcaster);
+    reset(broadcasterClient);
     reset(smbProtocol);
   })
 
   it('connect, no datachannel', async () => {
     await sfuWhipResource?.connect();
-    verify(smbProtocol.allocateConference()).once();
-    verify(smbProtocol.allocateEndpoint('conferenceId', anyString(), true, true, false)).once();
-
-    verify(smbProtocol.configureEndpoint('conferenceId', anyString(), anything())).once();
+    verify(smbProtocol.allocateConference(SMB_ORIGIN_URL)).once();
+    verify(smbProtocol.allocateConference(SMB_EDGE_URL)).once();
     
+    verify(smbProtocol.allocateEndpoint(SMB_ORIGIN_URL, 'originId', anyString(), true, true, false)).twice();
+    verify(smbProtocol.allocateEndpoint(SMB_EDGE_URL, 'edgeId', anyString(), true, true, false)).once();
+
+    verify(smbProtocol.configureEndpoint(SMB_ORIGIN_URL, 'originId', anyString(), anything())).twice();
+    verify(smbProtocol.configureEndpoint(SMB_EDGE_URL, 'edgeId', anyString(), anything())).once();
+
     const sdpAnswer = await sfuWhipResource?.sdpAnswer();
     expect(sdpAnswer).not.eq(undefined);
   });

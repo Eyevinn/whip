@@ -1,33 +1,4 @@
 import { WHIPClientIceServer } from "@eyevinn/whip-web-client";
-import { WebRTCPlayer } from "@eyevinn/webrtc-player";
-
-export async function watch(channelUrl, video) {
-  if (channelUrl) {
-    let adapterType = "se.eyevinn.webrtc";
-    try {
-      const response = await fetch(channelUrl, { method: "OPTIONS" });
-      if (response.ok && response.headers.get("Accept")) {
-        const acceptTypes = response.headers.get("Accept").split(",").map(v => v.trimStart());
-        if (acceptTypes.includes("application/whpp+json")) {
-          adapterType = "se.eyevinn.whpp";
-        } else {
-          adapterType = "se.eyevinn.webrtc";
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      console.log("Could not determine type, falling back to legacy");
-    }
-
-    const player = new WebRTCPlayer({ 
-      video: video, 
-      type: adapterType, 
-      iceServers: getIceServers()
-    });
-    await player.load(new URL(channelUrl));
-    return player;
-  }
-}
 
 export function getIceServers(): WHIPClientIceServer[] {
   let iceServers: WHIPClientIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];

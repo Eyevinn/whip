@@ -1,7 +1,5 @@
 import { WhipResourceIceServer, WhipResource } from "./whipResource";
 import { SfuWhipResource } from "./sfu/sfuWhipResource";
-import { BroadcasterWrtcWhipResource } from "./wrtc/broadcasterWrtcWhipResource";
-import { DummyWrtcWhipResource } from "./wrtc/dummyWrtcWhipResource";
 import { RtmpWrtcWhipResource } from "./wrtc/rtmpWrtcWhipResource";
 import { RtspWrtcWhipResource, RTSPResolution } from "./wrtc/rtspWrtcWhipResource";
 import { SmbProtocol } from "../smb/smbProtocol";
@@ -19,11 +17,6 @@ export const createWHIPResourceFromType = (type: string, params: WHIPResourcePar
   }
 
   switch (type) {
-    case "dummy":
-      return new DummyWrtcWhipResource(sdpOffer, iceServers);
-
-    case "broadcaster":
-      return new BroadcasterWrtcWhipResource(sdpOffer, iceServers, { channelId: params?.channelId });
 
     case "sfu-broadcaster":
       return new SfuWhipResource(() => new SmbProtocol(), sdpOffer, params?.channelId);

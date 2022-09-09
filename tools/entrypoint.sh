@@ -14,7 +14,8 @@ cat > config.json << EOF
   "defaultLastN": 1,
   "rctl.enable": true,
   "rctl.debugLog": false,
-  "mixerInactivityTimeoutMs": 30000
+  "mixerInactivityTimeoutMs": 30000,
+  "recording.singlePort": 0
 }
 EOF
 

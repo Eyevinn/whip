@@ -1,5 +1,4 @@
-import { Broadcaster } from "../broadcaster";
-import { BroadcasterClient } from "../broadcasterClient";
+import { BroadcasterClientSfuPair } from "../broadcasterClient";
 import { MediaStreamsInfo } from "../mediaStreamsInfo";
 
 export const IANA_PREFIX = "urn:ietf:params:whip:";
@@ -12,10 +11,9 @@ export interface WhipResourceIceServer {
 
 export interface WhipResource {
     connect();
-    getProtocolExtensions(): string[];
     sdpAnswer(): Promise<string>;
-    assignBroadcaster(broadcaster: Broadcaster);
-    assignBroadcasterClient(broadcaster: BroadcasterClient);
+    assignBroadcasterClients(broadcasterClientSfuPairs: BroadcasterClientSfuPair[]);
+    setOriginSfuUrl(url: string);
     getIceServers(): WhipResourceIceServer[];
     getId(): string;
     getETag(): string | undefined;

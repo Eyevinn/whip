@@ -4,7 +4,7 @@ An NPM library containing a WebRTC ingest server that implements the WebRTC HTTP
 
 The library includes the following WHIP destinations:
 - A dummy receiver
-- A WebRTC broadcaster (SFU)
+- An SFU broadcaster
 - An RTSP restreaming output
 
 ## Setup
@@ -13,41 +13,41 @@ The library includes the following WHIP destinations:
 npm install --save @eyevinn/whip-endpoint
 ```
 
-## Usage
+## Usage (WebRTC Broadcasting)
 
-Start a WHIP endpoint on port 8000 and register a WebRTC broadcaster (SFU)
+Start a WHIP endpoint on port 8000 and register a WebRTC SFU broadcaster client that
+creates the channels on the egress endpoint. Example using [@eyevinn/wrtc-egress](https://github.com/Eyevinn/wrtc-egress) library as Egress endpoint and Symphony Media Bridge as origin and edge media server (SFU).
 
 ```javascript
-import { WHIPEndpoint, Broadcaster } from "@eyevinn/whip-endpoint";
+import { WhipEndpoint } from "@eyevinn/whip-endpoint";
 
-const broadcaster = new Broadcaster({ 
-  port: 8001,
-  hostname: "<broadcasthost>",
-  interfaceIp: "0.0.0.0",
+const endpoint = new WhipEndpoint({ 
+  port: 8000, 
+  hostname: "<whiphost>",
   https: false,
-  prefix: "/broadcaster",
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }] 
-});
-broadcaster.listen();
-
-const endpoint = new WHIPEndpoint({ 
-  port: 8000,
-  hostname: "<whiphost>", 
-  https: false,
-  interfaceIp: "0.0.0.0",
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-  enabledWrtcPlugins: [ "broadcaster" ] 
+  enabledWrtcPlugins: [ "sfu-broadcaster" ], 
 });
-endpoint.registerBroadcaster(broadcaster);
+
+endpoint.setOriginSfuUrl("http://<sfu-origin>/conferences/");
+endpoint.registerBroadcasterClient({
+  client: new BroadcasterClient("http://<wrtc-egress-endpoint>/api"), 
+  sfuUrl: "http://<sfu-edge>/conferences/"
+});
 endpoint.listen();
 ```
+
+The WHIP endpoint for the sfu-broadcaster is then available on `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>` and this is where you will point your WHIP compatible producer to this endpoint.
+Then you can access the channel using the provided protocol that the Egress endpoint provides. 
+
+For example using the [WebRTC HTTP Playback Protocol (WHPP)](https://github.com/Eyevinn/webrtc-http-playback-protocol) and the channel url `http://<wrtc-egress-endpoint>/whpp/channel/<channelId>`. The [Eyevinn WebRTC Player](https://webrtc.player.eyevinn.technology) has built-in support for WHPP and can be used to try this out.
 
 ### TLS Termination example
 
 If you want to use TLS termination you provide the `tls` object containing key and cert. The `https` option must be set to `true`.
 
 ```javascript
-const endpoint = new WHIPEndpoint({ 
+const endpoint = new WhipEndpoint({ 
   port: 443, 
   hostname: "whip.lab.eyevinn",
   https: true,
@@ -55,9 +55,11 @@ const endpoint = new WHIPEndpoint({
     key: fs.readFileSync("./server-key.pem"),
     cert: fs.readFileSync("./server-cert.pem"),
   },
-  iceServers: iceServers,
-  enabledWrtcPlugins: [ "broadcaster" ], 
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  enabledWrtcPlugins: [ "sfu-broadcaster" ], 
 });
+
+// ...
 ```
 
 ### Options
@@ -73,28 +75,20 @@ Available WHIP endpoint options are:
   https: boolean, // use https
   tls: { key: string, cert: string }, // key and cert for TLS termination (optional),
   iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
-  enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "broadcaster", "rtsp"
+  enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "sfu-broadcaster", "rtsp", "rtmp"
 }
 ```
 
-The WHIP endpoint for the broadcaster is then available on `http://<host>:8000/api/v1/whip/broadcaster` and you will point your WHIP compatible producer to this endpoint.
-
-And the WHIP endpoint for the RTSP output is available on `http://<host>:8000/api/v1/whip/rtsp`.
-
-Included is also a dummy endpoint if you just want to test the connectivity. Use `http://<host>:8000/api/v1/whip/dummy` in that case.
+The included plugins then provides the following endpoints:
+- sfu-broadcaster: `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>`
+- rtsp: `http://<whiphost>:8000/api/v2/whip/rtsp`
+- rtmp: `http://<whiphost>:8000/api/v2/whip/rtmp`
 
 ### Environment variables
 
 The following environment variables are read to override default values:
 - `ICE_GATHERING_TIMEOUT` (default: 4000 ms): Timeout for gathering all ICE candidates
 - `API_KEY`: Authorization key that clients must use to get ICE server config on OPTIONS request
-
-## Broadcaster
-
-To access a channel you follow this procedure:
-
-1. Obtain the channel locator from the `Link` header of type `rel=urn:ietf:params:whip:whpp` in the `201` response when creating the WHIP resource.
-2. Follow the [WebRTC HTTP Playback Protocol](https://github.com/Eyevinn/webrtc-http-playback-protocol) to establish an RTP connection for consumption only or use the [WebRTC player with support for WHPP](https://github.com/Eyevinn/webrtc-player).
 
 ## RTSP output
 
@@ -109,8 +103,6 @@ To play the RTSP stream you can for example use ffplay:
 ```
 ffplay rtsp://lab.eyevinn:8554/<uuid4>
 ```
-
-The complete RTSP URL with the ID can be identified by the `Link` header of rel `rel=urn:ietf:params:whip:eyevinn-wrtc-rtsp`.
 
 Default output resolution is 960x540 but this can be overriden by setting the environment variable `RTSP_RESOLUTION` to for example `RTSP_RESOLUTION=1920x1080`.
 

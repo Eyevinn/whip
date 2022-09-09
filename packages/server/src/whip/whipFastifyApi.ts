@@ -36,11 +36,6 @@ export default function(fastify: FastifyInstance, opts, done) {
     return [];
   };
 
-  const addProtocolExtensions = (resource: WhipResource): string[] => {
-    let extensions = resource.getProtocolExtensions();
-    return extensions;
-  };
-
   fastify.addContentTypeParser('application/sdp', { parseAs: "string" }, (req, body, done) => {
     done(null, body);
   })
@@ -60,12 +55,11 @@ export default function(fastify: FastifyInstance, opts, done) {
         opts.instance.getEnabledPlugins(), 
         opts.instance.getIceServers());
       opts.instance.addResource(resource);
-      console.log(opts.instance.hasBroadcaster());
-      if (opts.instance.hasBroadcaster()) {
-        resource.assignBroadcaster(opts.instance.getBroadcaster());
-      } else if (opts.instance.hasBroadcasterClient()) {
-        resource.assignBroadcasterClient(opts.instance.getBroadcasterClient());
+
+      if (opts.instance.hasBroadcasterClient()) {
+        resource.assignBroadcasterClients(opts.instance.getBroadcasterClientSfuPairs());
       }
+      resource.setOriginSfuUrl(opts.instance.getOriginSfuUrl());
 
       await resource.connect();
       const sdpAnswer = await resource.sdpAnswer();
@@ -76,8 +70,7 @@ export default function(fastify: FastifyInstance, opts, done) {
         "ETag": resource.getETag()
       });
       
-      const links = addIceLinks(resource.getIceServers(), request.headers["authorization"])
-        .concat(addProtocolExtensions(resource));
+      const links = addIceLinks(resource.getIceServers(), request.headers["authorization"]);
       reply.header("Link", links);
       reply.code(201).send(sdpAnswer);
     } catch (e) {

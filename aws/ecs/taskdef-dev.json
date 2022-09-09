@@ -29,18 +29,6 @@
           "value": "whipit!"
         },
         {
-          "name": "BROADCAST_EXT_PORT",
-          "value": "443"
-        },
-        {
-          "name": "BROADCAST_HOSTNAME",
-          "value": "broadcaster-wrtc.dev.eyevinn.technology"
-        },
-        {
-          "name": "BROADCAST_USE_HTTPS",
-          "value": "true"
-        },
-        {
           "name": "EXT_PORT",
           "value": "443"
         },

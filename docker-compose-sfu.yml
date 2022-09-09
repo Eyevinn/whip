@@ -1,0 +1,46 @@
+version: "3.7"
+
+services:
+  sfu-origin:
+    image: eyevinntechnology/wrtc-sfu:v0.1.1
+    cap_add:
+      - SYS_NICE
+    ulimits:
+      rtprio: 99
+    environment:
+      - HTTP_PORT=8080
+      - UDP_PORT=12000
+      - IPV4_ADDR=127.0.0.1
+    logging:
+      driver: "local"
+      options:
+        max-size: 10m
+    ports:
+      - "8080:8080/tcp"
+      - "12000:12000/udp"
+  sfu-edge:
+    image: eyevinntechnology/wrtc-sfu:v0.1.1
+    cap_add:
+      - SYS_NICE
+    ulimits:
+      rtprio: 99
+    environment:
+      - HTTP_PORT=8081
+      - UDP_PORT=13000
+      - IPV4_ADDR=127.0.0.1
+    ports:
+      - "8081:8081/tcp"
+      - "13000:13000/udp"
+    logging:
+      driver: "local"
+      options:
+        max-size: 10m
+  egress:
+    image: eyevinntechnology/wrtc-whpp:latest
+    environment:
+      - PORT=8001
+      - EXT_PORT=8001
+      - HOSTNAME=localhost
+      - SMB_URL=http://sfu-edge:8081/conferences/
+    ports:
+      - "8001:8001/tcp"      

@@ -1,9 +1,7 @@
-import { WhipEndpoint, Broadcaster, BroadcasterClient } from ".";
-
+import { WhipEndpoint, BroadcasterClient, BroadcasterClientSfuPair } from ".";
 import { readFileSync } from "fs";
 
-const USE_SFU: boolean = process.env.USE_SFU && process.env.USE_SFU === 'true';
-const ONLY_INGEST: boolean = process.env.ONLY_INGEST && process.env.ONLY_INGEST === 'true';
+const sfuConfigFile = process.env.SFU_CONFIG_FILE ? process.env.SFU_CONFIG_FILE : '../../sfu-config.json';
 
 let iceServers = null;
 if (process.env.ICE_SERVERS) {
@@ -35,50 +33,33 @@ if (process.env.TLS_TERMINATION_ENABLED) {
   }
 }
 
-if (!ONLY_INGEST) {
-  const broadcaster = new Broadcaster({ 
-    port: parseInt(process.env.BROADCAST_PORT || "8001"),
-    extPort: parseInt(process.env.BROADCAST_EXT_PORT || "8001"),
-    hostname: process.env.BROADCAST_HOSTNAME,
-    https: process.env.BROADCAST_USE_HTTPS && process.env.BROADCAST_USE_HTTPS === "true",
-    tls: tlsOptions,
-    prefix: process.env.BROADCAST_PREFIX,
-    iceServers: iceServers,
-    preRollMpd: process.env.PREROLL_MPD,
-    useSFU: USE_SFU
-  });
-  broadcaster.listen();
+const endpoint = new WhipEndpoint({ 
+  port: parseInt(process.env.PORT || "8000"), 
+  extPort: parseInt(process.env.EXT_PORT || "8000"),
+  hostname: process.env.WHIP_ENDPOINT_HOSTNAME,
+  https: process.env.WHIP_ENDPOINT_USE_HTTPS && process.env.WHIP_ENDPOINT_USE_HTTPS === "true",
+  tls: tlsOptions,
+  iceServers: iceServers,
+  enabledWrtcPlugins: [ "rtsp", "rtmp", "sfu-broadcaster" ], 
+});
 
-  const endpoint = new WhipEndpoint({ 
-    port: parseInt(process.env.PORT || "8000"), 
-    extPort: parseInt(process.env.EXT_PORT || "8000"),
-    hostname: process.env.WHIP_ENDPOINT_HOSTNAME,
-    https: process.env.WHIP_ENDPOINT_USE_HTTPS && process.env.WHIP_ENDPOINT_USE_HTTPS === "true",
-    tls: tlsOptions,
-    iceServers: iceServers,
-    enabledWrtcPlugins: [ "broadcaster", "dummy", "rtsp", "rtmp", "sfu-broadcaster" ], 
-  });
-  endpoint.registerBroadcaster(broadcaster);
-  endpoint.listen();
-} else {
-  if (!USE_SFU) {
-    console.error("ONLY_INGEST requires USE_SFU=true");
-    process.exit(1);
-  }
-  const endpoint = new WhipEndpoint({ 
-    port: parseInt(process.env.PORT || "8000"), 
-    extPort: parseInt(process.env.EXT_PORT || "8000"),
-    hostname: process.env.WHIP_ENDPOINT_HOSTNAME,
-    https: process.env.WHIP_ENDPOINT_USE_HTTPS && process.env.WHIP_ENDPOINT_USE_HTTPS === "true",
-    tls: tlsOptions,
-    iceServers: iceServers,
-    enabledWrtcPlugins: [ "broadcaster", "dummy", "rtsp", "rtmp", "sfu-broadcaster" ], 
-  });
+interface SfuConfigData {
+  origin: string;
+  edges: {sfu: string; egress: string;}[];
+};
 
-  const client = new BroadcasterClient({
-    url: process.env.EGRESS_API_URL,
-    egressUrl: process.env.EGRESS_URL
+let sfuConfigFileContents = readFileSync(sfuConfigFile);
+let sfuConfigData = <SfuConfigData>JSON.parse(sfuConfigFileContents.toString());
+
+console.log(`Using SFU config data: ${JSON.stringify(sfuConfigData)}`);
+
+endpoint.setOriginSfuUrl(sfuConfigData.origin);
+sfuConfigData.edges.forEach(element => {
+  endpoint.registerBroadcasterClient({
+    client: new BroadcasterClient(element.egress), 
+    sfuUrl: element.sfu
   });
-  endpoint.registerBroadcasterClient(client);
-  endpoint.listen();
-}
+});
+
+
+endpoint.listen();

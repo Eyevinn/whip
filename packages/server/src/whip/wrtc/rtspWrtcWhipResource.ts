@@ -84,12 +84,6 @@ export class RtspWrtcWhipResource extends WrtcWhipResource {
     return "rtsp";
   }
 
-  getProtocolExtensions(): string[] {
-    return [
-      `<${this.getOutputPath()}>;rel=${IANA_PREFIX}eyevinn-wrtc-rtsp`,
-    ]
-  }
-
   asObject(): any {
     return {
       rtsp: this.getOutputPath()

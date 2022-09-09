@@ -1,10 +1,9 @@
 import { RTCPeerConnection } from "@koush/wrtc";
 import { v4 as uuidv4 } from "uuid";
-import { Broadcaster } from "../../broadcaster";
 import { SessionDescription, parse } from 'sdp-transform'
 import { WhipResource, WhipResourceIceServer } from "../whipResource";
 import { MediaStreamsInfo } from '../../mediaStreamsInfo'
-import { BroadcasterClient } from "../../broadcasterClient";
+import { BroadcasterClientSfuPair } from "../../broadcasterClient";
 
 const ICE_TRICKLE_TIMEOUT = process.env.ICE_TRICKLE_TIMEOUT ? parseInt(process.env.ICE_TRICKLE_TIMEOUT) : 2000;
 
@@ -16,7 +15,6 @@ interface IceCredentials {
 export class WrtcWhipResource implements WhipResource {
   protected sdpOffer: string;
   protected pc: RTCPeerConnection;
-  protected broadcaster: Broadcaster;
 
   private resourceId: string;
   private localSdp: string;
@@ -96,27 +94,20 @@ export class WrtcWhipResource implements WhipResource {
   }
 
   async onconnect(state) {
-
   }
 
   async ondisconnect(state) {
-
   }
 
-  assignBroadcaster(broadcaster: Broadcaster) {
-    this.broadcaster = broadcaster;
-  }
-
-  assignBroadcasterClient(broadcaster: BroadcasterClient) {
+  assignBroadcasterClients(broadcasterClientSfuPairs: BroadcasterClientSfuPair[]) {
     // no op
+  }
+
+  setOriginSfuUrl(url: string) {
   }
 
   getIceServers(): WhipResourceIceServer[] {
     return this.iceServers;
-  }
-
-  getProtocolExtensions(): string[] {
-    return [];
   }
 
   private async handleConnectionStateChange() {

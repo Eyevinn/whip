@@ -8,6 +8,7 @@
     "dev": "lerna run dev --stream --parallel",
     "start": "lerna run server --stream --parallel --no-prefix",
     "lerna:version": "lerna version --changelog-preset conventionalcommits --conventional-commits",
+    "lerna:majorversion": "lerna version major --changelog-preset conventionalcommits --conventional-commits",
     "publish": "lerna publish from-package --yes --ignore-scripts --no-verify-access",
     "deploy:dev": "git tag $(git rev-parse --short HEAD)-dev && git push --tags"
   },

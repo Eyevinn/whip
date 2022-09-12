@@ -1,5 +1,8 @@
 import fetch from 'node-fetch';
 
+const apiKey: string | undefined = process.env.SFU_API_KEY ? process.env.SFU_API_KEY : undefined;
+console.log(`apiKey ${apiKey}`);
+
 interface SmbCandidate {
   'generation': number;
   'component': number;
@@ -83,7 +86,8 @@ export class SmbProtocol {
     const allocateResponse = await fetch(smbUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-APIkey": apiKey
       },
       body: '{}'
     });
@@ -126,7 +130,8 @@ export class SmbProtocol {
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-APIkey": apiKey
       },
       body: JSON.stringify(request)
     });
@@ -148,7 +153,8 @@ export class SmbProtocol {
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-APIkey": apiKey
       },
       body: JSON.stringify(request)
     });
@@ -163,6 +169,7 @@ export class SmbProtocol {
     const response = await fetch(smbUrl, {
       method: "GET",
       headers: {
+        "X-APIkey": apiKey
       }
     });
 

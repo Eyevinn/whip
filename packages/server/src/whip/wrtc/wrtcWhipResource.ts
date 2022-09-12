@@ -99,13 +99,6 @@ export class WrtcWhipResource implements WhipResource {
   async ondisconnect(state) {
   }
 
-  assignBroadcasterClients(broadcasterClientSfuPairs: BroadcasterClientSfuPair[]) {
-    // no op
-  }
-
-  setOriginSfuUrl(url: string) {
-  }
-
   getIceServers(): WhipResourceIceServer[] {
     return this.iceServers;
   }

@@ -52,15 +52,13 @@ export default function(fastify: FastifyInstance, opts, done) {
       const resource = createWHIPResourceFromType(type, 
         whipResourceParams,
         <string>request.body, 
-        opts.instance.getEnabledPlugins(), 
-        opts.instance.getIceServers());
+        opts.instance.getEnabledPlugins(),
+        opts.instance.getOriginSfuUrl(),
+        opts.instance.getBroadcasterClientSfuPairs(),
+        opts.instance.getIceServers(),
+        opts.instance.getSfuApiKey());
       opts.instance.addResource(resource);
-
-      if (opts.instance.hasBroadcasterClient()) {
-        resource.assignBroadcasterClients(opts.instance.getBroadcasterClientSfuPairs());
-      }
-      resource.setOriginSfuUrl(opts.instance.getOriginSfuUrl());
-
+    
       await resource.connect();
       const sdpAnswer = await resource.sdpAnswer();
 

@@ -27,12 +27,11 @@ const endpoint = new WhipEndpoint({
   https: false,
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
   enabledWrtcPlugins: [ "sfu-broadcaster" ], 
-});
-
-endpoint.setOriginSfuUrl("http://<sfu-origin>/conferences/");
-endpoint.registerBroadcasterClient({
-  client: new BroadcasterClient("http://<wrtc-egress-endpoint>/api"), 
-  sfuUrl: "http://<sfu-edge>/conferences/"
+  originSfuUrl : "http://<sfu-origin>/conferences/",
+  broadcasterClients : [{
+    client: new BroadcasterClient("http://<wrtc-egress-endpoint>/api"), 
+    sfuUrl: "http://<sfu-edge>/conferences/"
+  }]
 });
 endpoint.listen();
 ```
@@ -75,7 +74,10 @@ Available WHIP endpoint options are:
   https: boolean, // use https
   tls: { key: string, cert: string }, // key and cert for TLS termination (optional),
   iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
-  enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "sfu-broadcaster", "rtsp", "rtmp"
+  enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "sfu-broadcaster", "rtsp", "rtmp",
+  originSfuUrl : string, // URL to the origin SFU configuration endpoint
+  broadcasterClients : [ {client: BroadcasterClient, sfuUrl: string} ], // An array of edge SFU configuration endpoint and BroadcasterClient pairs
+  sfuApiKey?: string // Optional SFU configuration endpoint API key
 }
 ```
 

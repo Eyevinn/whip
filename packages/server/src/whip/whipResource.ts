@@ -12,8 +12,6 @@ export interface WhipResourceIceServer {
 export interface WhipResource {
     connect();
     sdpAnswer(): Promise<string>;
-    assignBroadcasterClients(broadcasterClientSfuPairs: BroadcasterClientSfuPair[]);
-    setOriginSfuUrl(url: string);
     getIceServers(): WhipResourceIceServer[];
     getId(): string;
     getETag(): string | undefined;

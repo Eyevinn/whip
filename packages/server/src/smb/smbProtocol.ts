@@ -1,7 +1,6 @@
 import fetch from 'node-fetch';
 
 const apiKey: string | undefined = process.env.SFU_API_KEY ? process.env.SFU_API_KEY : undefined;
-console.log(`apiKey ${apiKey}`);
 
 interface SmbCandidate {
   'generation': number;

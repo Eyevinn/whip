@@ -1,5 +1,7 @@
 import fetch from 'node-fetch';
 
+const apiKey: string | undefined = process.env.SFU_API_KEY ? process.env.SFU_API_KEY : undefined;
+
 interface SmbCandidate {
   'generation': number;
   'component': number;
@@ -79,7 +81,7 @@ export interface SmbEndpointDescription {
 }
 
 export class SmbProtocol {
-  async allocateConference(smbUrl: string, apiKey?: string): Promise<string> {
+  async allocateConference(smbUrl: string): Promise<string> {
     const allocateResponse = await fetch(smbUrl, {
       method: "POST",
       headers: {
@@ -102,8 +104,7 @@ export class SmbProtocol {
     endpointId: string,
     audio: boolean,
     video: boolean,
-    data: boolean, 
-    apiKey?: string): Promise<SmbEndpointDescription> {
+    data: boolean): Promise<SmbEndpointDescription> {
 
     let request = {
       "action": "allocate",
@@ -143,7 +144,7 @@ export class SmbProtocol {
     return smbEndpointDescription;
   }
 
-  async configureEndpoint(smbUrl: string, conferenceId: string, endpointId: string, endpointDescription: SmbEndpointDescription, apiKey?: string): Promise<void> {
+  async configureEndpoint(smbUrl: string, conferenceId: string, endpointId: string, endpointDescription: SmbEndpointDescription): Promise<void> {
     let request = JSON.parse(JSON.stringify(endpointDescription));
     request["action"] = "configure";
 
@@ -163,7 +164,7 @@ export class SmbProtocol {
     }
   }
 
-  async getConferences(smbUrl: string, apiKey?: string): Promise<string[]> {
+  async getConferences(smbUrl: string): Promise<string[]> {
     const response = await fetch(smbUrl, {
       method: "GET",
       headers: {

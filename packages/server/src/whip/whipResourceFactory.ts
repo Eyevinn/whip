@@ -3,22 +3,13 @@ import { SfuWhipResource } from "./sfu/sfuWhipResource";
 import { RtmpWrtcWhipResource } from "./wrtc/rtmpWrtcWhipResource";
 import { RtspWrtcWhipResource, RTSPResolution } from "./wrtc/rtspWrtcWhipResource";
 import { SmbProtocol } from "../smb/smbProtocol";
-import { BroadcasterClientSfuPair } from "../broadcasterClient"
 
 export interface WHIPResourceParams {
   channelId?: string;
   b64json?: string;
 }
 
-export const createWHIPResourceFromType = (type: string, 
-  params: WHIPResourceParams, 
-  sdpOffer: string, 
-  enabledPlugins: string[], 
-  originSfuUrl: string, 
-  broadcasterClientSfuPairs: BroadcasterClientSfuPair[], 
-  iceServers?: WhipResourceIceServer[],
-  sfuApiKey?: string): WhipResource => {
-
+export const createWHIPResourceFromType = (type: string, params: WHIPResourceParams, sdpOffer: string, enabledPlugins: string[], iceServers?: WhipResourceIceServer[]): WhipResource => {
   if (!enabledPlugins.includes(type)) {
     console.error(`Requested plugin '${type}' that is not enabled`);
     throw new Error(`Requested plugin '${type}' that is not enabled`);
@@ -28,7 +19,7 @@ export const createWHIPResourceFromType = (type: string,
   switch (type) {
 
     case "sfu-broadcaster":
-      return new SfuWhipResource(() => new SmbProtocol(), originSfuUrl, broadcasterClientSfuPairs, sdpOffer, params?.channelId, sfuApiKey);
+      return new SfuWhipResource(() => new SmbProtocol(), sdpOffer, params?.channelId);
 
     case "rtsp":
       let opts = null;

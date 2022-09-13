@@ -33,6 +33,16 @@ if (process.env.TLS_TERMINATION_ENABLED) {
   }
 }
 
+const endpoint = new WhipEndpoint({ 
+  port: parseInt(process.env.PORT || "8000"), 
+  extPort: parseInt(process.env.EXT_PORT || "8000"),
+  hostname: process.env.WHIP_ENDPOINT_HOSTNAME,
+  https: process.env.WHIP_ENDPOINT_USE_HTTPS && process.env.WHIP_ENDPOINT_USE_HTTPS === "true",
+  tls: tlsOptions,
+  iceServers: iceServers,
+  enabledWrtcPlugins: [ "rtsp", "rtmp", "sfu-broadcaster" ], 
+});
+
 interface SfuConfigData {
   origin: string;
   edges: {sfu: string; egress: string;}[];
@@ -43,20 +53,13 @@ let sfuConfigData = <SfuConfigData>JSON.parse(sfuConfigFileContents.toString());
 
 console.log(`Using SFU config data: ${JSON.stringify(sfuConfigData)}`);
 
-const endpoint = new WhipEndpoint({ 
-  port: parseInt(process.env.PORT || "8000"), 
-  extPort: parseInt(process.env.EXT_PORT || "8000"),
-  hostname: process.env.WHIP_ENDPOINT_HOSTNAME,
-  https: process.env.WHIP_ENDPOINT_USE_HTTPS && process.env.WHIP_ENDPOINT_USE_HTTPS === "true",
-  tls: tlsOptions,
-  iceServers: iceServers,
-  enabledWrtcPlugins: [ "rtsp", "rtmp", "sfu-broadcaster" ], 
-  originSfuUrl : sfuConfigData.origin,
-  broadcasterClients : sfuConfigData.edges.map(element => <BroadcasterClientSfuPair>{
+endpoint.setOriginSfuUrl(sfuConfigData.origin);
+sfuConfigData.edges.forEach(element => {
+  endpoint.registerBroadcasterClient({
     client: new BroadcasterClient(element.egress), 
     sfuUrl: element.sfu
-  }),
-  sfuApiKey: process.env.SFU_API_KEY
+  });
 });
+
 
 endpoint.listen();

@@ -17,27 +17,16 @@ export class SfuWhipResource implements WhipResource {
   private sfuOriginResourceId?: string = undefined;
   private offer: string;
   private answer?: string = undefined;
-  private smbOriginUrl: string = undefined;
+  private smbOriginUrl?: string = undefined;
   private channelId?: string = undefined;
   private eTag: string;
   private mediaStreams: MediaStreamsInfo;
   private smbProtocol: SmbProtocol;
   private channelHealthTimeout?: NodeJS.Timeout;
-  private sfuApiKey?: string;
 
-  constructor(smbProtocolFactory: () => SmbProtocol, sfuOriginUrl: string, broadcasterClientSfuPairs: BroadcasterClientSfuPair[], sdpOffer: string, channelId?: string, sfuApiKey?: string) {
+  constructor(smbProtocolFactory: () => SmbProtocol, sdpOffer: string, channelId?: string) {
     this.resourceId = uuidv4();
     this.offer = sdpOffer;
-    this.smbOriginUrl = sfuOriginUrl;
-
-    console.log(`BroadcasterClients ${JSON.stringify(broadcasterClientSfuPairs)}`);
-    this.egressResources = broadcasterClientSfuPairs.map((element) => {
-      return {
-        broadcasterClientSfuPair: element, 
-        sfuResourceId: undefined
-      }
-    });
-
     this.channelId = channelId ? channelId : this.getId();
     this.eTag = uuidv4();
 
@@ -52,10 +41,15 @@ export class SfuWhipResource implements WhipResource {
     };
 
     this.smbProtocol = smbProtocolFactory();
-    this.sfuApiKey = sfuApiKey;
   }
 
   async connect() {
+    if (!this.smbOriginUrl) {
+      const error = 'No origin SFU configured';
+      console.error(error);
+      throw error;
+    }
+
     await this.setupSfu();
 
     this.egressResources.forEach(async (element) => {
@@ -74,7 +68,7 @@ export class SfuWhipResource implements WhipResource {
 
   private async checkChannelHealth() {
     try {
-      const result = await this.smbProtocol.getConferences(this.smbOriginUrl, this.sfuApiKey);
+      const result = await this.smbProtocol.getConferences(this.smbOriginUrl);
       if (result.find(element => element === this.sfuOriginResourceId) === undefined) {
         console.log(`SFU resource does not exist, deleting channel ${this.channelId}`);
         this.egressResources.forEach(async (element) => {
@@ -200,7 +194,7 @@ export class SfuWhipResource implements WhipResource {
   }
 
   private async setupEdgeSfu(smbEdgeUrl: string, ingestorOffer: SessionDescription): Promise<string> {
-    let sfuEdgeResourceId = await this.smbProtocol.allocateConference(smbEdgeUrl, this.sfuApiKey);
+    let sfuEdgeResourceId = await this.smbProtocol.allocateConference(smbEdgeUrl);
 
     let audioSsrc: string | undefined = undefined;
     let videoMainSsrc: string | undefined = undefined;
@@ -225,8 +219,7 @@ export class SfuWhipResource implements WhipResource {
       'forward_edge_in',
       offerAudio !== undefined,
       offerVideo !== undefined,
-      false, 
-      this.sfuApiKey);
+      false);
 
     const originOutEndpointId = uuidv4();
 
@@ -236,8 +229,7 @@ export class SfuWhipResource implements WhipResource {
       originOutEndpointId,
       ingestorOffer.media.find(element => element.type === 'audio') !== undefined,
       ingestorOffer.media.find(element => element.type === 'video') !== undefined,
-      ingestorOffer.media.find(element => element.type === 'application') !== undefined,
-      this.sfuApiKey);
+      ingestorOffer.media.find(element => element.type === 'application') !== undefined);
 
     originEndpointDesc.audio.ssrcs = [audioSsrc];
     originEndpointDesc.video.ssrcs = [videoMainSsrc, videoRtxSsrc];
@@ -253,14 +245,14 @@ export class SfuWhipResource implements WhipResource {
     console.log(`Configuring edge with\n${JSON.stringify(originEndpointDesc)}`);
     console.log(`Configuring origin with\n${JSON.stringify(edgeEndpointDesc)}`);
 
-    this.smbProtocol.configureEndpoint(smbEdgeUrl, sfuEdgeResourceId, 'forward_edge_in', originEndpointDesc, this.sfuApiKey);
-    this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, originOutEndpointId, edgeEndpointDesc, this.sfuApiKey);
+    this.smbProtocol.configureEndpoint(smbEdgeUrl, sfuEdgeResourceId, 'forward_edge_in', originEndpointDesc);
+    this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, originOutEndpointId, edgeEndpointDesc);
 
     return sfuEdgeResourceId;
   }
 
   private async setupSfu() {
-    this.sfuOriginResourceId = await this.smbProtocol.allocateConference(this.smbOriginUrl, this.sfuApiKey);
+    this.sfuOriginResourceId = await this.smbProtocol.allocateConference(this.smbOriginUrl);
 
     const parsedOffer = parse(this.offer);
 
@@ -270,8 +262,7 @@ export class SfuWhipResource implements WhipResource {
       'ingest',
       parsedOffer.media.find(element => element.type === 'audio') !== undefined,
       parsedOffer.media.find(element => element.type === 'video') !== undefined,
-      parsedOffer.media.find(element => element.type === 'application') !== undefined, 
-      this.sfuApiKey);
+      parsedOffer.media.find(element => element.type === 'application') !== undefined);
 
     this.createAnswer(endpointDescription);
 
@@ -335,7 +326,7 @@ export class SfuWhipResource implements WhipResource {
     }
 
     this.extractMediaStreams(parsedOffer);
-    await this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, 'ingest', endpointDescription, this.sfuApiKey);
+    await this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, 'ingest', endpointDescription);
 
     for (let egressResource of this.egressResources) {
       egressResource.sfuResourceId = await this.setupEdgeSfu(egressResource.broadcasterClientSfuPair.sfuUrl, parsedOffer);
@@ -390,6 +381,22 @@ export class SfuWhipResource implements WhipResource {
     }
 
     return Promise.resolve(this.answer);
+  }
+
+  assignBroadcasterClients(broadcasterClientSfuPairs: BroadcasterClientSfuPair[]) {
+    console.log(`assignBroadcasterClients ${JSON.stringify(broadcasterClientSfuPairs)}`);
+    this.egressResources = broadcasterClientSfuPairs.map((element) => {
+      return {
+        broadcasterClientSfuPair: element, 
+        sfuResourceId: undefined
+      }
+    });
+
+    console.log(JSON.stringify(broadcasterClientSfuPairs));
+  }
+
+  setOriginSfuUrl(url: string) {
+    this.smbOriginUrl = url;
   }
 
   getIceServers(): WhipResourceIceServer[] {

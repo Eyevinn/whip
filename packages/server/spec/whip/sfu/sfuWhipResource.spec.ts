@@ -187,10 +187,17 @@ let sfuWhipResource: SfuWhipResource | undefined;
 
 describe('SfuWhipResource tests', () => {
   beforeEach(() => {
-    when(smbProtocol.allocateConference(SMB_ORIGIN_URL, anything())).thenResolve('originId');
-    when(smbProtocol.allocateConference(SMB_EDGE_URL, anything())).thenResolve('edgeId');
-    when(smbProtocol.allocateEndpoint(anyString(), anything(), anything(), anything(), anything(), anything(), anything())).thenResolve(JSON.parse(ENDPOINT_DESCRIPTION));
-    when(smbProtocol.getConferences(anyString(), anything())).thenResolve([]);
+    sfuWhipResource = new SfuWhipResource(() => instance(smbProtocol), SDP, 'channelId');
+    sfuWhipResource.setOriginSfuUrl(SMB_ORIGIN_URL);
+    sfuWhipResource.assignBroadcasterClients([{
+      client: instance(broadcasterClient),
+      sfuUrl: SMB_EDGE_URL
+    }]);
+
+    when(smbProtocol.allocateConference(SMB_ORIGIN_URL)).thenResolve('originId');
+    when(smbProtocol.allocateConference(SMB_EDGE_URL)).thenResolve('edgeId');
+    when(smbProtocol.allocateEndpoint(anyString(), anything(), anything(), anything(), anything(), anything())).thenResolve(JSON.parse(ENDPOINT_DESCRIPTION));
+    when(smbProtocol.getConferences(anyString())).thenResolve([]);
   })
 
   afterEach(() => {
@@ -198,51 +205,18 @@ describe('SfuWhipResource tests', () => {
     reset(smbProtocol);
   })
 
-  it('connect, no datachannel, no api key', async () => {
-    sfuWhipResource = new SfuWhipResource(() => instance(smbProtocol),
-      SMB_ORIGIN_URL,
-      [{
-        client: instance(broadcasterClient),
-        sfuUrl: SMB_EDGE_URL
-      }],
-      SDP,
-      'channelId');
-
+  it('connect, no datachannel', async () => {
     await sfuWhipResource?.connect();
-    verify(smbProtocol.allocateConference(SMB_ORIGIN_URL, undefined)).once();
-    verify(smbProtocol.allocateConference(SMB_EDGE_URL, undefined)).once();
+    verify(smbProtocol.allocateConference(SMB_ORIGIN_URL)).once();
+    verify(smbProtocol.allocateConference(SMB_EDGE_URL)).once();
+    
+    verify(smbProtocol.allocateEndpoint(SMB_ORIGIN_URL, 'originId', anyString(), true, true, false)).twice();
+    verify(smbProtocol.allocateEndpoint(SMB_EDGE_URL, 'edgeId', anyString(), true, true, false)).once();
 
-    verify(smbProtocol.allocateEndpoint(SMB_ORIGIN_URL, 'originId', anyString(), true, true, false, undefined)).twice();
-    verify(smbProtocol.allocateEndpoint(SMB_EDGE_URL, 'edgeId', anyString(), true, true, false, undefined)).once();
-
-    verify(smbProtocol.configureEndpoint(SMB_ORIGIN_URL, 'originId', anyString(), anything(), undefined)).twice();
-    verify(smbProtocol.configureEndpoint(SMB_EDGE_URL, 'edgeId', anyString(), anything(), undefined)).once();
+    verify(smbProtocol.configureEndpoint(SMB_ORIGIN_URL, 'originId', anyString(), anything())).twice();
+    verify(smbProtocol.configureEndpoint(SMB_EDGE_URL, 'edgeId', anyString(), anything())).once();
 
     const sdpAnswer = await sfuWhipResource?.sdpAnswer();
     expect(sdpAnswer).not.eq(undefined);
-  });
-
-  it('api key is used', async () => {
-    const API_KEY = 'apikey1';
-
-    sfuWhipResource = new SfuWhipResource(() => instance(smbProtocol),
-      SMB_ORIGIN_URL,
-      [{
-        client: instance(broadcasterClient),
-        sfuUrl: SMB_EDGE_URL
-      }],
-      SDP,
-      'channelId',
-      API_KEY);
-
-    await sfuWhipResource?.connect();
-    verify(smbProtocol.allocateConference(SMB_ORIGIN_URL, API_KEY)).once();
-    verify(smbProtocol.allocateConference(SMB_EDGE_URL, API_KEY)).once();
-
-    verify(smbProtocol.allocateEndpoint(SMB_ORIGIN_URL, 'originId', anyString(), true, true, false, API_KEY)).twice();
-    verify(smbProtocol.allocateEndpoint(SMB_EDGE_URL, 'edgeId', anyString(), true, true, false, API_KEY)).once();
-
-    verify(smbProtocol.configureEndpoint(SMB_ORIGIN_URL, 'originId', anyString(), anything(), API_KEY)).twice();
-    verify(smbProtocol.configureEndpoint(SMB_EDGE_URL, 'edgeId', anyString(), anything(), API_KEY)).once();
   });
 });

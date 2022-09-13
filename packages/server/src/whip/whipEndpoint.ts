@@ -18,9 +18,6 @@ interface WHIPEndpointOptions {
   tls?: TLSOptions;
   iceServers?: WhipResourceIceServer[];
   enabledWrtcPlugins?: string[];
-  originSfuUrl: string;
-  broadcasterClients: BroadcasterClientSfuPair[];
-  sfuApiKey?: string;
 }
 
 export class WhipEndpoint {
@@ -36,7 +33,6 @@ export class WhipEndpoint {
   private iceServers?: WhipResourceIceServer[];
   private enabledWrtcPlugins: string[];
   private tls?: TLSOptions;
-  private sfuApiKey?: string;
 
   constructor(opts?: WHIPEndpointOptions) {
     this.port = opts?.port || 8000;
@@ -47,9 +43,6 @@ export class WhipEndpoint {
     this.enabledWrtcPlugins = opts?.enabledWrtcPlugins || [];
     this.iceServers = opts?.iceServers || [];
     this.tls = opts?.tls;
-    this.originSfuUrl = opts.originSfuUrl;
-    this.broadcasterClientSfuPairs = opts.broadcasterClients;
-    this.sfuApiKey = opts.sfuApiKey;
 
     let httpsServer;
     if (this.useHttps && this.tls) {
@@ -73,16 +66,24 @@ export class WhipEndpoint {
     this.resources = {};
   }
 
+  registerBroadcasterClient(broadcasterClientSfuPair: BroadcasterClientSfuPair) {
+    this.broadcasterClientSfuPairs.push(broadcasterClientSfuPair);
+  }
+
+  setOriginSfuUrl(url: string) {
+    this.originSfuUrl = url;
+  }
+
+  hasBroadcasterClient(): boolean {
+    return this.broadcasterClientSfuPairs.length !== 0;
+  }
+
   getBroadcasterClientSfuPairs(): BroadcasterClientSfuPair[] {
     return this.broadcasterClientSfuPairs;
   }
 
   getOriginSfuUrl(): string {
     return this.originSfuUrl;
-  }
-
-  getSfuApiKey(): string | undefined {
-    return this.sfuApiKey;
   }
 
   addResource(resource: WhipResource) {

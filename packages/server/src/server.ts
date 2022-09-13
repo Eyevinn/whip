@@ -1,4 +1,4 @@
-import { WhipEndpoint, BroadcasterClient, BroadcasterClientSfuPair } from ".";
+import { WhipEndpoint, BroadcasterClient } from ".";
 import { readFileSync } from "fs";
 
 const sfuConfigFile = process.env.SFU_CONFIG_FILE ? process.env.SFU_CONFIG_FILE : '../../sfu-config.json';
@@ -60,6 +60,6 @@ sfuConfigData.edges.forEach(element => {
     sfuUrl: element.sfu
   });
 });
-
+endpoint.setSfuApiKey(process.env.SFU_API_KEY);
 
 endpoint.listen();

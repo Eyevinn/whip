@@ -24,7 +24,7 @@ export class SfuWhipResource implements WhipResource {
   private smbProtocol: SmbProtocol;
   private channelHealthTimeout?: NodeJS.Timeout;
 
-  constructor(smbProtocolFactory: () => SmbProtocol, sdpOffer: string, channelId?: string) {
+  constructor(smbProtocolFactory: (apiKey: string | undefined) => SmbProtocol, sdpOffer: string, channelId?: string, apiKey?: string) {
     this.resourceId = uuidv4();
     this.offer = sdpOffer;
     this.channelId = channelId ? channelId : this.getId();
@@ -40,7 +40,7 @@ export class SfuWhipResource implements WhipResource {
       }
     };
 
-    this.smbProtocol = smbProtocolFactory();
+    this.smbProtocol = smbProtocolFactory(apiKey);
   }
 
   async connect() {

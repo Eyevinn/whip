@@ -79,11 +79,18 @@ export interface SmbEndpointDescription {
 }
 
 export class SmbProtocol {
+  private apiKey: string;
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
+
   async allocateConference(smbUrl: string): Promise<string> {
     const allocateResponse = await fetch(smbUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-APIkey": this.apiKey
       },
       body: '{}'
     });
@@ -126,7 +133,8 @@ export class SmbProtocol {
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-APIkey": this.apiKey
       },
       body: JSON.stringify(request)
     });
@@ -148,7 +156,8 @@ export class SmbProtocol {
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-APIkey": this.apiKey
       },
       body: JSON.stringify(request)
     });
@@ -163,6 +172,7 @@ export class SmbProtocol {
     const response = await fetch(smbUrl, {
       method: "GET",
       headers: {
+        "X-APIkey": this.apiKey
       }
     });
 

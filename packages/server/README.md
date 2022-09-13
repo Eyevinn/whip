@@ -34,6 +34,7 @@ endpoint.registerBroadcasterClient({
   client: new BroadcasterClient("http://<wrtc-egress-endpoint>/api"), 
   sfuUrl: "http://<sfu-edge>/conferences/"
 });
+endpoint.setSfuApiKey(string | undefined);
 endpoint.listen();
 ```
 

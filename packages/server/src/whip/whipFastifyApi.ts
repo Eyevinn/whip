@@ -53,7 +53,8 @@ export default function(fastify: FastifyInstance, opts, done) {
         whipResourceParams,
         <string>request.body, 
         opts.instance.getEnabledPlugins(), 
-        opts.instance.getIceServers());
+        opts.instance.getIceServers(),
+        opts.instance.getSfuApiKey());
       opts.instance.addResource(resource);
 
       if (opts.instance.hasBroadcasterClient()) {

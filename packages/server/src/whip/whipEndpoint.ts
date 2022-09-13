@@ -25,6 +25,7 @@ export class WhipEndpoint {
   private resources: {[id: string]: WhipResource};
   private broadcasterClientSfuPairs: BroadcasterClientSfuPair[] = [];
   private originSfuUrl?: string = undefined;
+  private sfuApiKey?: string = undefined;
   private port: number;
   private extPort: number;
   private interfaceIp: string;
@@ -74,6 +75,10 @@ export class WhipEndpoint {
     this.originSfuUrl = url;
   }
 
+  setSfuApiKey(apiKey: string) {
+    this.sfuApiKey = apiKey;
+  }
+
   hasBroadcasterClient(): boolean {
     return this.broadcasterClientSfuPairs.length !== 0;
   }
@@ -84,6 +89,10 @@ export class WhipEndpoint {
 
   getOriginSfuUrl(): string {
     return this.originSfuUrl;
+  }
+
+  getSfuApiKey(): string {
+    return this.sfuApiKey;
   }
 
   addResource(resource: WhipResource) {

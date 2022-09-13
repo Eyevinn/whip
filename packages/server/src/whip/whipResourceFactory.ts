@@ -9,7 +9,7 @@ export interface WHIPResourceParams {
   b64json?: string;
 }
 
-export const createWHIPResourceFromType = (type: string, params: WHIPResourceParams, sdpOffer: string, enabledPlugins: string[], iceServers?: WhipResourceIceServer[]): WhipResource => {
+export const createWHIPResourceFromType = (type: string, params: WHIPResourceParams, sdpOffer: string, enabledPlugins: string[], iceServers?: WhipResourceIceServer[], sfuApiKey?: string): WhipResource => {
   if (!enabledPlugins.includes(type)) {
     console.error(`Requested plugin '${type}' that is not enabled`);
     throw new Error(`Requested plugin '${type}' that is not enabled`);
@@ -19,7 +19,7 @@ export const createWHIPResourceFromType = (type: string, params: WHIPResourcePar
   switch (type) {
 
     case "sfu-broadcaster":
-      return new SfuWhipResource(() => new SmbProtocol(), sdpOffer, params?.channelId);
+      return new SfuWhipResource((apiKey) => new SmbProtocol(apiKey), sdpOffer, params?.channelId, sfuApiKey);
 
     case "rtsp":
       let opts = null;

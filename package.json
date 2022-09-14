@@ -31,8 +31,10 @@
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@types/node-fetch": "^2.6.1",
+    "@types/node": "^17.0.23",
+    "@types/sdp-transform": "^2.4.5",
     "conventional-changelog-conventionalcommits": "^4.6.3",
-    "lerna": "^4.0.0",
+    "lerna": "^5.5.1",
     "prettier": "^2.5.1"
   }
 }

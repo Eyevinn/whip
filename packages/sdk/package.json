@@ -27,7 +27,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/sdp-transform": "^2.4.5",
     "chai": "^4.3.6",
     "karma": "^6.3.18",
     "karma-chrome-launcher": "^3.1.1",

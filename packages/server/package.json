@@ -1,6 +1,6 @@
 {
   "name": "@eyevinn/whip-endpoint",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "WebRTC HTTP ingestion protocol endpoint",
   "main": "dist/index.js",
   "files": [
@@ -24,13 +24,13 @@
     "url": "git+https://github.com/Eyevinn/whip.git"
   },
   "devDependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.9",
     "chai": "^4.3.6",
     "mocha": "^10.0.0",
     "ts-mockito": "^2.6.1",
     "ts-node": "^10.8.1",
     "tsc-watch": "^4.6.0",
-    "typescript": "^4.6.2",
-    "@mapbox/node-pre-gyp": "^1.0.9"
+    "typescript": "^4.6.2"
   },
   "dependencies": {
     "@koush/wrtc": "^0.5.3",

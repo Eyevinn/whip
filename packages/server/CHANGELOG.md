@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.0.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.0.0...@eyevinn/whip-endpoint@1.0.1) (2022-09-15)
+
+
+### Bug Fixes
+
+* use sfu api key if present ([#91](https://github.com/Eyevinn/whip/issues/91)) ([7aa048f](https://github.com/Eyevinn/whip/commit/7aa048f4362b9af390c01461d47c625ad6424213))
+
+
+
 ## [1.0.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@0.15.1...@eyevinn/whip-endpoint@1.0.0) (2022-09-09)
 
 

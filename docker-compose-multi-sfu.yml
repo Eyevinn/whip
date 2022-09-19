@@ -56,7 +56,7 @@ services:
       options:
         max-size: 10m
   egress1:
-    image: eyevinntechnology/wrtc-whpp:latest
+    image: eyevinntechnology/wrtc-whpp:v0.2.0
     environment:
       - PORT=8001
       - EXT_PORT=8001
@@ -65,7 +65,7 @@ services:
     ports:
       - "8001:8001/tcp"      
   egress2:
-    image: eyevinntechnology/wrtc-whpp:latest
+    image: eyevinntechnology/wrtc-whpp:v0.2.0
     environment:
       - PORT=8002
       - EXT_PORT=8002

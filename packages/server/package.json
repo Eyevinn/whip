@@ -1,6 +1,6 @@
 {
   "name": "@eyevinn/whip-endpoint",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "WebRTC HTTP ingestion protocol endpoint",
   "main": "dist/index.js",
   "files": [

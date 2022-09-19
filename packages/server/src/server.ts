@@ -60,6 +60,6 @@ sfuConfigData.edges.forEach(element => {
     sfuUrl: element.sfu
   });
 });
-endpoint.setSfuApiKey(process.env.SFU_API_KEY);
+endpoint.setSfuApiKey(process.env.SFU_API_KEY || "dev");
 
 endpoint.listen();

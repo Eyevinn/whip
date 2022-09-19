@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   sfu-origin:
-    image: eyevinntechnology/wrtc-sfu:v0.1.1
+    image: eyevinntechnology/wrtc-sfu:v0.3.0
     cap_add:
       - SYS_NICE
     ulimits:
@@ -11,6 +11,7 @@ services:
       - HTTP_PORT=8080
       - UDP_PORT=12000
       - IPV4_ADDR=127.0.0.1
+      - API_KEY=dev
     logging:
       driver: "local"
       options:
@@ -19,7 +20,7 @@ services:
       - "8080:8080/tcp"
       - "12000:12000/udp"
   sfu-edge1:
-    image: eyevinntechnology/wrtc-sfu:v0.1.1
+    image: eyevinntechnology/wrtc-sfu:v0.3.0
     cap_add:
       - SYS_NICE
     ulimits:
@@ -28,6 +29,7 @@ services:
       - HTTP_PORT=8081
       - UDP_PORT=13000
       - IPV4_ADDR=127.0.0.1
+      - API_KEY=dev
     ports:
       - "8081:8081/tcp"
       - "13000:13000/udp"
@@ -36,7 +38,7 @@ services:
       options:
         max-size: 10m
   sfu-edge2:
-    image: eyevinntechnology/wrtc-sfu:v0.1.1
+    image: eyevinntechnology/wrtc-sfu:v0.3.0
     cap_add:
       - SYS_NICE
     ulimits:
@@ -45,6 +47,7 @@ services:
       - HTTP_PORT=8082
       - UDP_PORT=13001
       - IPV4_ADDR=127.0.0.1
+      - API_KEY=dev
     ports:
       - "8082:8082/tcp"
       - "13001:13001/udp"

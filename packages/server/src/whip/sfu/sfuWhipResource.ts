@@ -2,7 +2,7 @@ import { WhipResource, WhipResourceIceServer, IANA_PREFIX } from "../whipResourc
 import { MediaStreamsInfo, MediaStreamsInfoSsrc } from '../../mediaStreamsInfo'
 import { parse, SessionDescription, write } from 'sdp-transform'
 import { v4 as uuidv4 } from "uuid";
-import { SmbEndpointDescription, SmbProtocol } from "../../smb/smbProtocol";
+import { SmbEndpointDescription, SmbProtocol, SmbVideoStream } from "../../smb/smbProtocol";
 import { clearTimeout } from "timers";
 import { BroadcasterClientSfuPair } from '../../broadcasterClient';
 
@@ -199,6 +199,7 @@ export class SfuWhipResource implements WhipResource {
     let audioSsrc: string | undefined = undefined;
     let videoMainSsrc: string | undefined = undefined;
     let videoRtxSsrc: string | undefined = undefined;
+    let videoMediaStream: string | undefined = undefined;
 
     let offerAudio = ingestorOffer.media.find(element => element.type === 'audio');
     if (offerAudio && offerAudio.ssrcs) {
@@ -207,11 +208,20 @@ export class SfuWhipResource implements WhipResource {
 
     let offerVideo = ingestorOffer.media.find(element => element.type === 'video');
     if (offerVideo && offerVideo.ssrcs) {
-      videoMainSsrc = offerVideo.ssrcs.at(0).id.toString();
-      videoRtxSsrc = offerVideo.ssrcs.at(1).id.toString();
+      let ssrcs = offerVideo.ssrcs.filter(element => element.attribute === 'msid' && element.value);
+      videoMainSsrc = ssrcs.at(0).id.toString();
+      videoRtxSsrc = ssrcs.at(1).id.toString();
+
+      let mainMsid = ssrcs.filter(element => element.id == videoMainSsrc);
+      if (mainMsid.length !== 0) {
+        let msidSplit = mainMsid[0].value.split(' ');
+        if (msidSplit.length === 2) {
+          videoMediaStream = msidSplit[0];
+        }
+      }
     }
 
-    console.log(`Edge forward audio ${audioSsrc}, video ${videoMainSsrc} ${videoRtxSsrc}`);
+    console.log(`Edge forward audio ${audioSsrc}, video ${videoMainSsrc} ${videoRtxSsrc} ${videoMediaStream}`);
 
     const edgeEndpointDesc = await this.smbProtocol.allocateEndpoint(
       smbEdgeUrl,
@@ -227,19 +237,28 @@ export class SfuWhipResource implements WhipResource {
       this.smbOriginUrl,
       this.sfuOriginResourceId,
       originOutEndpointId,
-      ingestorOffer.media.find(element => element.type === 'audio') !== undefined,
-      ingestorOffer.media.find(element => element.type === 'video') !== undefined,
-      ingestorOffer.media.find(element => element.type === 'application') !== undefined);
+      offerAudio !== undefined,
+      offerVideo !== undefined,
+      false);
 
-    originEndpointDesc.audio.ssrcs = [audioSsrc];
-    originEndpointDesc.video.ssrcs = [videoMainSsrc, videoRtxSsrc];
-    originEndpointDesc.video['ssrc-groups'] = [{
-      semantics: 'FID',
-      ssrcs: [videoMainSsrc, videoRtxSsrc]
-    }];
+    if (offerAudio) {
+      originEndpointDesc.audio.ssrcs = [parseInt(audioSsrc)];
+    }
+
+    if (offerVideo && videoMainSsrc && videoRtxSsrc && videoMediaStream) {
+      let videoStreamId = offerVideo.ssrcs.at
+
+      originEndpointDesc.video.streams = [
+        {
+          sources: [{ main: parseInt(videoMainSsrc), feedback: parseInt(videoRtxSsrc) }],
+          id: videoMediaStream,
+          content: 'video'
+        }
+      ];
+    }
 
     edgeEndpointDesc.audio.ssrcs = [];
-    edgeEndpointDesc.video.ssrcs = [];
+    edgeEndpointDesc.video.streams = [];
     edgeEndpointDesc['bundle-transport'].dtls.setup = 'active';
 
     console.log(`Configuring edge with\n${JSON.stringify(originEndpointDesc)}`);
@@ -280,19 +299,50 @@ export class SfuWhipResource implements WhipResource {
       if (media.type === 'audio') {
         endpointDescription.audio.ssrcs = [];
         media.ssrcs.filter(ssrc => ssrc.attribute === 'msid')
-          .forEach(ssrc => endpointDescription.audio.ssrcs.push(`${ssrc.id}`));
+          .forEach(ssrc => endpointDescription.audio.ssrcs.push(parseInt(`${ssrc.id}`)));
 
       } else if (media.type === 'video') {
-        endpointDescription.video.ssrcs = [];
-        media.ssrcs.filter(ssrc => ssrc.attribute === 'msid')
-          .forEach(ssrc => endpointDescription.video.ssrcs.push(`${ssrc.id}`));
+        endpointDescription.video.streams = [];
 
-        endpointDescription.video["ssrc-groups"] = media.ssrcGroups.map(mediaSsrcGroup => {
-          return {
-            ssrcs: mediaSsrcGroup.ssrcs.split(' '),
-            semantics: mediaSsrcGroup.semantics
-          };
-        });
+        let streamsMap = new Map<string, SmbVideoStream>();
+        media.ssrcs
+          .filter(ssrc => ssrc.attribute === 'msid' && ssrc.value)
+          .forEach(ssrc => {
+            let mediaStreamId = ssrc.value.split(' ')[0];
+
+            let smbVideoStream = streamsMap.get(mediaStreamId);
+            if (!smbVideoStream) {
+              smbVideoStream = {
+                sources: [],
+                id: mediaStreamId,
+                content: 'video'
+              };
+              streamsMap.set(mediaStreamId, smbVideoStream);
+            }
+
+            let feedbackGroup = media.ssrcGroups
+              .filter(element => element.semantics === 'FID')
+              .filter(element => element.ssrcs.indexOf(`${ssrc.id}`) !== -1)
+              .pop();
+
+            if (feedbackGroup) {
+              let ssrcsSplit = feedbackGroup.ssrcs.split(' ');
+
+              if (`${ssrc.id}` === ssrcsSplit[0]) {
+                smbVideoStream.sources = [{
+                  main: parseInt(ssrcsSplit[0]),
+                  feedback: parseInt(ssrcsSplit[1])
+                }];
+              }
+
+            } else {
+              smbVideoStream.sources = [{
+                main: parseInt(`${ssrc.id}`)
+              }];
+            }
+          });
+
+          streamsMap.forEach((value) => endpointDescription.video.streams.push(value));
       }
     }
 
@@ -326,6 +376,8 @@ export class SfuWhipResource implements WhipResource {
     }
 
     this.extractMediaStreams(parsedOffer);
+
+    console.log(`Configuring origin ingest with\n${JSON.stringify(endpointDescription)}`);
     await this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, 'ingest', endpointDescription);
 
     for (let egressResource of this.egressResources) {
@@ -387,12 +439,10 @@ export class SfuWhipResource implements WhipResource {
     console.log(`assignBroadcasterClients ${JSON.stringify(broadcasterClientSfuPairs)}`);
     this.egressResources = broadcasterClientSfuPairs.map((element) => {
       return {
-        broadcasterClientSfuPair: element, 
+        broadcasterClientSfuPair: element,
         sfuResourceId: undefined
       }
     });
-
-    console.log(JSON.stringify(broadcasterClientSfuPairs));
   }
 
   setOriginSfuUrl(url: string) {

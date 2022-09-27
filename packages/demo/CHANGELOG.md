@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@1.0.1...@eyevinn/whip-web-client-demo@1.1.0) (2022-09-27)
+
+
+### Features
+
+* handle WHIP endpoints not supporting trickle ICE ([#97](https://github.com/Eyevinn/whip/issues/97)) ([a971a98](https://github.com/Eyevinn/whip/commit/a971a98a8245a479c4e4014f1f2eb81d3d5eaf16))
+
+
+
 ### [1.0.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@1.0.0...@eyevinn/whip-web-client-demo@1.0.1) (2022-09-15)
 
 **Note:** Version bump only for package @eyevinn/whip-web-client-demo

@@ -55,7 +55,7 @@ export class WhipEndpoint {
       https: httpsServer,
     });
     this.server.register(require("fastify-cors"), {
-      exposedHeaders: ["Location", "ETag", "Link"],
+      exposedHeaders: ["Location", "ETag", "Link", "Access-Control-Allow-Methods"],
       methods: ["POST", "GET", "OPTIONS", "DELETE", "PATCH"],
       preflightContinue: true,
       strictPreflight: false,

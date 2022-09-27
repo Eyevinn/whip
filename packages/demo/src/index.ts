@@ -78,6 +78,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   const paramB64Json =
     document.querySelector<HTMLInputElement>("#param-b64json");
 
+  const paramNoTrickleIce =
+    document.querySelector<HTMLInputElement>("#param-no-trickleice");
+
   let authkey;
   if (process.env.NODE_ENV === "development") {
     const protocol = process.env.TLS_TERMINATION_ENABLED ? "https" : "http";
@@ -92,7 +95,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   const debug = process.env.NODE_ENV === "development" || !!process.env.DEBUG;
-  const iceConfigRemote = !!(process.env.NODE_ENV === "development" || process.env.ICE_CONFIG_REMOTE);
+  const iceConfigRemote = !!(process.env.ICE_CONFIG_REMOTE);
 
   function updateThisUrl() {
     const url = new URL(window.location.href);
@@ -113,7 +116,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   ingestCamera.addEventListener("click", async () => {
     const client = await createClient(input.value, iceConfigRemote, { 
-      debug: debug, iceServers: getIceServers(), authkey: authkey }
+      debug: debug, iceServers: getIceServers(), authkey: authkey, 
+      noTrickleIce: paramNoTrickleIce.checked }
     );
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: true,
@@ -124,7 +128,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   ingestScreen.addEventListener("click", async () => {
     const client = await createClient(input.value, iceConfigRemote, { 
-      debug: debug, iceServers: getIceServers(), authkey: authkey }
+      debug: debug, iceServers: getIceServers(), authkey: authkey, 
+      noTrickleIce: paramNoTrickleIce.checked }
     );
     const mediaStream = await navigator.mediaDevices.getDisplayMedia();
     ingest(client, mediaStream);

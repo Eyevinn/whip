@@ -3,6 +3,8 @@ import { EventEmitter } from "events";
 import { WHIPProtocol } from "./WHIPProtocol";
 import { SessionDescription, parse, write } from 'sdp-transform'
 
+const DEFAULT_CONNECT_TIMEOUT = 2000;
+
 export interface WHIPClientIceServer {
   urls: string;
   username?: string;
@@ -14,6 +16,8 @@ export interface WHIPClientOptions {
   iceServers?: WHIPClientIceServer[];
   iceGatheringTimeout?: number;
   authkey?: string;
+  noTrickleIce?: boolean;
+  timeout?: number;
 }
 
 export interface WHIPClientConstructor {
@@ -41,11 +45,14 @@ export class WHIPClient extends EventEmitter {
   private mediaMids: Array<string> = [];
   private whipProtocol: WHIPProtocol;
   private peerConnectionFactory: (configuration: RTCConfiguration) => RTCPeerConnection;
+  private iceGatheringTimeout: any;
+  private waitingForCandidates: boolean = false;
 
   constructor({ endpoint, opts, whipProtocol, peerConnectionFactory }: WHIPClientConstructor) {
     super();
     this.whipEndpoint = new URL(endpoint);
     this.opts = opts;
+    this.opts.noTrickleIce = !!opts.noTrickleIce;
     this.whipProtocol = whipProtocol ? whipProtocol : new WHIPProtocol();
     this.peerConnectionFactory = peerConnectionFactory ? 
       peerConnectionFactory : 
@@ -66,6 +73,7 @@ export class WHIPClient extends EventEmitter {
     this.peer.addEventListener('icecandidateerror', this.onIceCandidateError.bind(this));
     this.peer.addEventListener('connectionstatechange', this.onConnectionStateChange.bind(this));
     this.peer.addEventListener('icecandidate', this.onIceCandidate.bind(this));
+    this.peer.addEventListener('onicegatheringstatechange', this.onIceGatheringStateChange.bind(this));
   }
 
   private log(...args: any[]) {
@@ -138,9 +146,18 @@ export class WHIPClient extends EventEmitter {
       return;
     }
 
-    const trickleIceSDP = this.makeTrickleIceSdpFragment(candidate);
-    const url = await this.getResourceUrl();
-    this.whipProtocol.updateIce(url, this.eTag, trickleIceSDP)
+    if (this.supportTrickleIce()) {
+      const trickleIceSDP = this.makeTrickleIceSdpFragment(candidate);
+      const url = await this.getResourceUrl();
+      const response = await this.whipProtocol.updateIce(url, this.eTag, trickleIceSDP);
+      if (!response.ok) {
+        this.log("Trickle ICE not supported by endpoint");
+        this.opts.noTrickleIce = true;
+      }
+    } else {
+      this.log(candidate.candidate);
+      return;
+    }
   }
 
   async onConnectionStateChange(event: Event) {
@@ -156,6 +173,14 @@ export class WHIPClient extends EventEmitter {
 
   onIceCandidateError(e) {
     this.log("IceCandidateError", e);
+  }
+
+  onIceGatheringStateChange(e) {
+    if (this.peer.iceGatheringState !== 'complete' || this.supportTrickleIce() || !this.waitingForCandidates) {
+      return;
+    }
+
+    this.onDoneWaitingForCandidates();
   }
 
   private async startSdpExchange(): Promise<void> {
@@ -193,12 +218,40 @@ export class WHIPClient extends EventEmitter {
       }
     }
 
+    await this.peer.setLocalDescription(sdpOffer);
+
+    if (this.supportTrickleIce()) {
+      await this.sendOffer();
+    } else {
+      this.waitingForCandidates = true;
+      this.iceGatheringTimeout = setTimeout(this.onIceGatheringTimeout.bind(this), this.opts?.timeout || DEFAULT_CONNECT_TIMEOUT);
+    }
+  }
+
+  private onIceGatheringTimeout() {
+    this.log("onIceGatheringTimeout");
+
+    if (this.supportTrickleIce() || !this.waitingForCandidates) {
+      return;
+    }
+
+    this.onDoneWaitingForCandidates();
+  }
+
+  private async onDoneWaitingForCandidates(): Promise<void> {
+    this.waitingForCandidates = false;
+    clearTimeout(this.iceGatheringTimeout);
+
+    await this.sendOffer();
+  }
+
+  private async sendOffer(): Promise<void> {
+    this.log("Sending offer");
+    this.log(this.peer.localDescription.sdp);
     const response = await this.whipProtocol.sendOffer(
       this.whipEndpoint.toString(),
       this.opts.authkey,
-      sdpOffer.sdp);
-
-    await this.peer.setLocalDescription(sdpOffer);
+      this.peer.localDescription.sdp);
 
     if (response.ok) {
       this.resource = response.headers.get("Location");
@@ -245,6 +298,10 @@ export class WHIPClient extends EventEmitter {
     return iceServers;
   }
 
+  supportTrickleIce(): boolean {
+    return !this.opts.noTrickleIce;
+  }
+
   async setIceServersFromEndpoint(): Promise<void> {
     if (this.opts.authkey) {
       this.log("Fetching ICE config from endpoint");
@@ -263,6 +320,22 @@ export class WHIPClient extends EventEmitter {
       .getTracks()
       .forEach((track) => this.peer.addTrack(track, mediaStream));
 
+    // Unless app has forced not to use Trickle ICE we need
+    // check whether the endpoint has PATCH as allowed method
+    if (!this.opts.noTrickleIce) {
+      const config = await this.whipProtocol.getConfiguration(this.whipEndpoint.toString(), this.opts.authkey);
+      let hasPatch = false;
+      if (config.headers.get("access-control-allow-methods")) {
+        hasPatch = config.headers.get("access-control-allow-methods").split(",").map(m => m.trim()).includes("PATCH");
+      }
+      if (hasPatch) {
+        this.opts.noTrickleIce = false;
+        this.log("Endpoint says it supports Trickle ICE as PATCH is an allowed method");
+      } else {
+        this.opts.noTrickleIce = true;
+        this.log("Endpoint does not support Trickle ICE");
+      }
+    }
     await this.startSdpExchange();
   }
 

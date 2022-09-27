@@ -35,6 +35,8 @@ Available options are:
     debug: boolean, // enable debug console logging
     iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
     authkey: string, // authentication key for auth option requests
+    noTrickleIce: boolean, // force to not use trickle ICE
+    timeout: number, // configure a ice gathering timeout when not using trickle ICE
   }
 }
 ```

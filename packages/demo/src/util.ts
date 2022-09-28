@@ -4,6 +4,7 @@ export function getIceServers(): WHIPClientIceServer[] {
   let iceServers: WHIPClientIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
 
   if (process.env.ICE_SERVERS) {
+    console.log("Overriding default list of STUN/TURN servers");
     iceServers = [];
     process.env.ICE_SERVERS.split(",").forEach(server => {
       // turn:<username>:<password>@turn.eyevinn.technology:3478

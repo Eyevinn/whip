@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@eyevinn/whip-web-client-demo",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Demonstration of a browser based WHIP client",
   "scripts": {
     "dev": "parcel -p 1234 --no-cache src/index.html",

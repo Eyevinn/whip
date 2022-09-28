@@ -21,6 +21,7 @@ jobs:
         env:
           API_KEY: ${{ secrets.WHIP_API_KEY }}
           NODE_ENV: 'awsdev'
+          ICE_SERVERS: ${{ secrets.DEMO_ICE_SERVERS }}
       - name: deploy demo site
         uses: jakejarvis/s3-sync-action@v0.5.1
         with:

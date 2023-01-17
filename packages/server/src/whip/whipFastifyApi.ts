@@ -128,6 +128,18 @@ export default function(fastify: FastifyInstance, opts, done) {
     }
   });
 
+  fastify.get("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
+    reply.code(405).send("reserved");
+  });
+
+  fastify.head("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
+    reply.code(405).send("reserved");
+  });
+
+  fastify.put("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
+    reply.code(405).send("reserved");
+  });
+
   fastify.get("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });

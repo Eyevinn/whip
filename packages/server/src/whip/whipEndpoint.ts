@@ -141,7 +141,7 @@ export class WhipEndpoint {
   listen() {
     this.server.listen(this.port, this.interfaceIp, (err, address) => {
       if (err) throw err;
-      console.log(`WHIP endpoint listening at ${address}`);
+      console.log(`WHIP endpoint listening at ${address}/api/v2/whip`);
     });
   }
 }

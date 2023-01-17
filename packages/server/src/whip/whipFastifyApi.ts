@@ -83,9 +83,10 @@ export default function(fastify: FastifyInstance, opts, done) {
 
   fastify.options("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
+      reply.header("Accept-Post", "application/sdp");
       reply.header("Link", 
         addIceLinks(opts.instance.getIceServers(), request.headers["authorization"]));
-      reply.code(204).send();            
+      reply.code(200).send();
     } catch (e) {
       console.error(e);
       const err = new Error("Exception thrown");

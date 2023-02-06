@@ -54,8 +54,8 @@ export class WHIPClient extends EventEmitter {
     this.opts = opts;
     this.opts.noTrickleIce = !!opts.noTrickleIce;
     this.whipProtocol = whipProtocol ? whipProtocol : new WHIPProtocol();
-    this.peerConnectionFactory = peerConnectionFactory ? 
-      peerConnectionFactory : 
+    this.peerConnectionFactory = peerConnectionFactory ?
+      peerConnectionFactory :
       (configuration: RTCConfiguration) => new RTCPeerConnection(configuration);
     this.initPeer();
   }
@@ -181,6 +181,10 @@ export class WHIPClient extends EventEmitter {
     }
 
     this.onDoneWaitingForCandidates();
+  }
+
+  getConnectionState() {
+    return this.peer.connectionState;
   }
 
   private async startSdpExchange(): Promise<void> {

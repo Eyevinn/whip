@@ -38,11 +38,12 @@ services:
       options:
         max-size: 10m
   egress:
-    image: eyevinntechnology/wrtc-whpp:v0.2.0
+    image: eyevinntechnology/wrtc-whep:v0.1.2
     environment:
       - PORT=8001
       - EXT_PORT=8001
       - HOSTNAME=localhost
       - SMB_URL=http://sfu-edge:8081/conferences/
+      - SMB_API_KEY=dev
     ports:
       - "8001:8001/tcp"      

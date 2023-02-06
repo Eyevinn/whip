@@ -13,7 +13,7 @@ Client and Server modules for WebRTC HTTP Ingestion Protocol (WHIP)
 
 ## Getting started
 
-This will setup a WHIP endpoint, a demo ingest client and an WHPP based egress endpoint to be able to test end-to-end.
+This will setup a WHIP endpoint, a demo ingest client and an WHEP based egress endpoint to be able to test end-to-end.
 
 Install all dependencies
 
@@ -21,17 +21,19 @@ Install all dependencies
 npm install
 ```
 
-Run development environment which will launch a demo / test page at http://localhost:1234 and a WHIP endpoint at http://localhost:8000/api/v2
+Run development environment which will launch a demo / test page at http://localhost:1234 and a WHIP endpoint at `http://localhost:8000/api/v2/whip/sfu-broadcaster`
 
 ```
 npm run dev
 ```
 
-Start media server and WHPP egress endoint as docker containers
+Start media server and WHEP egress endoint as docker containers
 
 ```
 docker-compose -f docker-compose-sfu.yml up
 ```
+
+The WHEP egress endpoint is then available at `http://localhost:8001/whep/channel/<channelId>`. The `<channelId>` is the one provided as a query parameter to the WHIP endpoint, e.g. `http://localhost:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>`. You can test WHEP playback with the Eyevinn WebRTC player available online at https://webrtc.player.eyevinn.technology/
 
 ### With TLS termination
 

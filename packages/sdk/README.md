@@ -74,7 +74,7 @@ Download the latest release and include the javascript files in your HTML.
 </html>
 ```
 
-Build SDK documentation:
+### Build SDK documentation:
 
 ```
   npm run build:docs

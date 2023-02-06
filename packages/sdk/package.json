@@ -14,7 +14,8 @@
     "prepare": "npm run build",
     "build": "microbundle --no-sourcemap --format modern,es,cjs",
     "dev": "microbundle --watch --format modern,es,cjs",
-    "test": "karma start"
+    "test": "karma start",
+    "build:docs": "typedoc"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",
   "contributors": [
@@ -37,6 +38,8 @@
     "mocha": "^9.2.2",
     "ts-mockito": "^2.6.1",
     "ts-node": "^10.7.0",
+    "typedoc": "^0.23.24",
+    "typedoc-theme-hierarchy": "^3.0.2",
     "typescript": "^4.6.2"
   },
   "publishConfig": {

@@ -183,8 +183,8 @@ export class WHIPClient extends EventEmitter {
     this.onDoneWaitingForCandidates();
   }
 
-  getConnectionState() {
-    return this.peer.connectionState;
+  getICEConnectionState() {
+    return this.peer.iceConnectionState;
   }
 
   private async startSdpExchange(): Promise<void> {

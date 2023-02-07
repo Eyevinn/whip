@@ -498,14 +498,14 @@ describe('WHIP Client', () => {
     })
 
     it('Calling getConnectedState on whipClient returns connectionState attribute once', async () => {
-        when(rtcPeerConnection.connectionState)
+        when(rtcPeerConnection.iceConnectionState)
             .thenReturn('connected');
 
-        whipClient.getConnectionState();
-        whipClientNoTrickleICE.getConnectionState();
+        whipClient.getICEConnectionState();
+        whipClientNoTrickleICE.getICEConnectionState();
 
-        verify(rtcPeerConnection.connectionState).once();
-        verify(rtcPeerConnectionNoTrickleICE.connectionState).once();
+        verify(rtcPeerConnection.iceConnectionState).once();
+        verify(rtcPeerConnectionNoTrickleICE.iceConnectionState).once();
     });
 
 })

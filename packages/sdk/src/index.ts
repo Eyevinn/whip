@@ -5,12 +5,14 @@ import { SessionDescription, parse, write } from 'sdp-transform'
 
 const DEFAULT_CONNECT_TIMEOUT = 2000;
 
+/** @hidden */
 export interface WHIPClientIceServer {
   urls: string;
   username?: string;
   credential?: string;
 }
 
+/** @hidden */
 export interface WHIPClientOptions {
   debug?: boolean;
   iceServers?: WHIPClientIceServer[];
@@ -20,6 +22,7 @@ export interface WHIPClientOptions {
   timeout?: number;
 }
 
+/** @hidden */
 export interface WHIPClientConstructor {
   endpoint: string;
   opts?: WHIPClientOptions;
@@ -27,6 +30,7 @@ export interface WHIPClientConstructor {
   peerConnectionFactory?: (configuration: RTCConfiguration) => RTCPeerConnection;
 }
 
+/** @hidden */
 interface IceCredentials {
   ufrag: string;
   pwd: string
@@ -48,6 +52,10 @@ export class WHIPClient extends EventEmitter {
   private iceGatheringTimeout: any;
   private waitingForCandidates: boolean = false;
 
+  /**
+ * @example
+ * const client = new WHIPClient({endpoint: "http://<host>/whip/broadcaster", opts: { debug: true, iceServers: [{ urls: "stun:stun.l.google.com:19320" }] }});
+ */
   constructor({ endpoint, opts, whipProtocol, peerConnectionFactory }: WHIPClientConstructor) {
     super();
     this.whipEndpoint = new URL(endpoint);
@@ -136,6 +144,7 @@ export class WHIPClient extends EventEmitter {
     return trickleIceSDPString.replace('v=0\r\ns= \r\n', '');
   }
 
+  /** @hidden */
   async onIceCandidate(event: Event) {
     if (event.type !== 'icecandidate') {
       return;
@@ -160,6 +169,7 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
+  /** @hidden */
   async onConnectionStateChange(event: Event) {
     this.log("PeerConnectionState", this.peer.connectionState);
     if (this.peer.connectionState === 'failed') {
@@ -167,14 +177,17 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
+  /** @hidden */
   onIceConnectionStateChange(e) {
     this.log("IceConnectionState", this.peer.iceConnectionState);
   }
 
+  /** @hidden */
   onIceCandidateError(e) {
     this.log("IceCandidateError", e);
   }
 
+  /** @hidden */
   onIceGatheringStateChange(e) {
     if (this.peer.iceGatheringState !== 'complete' || this.supportTrickleIce() || !this.waitingForCandidates) {
       return;
@@ -183,6 +196,10 @@ export class WHIPClient extends EventEmitter {
     this.onDoneWaitingForCandidates();
   }
 
+   /**
+ * @example
+ * const connectionState = await client.getICEConnectionState();
+ */
   getICEConnectionState() {
     return this.peer.iceConnectionState;
   }
@@ -302,10 +319,18 @@ export class WHIPClient extends EventEmitter {
     return iceServers;
   }
 
+  /**
+ * @example
+ * const supportTrickleIce = await client.supportTrickleIce();
+ */
   supportTrickleIce(): boolean {
     return !this.opts.noTrickleIce;
   }
 
+  /**
+ * @example
+ * await client.setIceServersFromEndpoint();
+ */
   async setIceServersFromEndpoint(): Promise<void> {
     if (this.opts.authkey) {
       this.log("Fetching ICE config from endpoint");
@@ -316,6 +341,16 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
+  /**
+ * @example
+ * const videoIngest = document.querySelector<HTMLVideoElement>("video#ingest");
+ *const mediaStream = await navigator.mediaDevices.getUserMedia({
+  video: true,
+  audio: true,
+});
+videoIngest.srcObject = mediaStream;
+await client.ingest(mediaStream);
+ */
   async ingest(mediaStream: MediaStream): Promise<void> {
     if (!this.peer) {
       this.initPeer();
@@ -343,6 +378,10 @@ export class WHIPClient extends EventEmitter {
     await this.startSdpExchange();
   }
 
+  /**
+ * @example
+ * await client.destroy();
+ */
   async destroy(): Promise<void> {
     const resourceUrl = await this.getResourceUrl();
     await this.whipProtocol.delete(resourceUrl).catch((e) => this.error("destroy()", e));
@@ -359,6 +398,10 @@ export class WHIPClient extends EventEmitter {
     this.peer = null;
   }
 
+  /**
+ * @example
+ * const resourceUrl = await client.getResourceUrl();
+ */
   getResourceUrl(): Promise<string> {
     if (this.resource) {
       return Promise.resolve(this.resource);
@@ -369,6 +412,10 @@ export class WHIPClient extends EventEmitter {
     });
   }
 
+  /**
+ * @example
+ * const resourceExtensions = await client.getResourceExtensions();
+ */
   async getResourceExtensions(): Promise<string[]> {
     await this.getResourceUrl();
     return this.extensions;

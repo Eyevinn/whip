@@ -344,12 +344,9 @@ export class WHIPClient extends EventEmitter {
 /**
  * @example
  * const videoIngest = document.querySelector<HTMLVideoElement>("video#ingest");
- *const mediaStream = await navigator.mediaDevices.getUserMedia({
-  video: true,
-  audio: true,
-});
-videoIngest.srcObject = mediaStream;
-await client.ingest(mediaStream);
+ * const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+ * videoIngest.srcObject = mediaStream;
+ * await client.ingest(mediaStream);
  */
   async ingest(mediaStream: MediaStream): Promise<void> {
     if (!this.peer) {

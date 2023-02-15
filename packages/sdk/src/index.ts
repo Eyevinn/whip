@@ -52,7 +52,7 @@ export class WHIPClient extends EventEmitter {
   private iceGatheringTimeout: any;
   private waitingForCandidates: boolean = false;
 
-  /**
+/**
  * @example
  * const client = new WHIPClient({endpoint: "http://<host>/whip/broadcaster", opts: { debug: true, iceServers: [{ urls: "stun:stun.l.google.com:19320" }] }});
  */
@@ -196,7 +196,7 @@ export class WHIPClient extends EventEmitter {
     this.onDoneWaitingForCandidates();
   }
 
-   /**
+/**
  * @example
  * const connectionState = await client.getICEConnectionState();
  */
@@ -319,7 +319,7 @@ export class WHIPClient extends EventEmitter {
     return iceServers;
   }
 
-  /**
+/**
  * @example
  * const supportTrickleIce = await client.supportTrickleIce();
  */
@@ -327,7 +327,7 @@ export class WHIPClient extends EventEmitter {
     return !this.opts.noTrickleIce;
   }
 
-  /**
+/**
  * @example
  * await client.setIceServersFromEndpoint();
  */
@@ -341,7 +341,7 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
-  /**
+/**
  * @example
  * const videoIngest = document.querySelector<HTMLVideoElement>("video#ingest");
  *const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -378,7 +378,7 @@ await client.ingest(mediaStream);
     await this.startSdpExchange();
   }
 
-  /**
+/**
  * @example
  * await client.destroy();
  */
@@ -398,7 +398,7 @@ await client.ingest(mediaStream);
     this.peer = null;
   }
 
-  /**
+/**
  * @example
  * const resourceUrl = await client.getResourceUrl();
  */
@@ -412,7 +412,7 @@ await client.ingest(mediaStream);
     });
   }
 
-  /**
+/**
  * @example
  * const resourceExtensions = await client.getResourceExtensions();
  */

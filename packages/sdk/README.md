@@ -77,7 +77,7 @@ Download the latest release and include the javascript files in your HTML.
 ### Build SDK documentation:
 
 ```
-  npm run build:docs
+npm run build:docs
 ```
 
 ## About Eyevinn Technology

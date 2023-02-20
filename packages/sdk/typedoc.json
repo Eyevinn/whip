@@ -11,5 +11,6 @@
     "tsconfig": "./tsconfig.json",
     "name": "WHIP client SDK",
     "excludeExternals": true,
-    "excludePrivate": true
+    "excludePrivate": true,
+    "exclude":["src/WHIPProtocol.ts","src/util.ts"]
 }

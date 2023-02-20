@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.1.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@1.1.0...@eyevinn/whip-web-client@1.1.1) (2023-02-20)
+
+
+### Bug Fixes
+
+* handle relative WHIP resource URLs ([#116](https://github.com/Eyevinn/whip/issues/116)) ([6e36ffa](https://github.com/Eyevinn/whip/commit/6e36ffa1ea8957c45c169efeb14bb0bc7c9b207c))
+
+
+
 ## [1.1.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@1.0.1...@eyevinn/whip-web-client@1.1.0) (2022-09-27)
 
 

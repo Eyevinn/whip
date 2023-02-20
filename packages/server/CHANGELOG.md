@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.2.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.2.0...@eyevinn/whip-endpoint@1.2.1) (2023-02-20)
+
+
+### Bug Fixes
+
+* endpoint should return 405 on GET/HEAD/PUT ([#103](https://github.com/Eyevinn/whip/issues/103)) ([f7aeced](https://github.com/Eyevinn/whip/commit/f7aecedc61246fee7d28a2b86ca7f7cd7f4017fc))
+* include accept-post header in options response ([#104](https://github.com/Eyevinn/whip/issues/104)) ([56c3002](https://github.com/Eyevinn/whip/commit/56c300240857ede2e820f608ce8116739b8ebefc))
+* whip endpoint doesn't contain full path ([#101](https://github.com/Eyevinn/whip/issues/101)) ([34511a5](https://github.com/Eyevinn/whip/commit/34511a5c779c894fccc1d5f4f3e9c9344a694173))
+
+
+
 ## [1.2.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.1.0...@eyevinn/whip-endpoint@1.2.0) (2022-09-27)
 
 

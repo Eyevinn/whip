@@ -144,8 +144,7 @@ export class WHIPClient extends EventEmitter {
     return trickleIceSDPString.replace('v=0\r\ns= \r\n', '');
   }
 
-  /** @hidden */
-  async onIceCandidate(event: Event) {
+  private async onIceCandidate(event: Event) {
     if (event.type !== 'icecandidate') {
       return;
     }
@@ -169,26 +168,22 @@ export class WHIPClient extends EventEmitter {
     }
   }
 
-  /** @hidden */
-  async onConnectionStateChange(event: Event) {
+  private async onConnectionStateChange(event: Event) {
     this.log("PeerConnectionState", this.peer.connectionState);
     if (this.peer.connectionState === 'failed') {
       await this.destroy();
     }
   }
 
-  /** @hidden */
-  onIceConnectionStateChange(e) {
+  private onIceConnectionStateChange(e) {
     this.log("IceConnectionState", this.peer.iceConnectionState);
   }
 
-  /** @hidden */
-  onIceCandidateError(e) {
+  private onIceCandidateError(e) {
     this.log("IceCandidateError", e);
   }
 
-  /** @hidden */
-  onIceGatheringStateChange(e) {
+  private onIceGatheringStateChange(e) {
     if (this.peer.iceGatheringState !== 'complete' || this.supportTrickleIce() || !this.waitingForCandidates) {
       return;
     }

@@ -65,9 +65,16 @@ export default function(fastify: FastifyInstance, opts, done) {
       await resource.connect();
       const sdpAnswer = await resource.sdpAnswer();
 
+      let locationUrl;
+      // If no hostname is configured we return relative WHIP resource URL
+      if (opts.instance.getServerAddress()) {
+        locationUrl = `${opts.instance.getServerAddress()}${opts.prefix}/whip/${type}/${resource.getId()}`;
+      } else {
+        locationUrl = `${opts.prefix}/whip/${type}/${resource.getId()}`;
+      }
       reply.headers({
         "Content-Type": "application/sdp",
-        "Location": `${opts.instance.getServerAddress()}${opts.prefix}/whip/${type}/${resource.getId()}`,
+        "Location": locationUrl,
         "ETag": resource.getETag()
       });
       

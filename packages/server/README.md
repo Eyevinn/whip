@@ -63,11 +63,27 @@ const endpoint = new WhipEndpoint({
 // ...
 ```
 
+### Resource Manager example
+
+If you want to use a Resource Manager; Provide a `uri` and a two lettered `territoryCode` to `resourceManager`.
+
+```javascript
+const endpoint = new WhipEndpoint({ 
+  port: 8000
+  hostname: "whip.lab.eyevinn",
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  enabledWrtcPlugins: [ "rtsp", "rtmp", "sfu-broadcaster" ], 
+  resourceManager: {uri: "http://127.0.0.1:8080", territoryCode: "SE"}
+});
+
+// ...
+```
+
 ### Options
 
 Available WHIP endpoint options are:
 
-```
+```javascript
 {
   port: number, // port to bind to
   extPort: number, // port that is exposed in public (default same as port)
@@ -77,6 +93,7 @@ Available WHIP endpoint options are:
   tls: { key: string, cert: string }, // key and cert for TLS termination (optional),
   iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
   enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "sfu-broadcaster", "rtsp", "rtmp"
+  resourceManager: {uri: string, territoryCode: string}, // Uri to Resource Manager & territory code, e.g "SE". Both must be set to use a resource manager. (optional)
 }
 ```
 
@@ -88,8 +105,11 @@ The included plugins then provides the following endpoints:
 ### Environment variables
 
 The following environment variables are read to override default values:
-- `ICE_GATHERING_TIMEOUT` (default: 4000 ms): Timeout for gathering all ICE candidates
+- `ICE_GATHERING_TIMEOUT`: (default: 4000 ms): Timeout for gathering all ICE candidates
 - `API_KEY`: Authorization key that clients must use to get ICE server config on OPTIONS request
+- `SFU_CONFIG_FILE`: Used to configure the path to the local json file. Default value is `../../sfu-config.json`.
+- `RESOURCE_MANAGER_URL`: URI to resource manager API. If not set, application will import sfu config data from local json.
+- `WHIP_SERVER_TERRITORY`: The territory of the application, using two-lettered country codes. E.g `SE` or `DK`.
 
 ## RTSP output
 

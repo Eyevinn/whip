@@ -3,10 +3,19 @@ import https from "https";
 import { WhipResource, WhipResourceIceServer } from "./whipResource";
 import api from "./whipFastifyApi";
 import { BroadcasterClientSfuPair } from "../broadcasterClient";
+import { callResourceManager, OriginsAndEdges, OriginsAndEdgesPerTerritory } from "./resourceManagerClient";
+import { readFileSync } from "fs";
+
+export type SfuConfigData = Record<string, {sfu: string, egress: string}[]>
 
 interface TLSOptions {
   key: string;
   cert: string;
+}
+
+interface ResourceManagersOptions {
+  uri: string;
+  territoryCode: string;
 }
 
 interface WHIPEndpointOptions {
@@ -18,6 +27,7 @@ interface WHIPEndpointOptions {
   tls?: TLSOptions;
   iceServers?: WhipResourceIceServer[];
   enabledWrtcPlugins?: string[];
+  resourceManager?: ResourceManagersOptions;
 }
 
 export class WhipEndpoint {
@@ -34,6 +44,8 @@ export class WhipEndpoint {
   private iceServers?: WhipResourceIceServer[];
   private enabledWrtcPlugins: string[];
   private tls?: TLSOptions;
+  private resourceManager?: ResourceManagersOptions;
+  private jsonFilePath = process.env.SFU_CONFIG_FILE ? process.env.SFU_CONFIG_FILE : '../../sfu-config.json';
 
   constructor(opts?: WHIPEndpointOptions) {
     this.port = opts?.port || 8000;
@@ -44,6 +56,7 @@ export class WhipEndpoint {
     this.enabledWrtcPlugins = opts?.enabledWrtcPlugins || [];
     this.iceServers = opts?.iceServers || [];
     this.tls = opts?.tls;
+    this.resourceManager = opts?.resourceManager;
 
     let httpsServer;
     if (this.useHttps && this.tls) {
@@ -139,6 +152,16 @@ export class WhipEndpoint {
       return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.extPort;
     }
     return undefined;
+  }
+
+  async readEdgeListFromFile(): Promise<OriginsAndEdges> {
+    const sfuConfigFileContents = readFileSync(this.jsonFilePath);
+    return <OriginsAndEdges>JSON.parse(sfuConfigFileContents.toString());
+  }
+
+  async readEdgeListFromService(): Promise<OriginsAndEdges> {
+    const OriginsAndEdgesPerTerritory = (await callResourceManager(this.resourceManager.uri)) as OriginsAndEdgesPerTerritory;
+    return OriginsAndEdgesPerTerritory[this.resourceManager.territoryCode];
   }
 
   listen() {

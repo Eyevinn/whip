@@ -1,7 +1,11 @@
 import { WhipEndpoint, BroadcasterClient } from ".";
 import { readFileSync } from "fs";
+import { SfuConfigData } from "./whip/whipEndpoint";
+import { callbackify } from "util";
+import { OriginsAndEdges } from "./whip/resourceManagerClient";
 
-const sfuConfigFile = process.env.SFU_CONFIG_FILE ? process.env.SFU_CONFIG_FILE : '../../sfu-config.json';
+const resourceManagerUrl = process.env.RESOURCE_MANAGER_URL ? process.env.RESOURCE_MANAGER_URL : null;
+const territoryCode = process.env.WHIP_SERVER_TERRITORY ? process.env.WHIP_SERVER_TERRITORY : null;
 
 let iceServers = null;
 if (process.env.ICE_SERVERS) {
@@ -33,6 +37,14 @@ if (process.env.TLS_TERMINATION_ENABLED) {
   }
 }
 
+let resourceManagerOpts;
+if(resourceManagerUrl && territoryCode) {
+  resourceManagerOpts = {
+    uri: resourceManagerUrl,
+    territoryCode: territoryCode
+  }
+}
+
 const endpoint = new WhipEndpoint({ 
   port: parseInt(process.env.PORT || "8000"), 
   extPort: parseInt(process.env.EXT_PORT || "8000"),
@@ -41,25 +53,42 @@ const endpoint = new WhipEndpoint({
   tls: tlsOptions,
   iceServers: iceServers,
   enabledWrtcPlugins: [ "rtsp", "rtmp", "sfu-broadcaster" ], 
+  resourceManager: resourceManagerOpts,
 });
 
-interface SfuConfigData {
-  origin: string;
-  edges: {sfu: string; egress: string;}[];
+let callbackFunction;
+if(resourceManagerOpts) {
+  callbackFunction = callbackify(() => endpoint.readEdgeListFromService());
+} else {
+  callbackFunction = callbackify(() => endpoint.readEdgeListFromFile());
+}
+
+callbackFunction((err, ret) => {
+  if (err) throw err;
+  const sfuConfigData = parseEdges(ret);
+  startUp(sfuConfigData);
+});
+
+function parseEdges(data: OriginsAndEdges) {
+  const parsedData: SfuConfigData = {}
+  const origin = Object.keys(data)[0];
+  const edges = data[origin];
+  parsedData[origin] = edges.map(edge => {
+    return {sfu: edge.sfuApiUrl, egress: edge.egressApiUrl};
+  });
+  return parsedData;
 };
 
-let sfuConfigFileContents = readFileSync(sfuConfigFile);
-let sfuConfigData = <SfuConfigData>JSON.parse(sfuConfigFileContents.toString());
-
-console.log(`Using SFU config data: ${JSON.stringify(sfuConfigData)}`);
-
-endpoint.setOriginSfuUrl(sfuConfigData.origin);
-sfuConfigData.edges.forEach(element => {
-  endpoint.registerBroadcasterClient({
-    client: new BroadcasterClient(element.egress), 
-    sfuUrl: element.sfu
+function startUp(sfuConfigData: SfuConfigData) {
+  console.log(`Using SFU config data: ${JSON.stringify(sfuConfigData)}`);
+  const origin = Object.keys(sfuConfigData)[0];
+  endpoint.setOriginSfuUrl(origin);
+  sfuConfigData[origin].forEach(element => {
+    endpoint.registerBroadcasterClient({
+      client: new BroadcasterClient(element.egress), 
+      sfuUrl: element.sfu
+    });
   });
-});
-endpoint.setSfuApiKey(process.env.SFU_API_KEY || "dev");
-
-endpoint.listen();
+  endpoint.setSfuApiKey(process.env.SFU_API_KEY || "dev");
+  endpoint.listen();
+};

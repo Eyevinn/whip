@@ -1,6 +1,5 @@
 {
-    "origin": "http://localhost:8080/conferences/",
-    "edges": [
+    "http://localhost:8080/conferences/":  [
         {
             "id": "egress1",
             "sfu": "http://localhost:8081/conferences/",

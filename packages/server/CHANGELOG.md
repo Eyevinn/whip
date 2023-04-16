@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.2.1...@eyevinn/whip-endpoint@1.3.0) (2023-04-16)
+
+
+### Features
+
+* if no hostname is set return relative WHIP resource URL ([#117](https://github.com/Eyevinn/whip/issues/117)) ([dd22f49](https://github.com/Eyevinn/whip/commit/dd22f497b71c3fd3fcb32c412e3cdfd72bc284c7))
+* implemented getting sfu-config data from resource manager ([0bcb290](https://github.com/Eyevinn/whip/commit/0bcb290427493d2f929234a984e5b242f520986f))
+
+
+
 ### [1.2.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.2.0...@eyevinn/whip-endpoint@1.2.1) (2023-02-20)
 
 

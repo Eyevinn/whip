@@ -13,6 +13,47 @@ The library includes the following WHIP destinations:
 npm install --save @eyevinn/whip-endpoint
 ```
 
+## Options
+
+Available WHIP endpoint options are:
+
+```javascript
+{
+  port: number, // port to bind to
+  extPort: number, // port that is exposed in public (default same as port)
+  interfaceIp: string, // ip to bind and listen on
+  hostname: string, // hostname or public IP
+  https: boolean, // use https
+  tls: { key: string, cert: string }, // key and cert for TLS termination (optional),
+  iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
+  enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "sfu-broadcaster", "rtsp", "rtmp"
+  resourceManager: {uri: string, territoryCode: string}, // Uri to Resource Manager & territory code, e.g "SE". Both must be set to use a resource manager. (optional)
+}
+```
+
+The included plugins then provides the following endpoints:
+- sfu-broadcaster: `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>`
+- rtsp: `http://<whiphost>:8000/api/v2/whip/rtsp`
+- rtmp: `http://<whiphost>:8000/api/v2/whip/rtmp`
+
+## Server Reference Implementation
+
+Start a [refererence implementation](src/server.ts) built on this WHIP endpoint library. 
+
+```
+npm run build
+npm run server
+```
+
+### Environment variables
+
+The following environment variables are read to override default values:
+- `ICE_GATHERING_TIMEOUT`: (default: 4000 ms): Timeout for gathering all ICE candidates
+- `API_KEY`: Authorization key that clients must use to get ICE server config on OPTIONS request
+- `SFU_CONFIG_FILE`: Used to configure the path to the local json file. Default value is `../../sfu-config.json`.
+- `RESOURCE_MANAGER_URL`: URI to resource manager API. If not set, application will import sfu config data from local json.
+- `WHIP_SERVER_TERRITORY`: The territory of the application, using two-lettered country codes. E.g `SE` or `DK`.
+
 ## Usage (WebRTC Broadcasting)
 
 Start a WHIP endpoint on port 8000 and register a WebRTC SFU broadcaster client that
@@ -41,7 +82,7 @@ endpoint.listen();
 The WHIP endpoint for the sfu-broadcaster is then available on `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>` and this is where you will point your WHIP compatible producer to this endpoint.
 Then you can access the channel using the provided protocol that the Egress endpoint provides. 
 
-For example using the [WebRTC HTTP Playback Protocol (WHPP)](https://github.com/Eyevinn/webrtc-http-playback-protocol) and the channel url `http://<wrtc-egress-endpoint>/whpp/channel/<channelId>`. The [Eyevinn WebRTC Player](https://webrtc.player.eyevinn.technology) has built-in support for WHPP and can be used to try this out.
+For example using the [WebRTC HTTP Egress Protocol (WEPP)](https://datatracker.ietf.org/doc/draft-murillo-whep/) and the channel url `http://<wrtc-egress-endpoint>/whep/channel/<channelId>`. The [Eyevinn WebRTC Player](https://webrtc.player.eyevinn.technology) has built-in support for WHEP and can be used to try this out.
 
 ### TLS Termination example
 
@@ -78,38 +119,6 @@ const endpoint = new WhipEndpoint({
 
 // ...
 ```
-
-### Options
-
-Available WHIP endpoint options are:
-
-```javascript
-{
-  port: number, // port to bind to
-  extPort: number, // port that is exposed in public (default same as port)
-  interfaceIp: string, // ip to bind and listen on
-  hostname: string, // hostname or public IP
-  https: boolean, // use https
-  tls: { key: string, cert: string }, // key and cert for TLS termination (optional),
-  iceServers: [ { urls: string, username?: string, credential?: string }], // list of STUN/TURN servers
-  enabledWrtcPlugins: string[], // list of plugins to enabled. Available are "sfu-broadcaster", "rtsp", "rtmp"
-  resourceManager: {uri: string, territoryCode: string}, // Uri to Resource Manager & territory code, e.g "SE". Both must be set to use a resource manager. (optional)
-}
-```
-
-The included plugins then provides the following endpoints:
-- sfu-broadcaster: `http://<whiphost>:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>`
-- rtsp: `http://<whiphost>:8000/api/v2/whip/rtsp`
-- rtmp: `http://<whiphost>:8000/api/v2/whip/rtmp`
-
-### Environment variables
-
-The following environment variables are read to override default values:
-- `ICE_GATHERING_TIMEOUT`: (default: 4000 ms): Timeout for gathering all ICE candidates
-- `API_KEY`: Authorization key that clients must use to get ICE server config on OPTIONS request
-- `SFU_CONFIG_FILE`: Used to configure the path to the local json file. Default value is `../../sfu-config.json`.
-- `RESOURCE_MANAGER_URL`: URI to resource manager API. If not set, application will import sfu config data from local json.
-- `WHIP_SERVER_TERRITORY`: The territory of the application, using two-lettered country codes. E.g `SE` or `DK`.
 
 ## RTSP output
 

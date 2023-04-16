@@ -55,9 +55,14 @@
       <h2>WHIP Endpoint</h2>
       <!-- https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster -->
       <input id="whip-endpoint" type="text" value=""></input>
+      <label for="param-auth">Authorization:</label>
+      <input id="param-auth" type="text" value=""></input>
       <input id="param-no-trickleice" type="checkbox"></input>
       <label for="param-no-trickleice">Force No Trickle ICE</label>
   </section>
+  <!--
+    // Disable custom parameters that are WHIP endpoint type specific. They
+    // can manually be added to the WHIP endpoint URL if needed.
     <section>
       <div id="params">
         <label for="param-channel-id">Channel Id:</label>
@@ -66,6 +71,7 @@
         <textarea id="param-b64json" rows="5" cols="60"></textarea>
       </div>
     </section>
+  -->
     <section id="ingest">
       <h2>Ingest</h2>
       <button id="ingest-camera">Camera</button>

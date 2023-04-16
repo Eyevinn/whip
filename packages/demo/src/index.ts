@@ -64,6 +64,27 @@ async function createClient(url: string, iceConfigRemote: boolean, opts: WHIPCli
   return client;
 }
 
+function getAuthKey() {
+  let authkey;
+
+  const paramAuthorization =
+    document.querySelector<HTMLInputElement>("#param-auth");
+
+  if (paramAuthorization && paramAuthorization.value) {
+    authkey = paramAuthorization.value;
+  } else {
+    if (process.env.NODE_ENV === "development") {
+      authkey = "devkey";
+    } else if (process.env.NODE_ENV === "awsdev") {
+      authkey = process.env.API_KEY;
+    } else {
+      authkey = process.env.API_KEY;
+    }
+  }
+
+  return authkey;
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
 
   const input = document.querySelector<HTMLInputElement>("#whip-endpoint");
@@ -81,19 +102,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   const paramNoTrickleIce =
     document.querySelector<HTMLInputElement>("#param-no-trickleice");
 
-  let authkey;
   if (process.env.NODE_ENV === "development") {
     const protocol = process.env.TLS_TERMINATION_ENABLED ? "https" : "http";
     input.value = `${protocol}://${window.location.hostname}:8000/api/v2/whip/sfu-broadcaster`;
-    authkey = "devkey";
   } else if (process.env.NODE_ENV === "awsdev") {
     input.value = "https://whip.dev.eyevinn.technology/api/v1/whip/broadcaster";
-    authkey = process.env.API_KEY;
   } else {
     input.value = "https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster";
-    authkey = process.env.API_KEY;
   }
-
+  
   const debug = process.env.NODE_ENV === "development" || !!process.env.DEBUG;
   const iceConfigRemote = !!(process.env.ICE_CONFIG_REMOTE);
 
@@ -116,7 +133,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   ingestCamera.addEventListener("click", async () => {
     const client = await createClient(input.value, iceConfigRemote, { 
-      debug: debug, iceServers: getIceServers(), authkey: authkey, 
+      debug: debug, iceServers: getIceServers(), authkey: getAuthKey(), 
       noTrickleIce: paramNoTrickleIce.checked }
     );
     const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -128,7 +145,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   ingestScreen.addEventListener("click", async () => {
     const client = await createClient(input.value, iceConfigRemote, { 
-      debug: debug, iceServers: getIceServers(), authkey: authkey, 
+      debug: debug, iceServers: getIceServers(), authkey: getAuthKey(), 
       noTrickleIce: paramNoTrickleIce.checked }
     );
     const mediaStream = await navigator.mediaDevices.getDisplayMedia();

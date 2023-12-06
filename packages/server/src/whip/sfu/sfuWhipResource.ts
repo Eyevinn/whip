@@ -257,7 +257,9 @@ export class SfuWhipResource implements WhipResource {
       ];
     }
 
-    edgeEndpointDesc.audio.ssrcs = [];
+    if (offerAudio) {
+      edgeEndpointDesc.audio.ssrcs = [];
+    }
     edgeEndpointDesc.video.streams = [];
     edgeEndpointDesc['bundle-transport'].dtls.setup = 'active';
 

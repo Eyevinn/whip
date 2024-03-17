@@ -276,7 +276,7 @@ export class WHIPClient extends EventEmitter {
 
     if (response.ok) {
       this.resource = response.headers.get("Location");
-      if (!this.resource.match(/^http/)) {
+      if (this.resource && !this.resource.match(/^http/)) {
         this.resource = new URL(this.resource, this.whipEndpoint).toString();
       }
       this.log("WHIP Resource", this.resource);

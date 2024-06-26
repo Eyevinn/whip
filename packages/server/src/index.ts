@@ -40,7 +40,7 @@ export class WHIPEndpoint {
     this.extPort = opts?.extPort || this.port;
     this.interfaceIp = opts?.interfaceIp || "0.0.0.0";
     this.useHttps = !!(opts?.https);
-    this.hostname = opts?.hostname || "localhost";
+    this.hostname = opts?.hostname;
     this.enabledWrtcPlugins = opts?.enabledWrtcPlugins || [];
     this.iceServers = opts?.iceServers || [];
     this.tls = opts?.tls;
@@ -118,8 +118,11 @@ export class WHIPEndpoint {
     return this.iceServers;
   }
 
-  getServerAddress(): string {
-    return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.extPort;
+  getServerAddress(): string | undefined {
+    if (this.hostname) {
+      return (this.useHttps ? "https" : "http") + "://" + this.hostname + ":" + this.extPort;
+    }
+    return undefined;
   }
 
   listen() {

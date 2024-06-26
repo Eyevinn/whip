@@ -67,7 +67,7 @@ export default function(fastify: FastifyInstance, opts, done) {
 
       reply.headers({
         "Content-Type": "application/sdp",
-        "Location": `${opts.instance.getServerAddress()}${opts.prefix}/whip/${type}/${resource.getId()}`,
+        "Location": `${opts.instance.getServerAddress()||''}${opts.prefix}/whip/${type}/${resource.getId()}`,
       });
       const links = addIceLinks(resource.getIceServers(), request.headers["authorization"])
         .concat(addProtocolExtensions(resource));

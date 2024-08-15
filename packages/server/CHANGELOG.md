@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.3.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.3.1...@eyevinn/whip-endpoint@1.3.2) (2024-08-15)
+
+
+### Bug Fixes
+
+* sfu whip resource tries to set properties of undefined when no audio ([#129](https://github.com/Eyevinn/whip/issues/129)) ([eac06da](https://github.com/Eyevinn/whip/commit/eac06da00385f86c3b3ed0428aa4d3a7b5b262a8))
+
+
+
 ### [1.3.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.3.0...@eyevinn/whip-endpoint@1.3.1) (2023-04-16)
 
 **Note:** Version bump only for package @eyevinn/whip-endpoint

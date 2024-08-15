@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.1.5](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@1.1.4...@eyevinn/whip-web-client-demo@1.1.5) (2024-08-15)
+
+
+### Bug Fixes
+
+* demo page works with node 18 ([7789d20](https://github.com/Eyevinn/whip/commit/7789d20912000a9389089cd881b6afbae1bd97c7))
+
+
+
 ### [1.1.4](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client-demo@1.1.3...@eyevinn/whip-web-client-demo@1.1.4) (2023-04-16)
 
 **Note:** Version bump only for package @eyevinn/whip-web-client-demo

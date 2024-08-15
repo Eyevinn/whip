@@ -44,6 +44,16 @@ export default function(fastify: FastifyInstance, opts, done) {
     done(null, body);
   })
 
+  fastify.addHook('onRequest', (request, reply, done) => {
+    if (request.method === "POST") {
+      if (API_KEY && request.headers.authorization !== API_KEY) {
+        reply.code(401);
+        done(new Error("Unauthorized"));
+      }
+    }
+    done();
+  });
+
   fastify.post("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
       const type = request.params.type;

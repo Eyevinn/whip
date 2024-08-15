@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.3.2...@eyevinn/whip-endpoint@1.4.0) (2024-08-15)
+
+
+### Features
+
+* support providing smb api-key in auth header ([#135](https://github.com/Eyevinn/whip/issues/135)) ([1fbcd86](https://github.com/Eyevinn/whip/commit/1fbcd86ae8711b6fac6880c05f76f42ac3cfd3cc))
+
+
+
 ### [1.3.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.3.1...@eyevinn/whip-endpoint@1.3.2) (2024-08-15)
 
 

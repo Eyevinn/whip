@@ -89,13 +89,15 @@ export class SmbProtocol {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-APIkey": this.apiKey
+        "X-APIkey": this.apiKey,
+        ...(this.apiKey && { "Authorization": `Bearer ${this.apiKey}` })
       },
       body: '{}'
     });
 
     if (!allocateResponse.ok) {
-      throw new Error("Failed to allocate resource: " + JSON.stringify(allocateResponse));
+      console.log(allocateResponse);
+      throw new Error(`Failed to allocate resource (${allocateResponse.status}): ` + JSON.stringify(allocateResponse));
     }
 
     const allocateResponseJson = await allocateResponse.json();
@@ -133,7 +135,8 @@ export class SmbProtocol {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-APIkey": this.apiKey
+        "X-APIkey": this.apiKey,
+        ...(this.apiKey && { "Authorization": `Bearer ${this.apiKey}` }),
       },
       body: JSON.stringify(request)
     });
@@ -156,7 +159,8 @@ export class SmbProtocol {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-APIkey": this.apiKey
+        "X-APIkey": this.apiKey,
+        ...(this.apiKey && { "Authorization": `Bearer ${this.apiKey}` })
       },
       body: JSON.stringify(request)
     });
@@ -171,7 +175,8 @@ export class SmbProtocol {
     const response = await fetch(smbUrl, {
       method: "GET",
       headers: {
-        "X-APIkey": this.apiKey
+        "X-APIkey": this.apiKey,
+        ...(this.apiKey && { "Authorization": `Bearer ${this.apiKey}` })
       }
     });
 

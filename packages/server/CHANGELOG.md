@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.4.0...@eyevinn/whip-endpoint@1.5.0) (2024-08-15)
+
+
+### Features
+
+* support auth for WHIP post ([#136](https://github.com/Eyevinn/whip/issues/136)) ([ddd0c9d](https://github.com/Eyevinn/whip/commit/ddd0c9dc64c69688ee1fb99a1b423d80d45403b6))
+
+
+
 ## [1.4.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.3.2...@eyevinn/whip-endpoint@1.4.0) (2024-08-15)
 
 

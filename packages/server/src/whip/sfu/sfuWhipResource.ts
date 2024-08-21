@@ -193,6 +193,65 @@ export class SfuWhipResource implements WhipResource {
     this.answer = write(parsedSDP);
   }
 
+  private async setupOriginAsEdge(ingestorOffer: SessionDescription): Promise<string> {
+    let audioSsrc: string | undefined = undefined;
+    let videoMainSsrc: string | undefined = undefined;
+    let videoRtxSsrc: string | undefined = undefined;
+    let videoMediaStream: string | undefined = undefined;
+
+    let offerAudio = ingestorOffer.media.find(element => element.type === 'audio');
+    if (offerAudio && offerAudio.ssrcs) {
+      audioSsrc = offerAudio.ssrcs.at(0).id.toString();
+    }
+
+    let offerVideo = ingestorOffer.media.find(element => element.type === 'video');
+    if (offerVideo && offerVideo.ssrcs) {
+      let ssrcs = offerVideo.ssrcs.filter(element => element.attribute === 'msid' && element.value);
+      videoMainSsrc = ssrcs.at(0).id.toString();
+      videoRtxSsrc = ssrcs.at(1).id.toString();
+
+      let mainMsid = ssrcs.filter(element => element.id == videoMainSsrc);
+      if (mainMsid.length !== 0) {
+        let msidSplit = mainMsid[0].value.split(' ');
+        if (msidSplit.length === 2) {
+          videoMediaStream = msidSplit[0];
+        }
+      }
+    }
+
+    console.log(`Edge forward audio ${audioSsrc}, video ${videoMainSsrc} ${videoRtxSsrc} ${videoMediaStream}`);
+    const originEdgeEndpointId = 'origin_edge_out';
+    const originEdgeEndpointDesc = await this.smbProtocol.allocateEndpoint(
+      this.smbOriginUrl,
+      this.sfuOriginResourceId,
+      originEdgeEndpointId,
+      offerAudio !== undefined,
+      offerVideo !== undefined,
+      false);
+
+    if (offerAudio) {
+      originEdgeEndpointDesc.audio.ssrcs = [parseInt(audioSsrc)];
+    }
+
+    if (offerVideo && videoMainSsrc && videoRtxSsrc && videoMediaStream) {
+      let videoStreamId = offerVideo.ssrcs.at
+
+      originEdgeEndpointDesc.video.streams = [
+        {
+          sources: [{ main: parseInt(videoMainSsrc), feedback: parseInt(videoRtxSsrc) }],
+          id: videoMediaStream,
+          content: 'video'
+        }
+      ];
+    }
+    
+    console.log(`Configuring origin edge with\n${JSON.stringify(originEdgeEndpointDesc)}`);
+
+    this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, originEdgeEndpointId, originEdgeEndpointDesc);
+
+    return this.sfuOriginResourceId;
+  }
+  
   private async setupEdgeSfu(smbEdgeUrl: string, ingestorOffer: SessionDescription): Promise<string> {
     let sfuEdgeResourceId = await this.smbProtocol.allocateConference(smbEdgeUrl);
 
@@ -383,7 +442,12 @@ export class SfuWhipResource implements WhipResource {
     await this.smbProtocol.configureEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, 'ingest', endpointDescription);
 
     for (let egressResource of this.egressResources) {
-      egressResource.sfuResourceId = await this.setupEdgeSfu(egressResource.broadcasterClientSfuPair.sfuUrl, parsedOffer);
+      if (egressResource.broadcasterClientSfuPair.sfuUrl == this.smbOriginUrl) {
+        console.log('Will use origin SFU as edge SFU');
+        egressResource.sfuResourceId = await this.setupOriginAsEdge(parsedOffer);
+      } else {
+        egressResource.sfuResourceId = await this.setupEdgeSfu(egressResource.broadcasterClientSfuPair.sfuUrl, parsedOffer);
+      }
     }
     console.log(`egressResources ${JSON.stringify(this.egressResources)}`);
   }

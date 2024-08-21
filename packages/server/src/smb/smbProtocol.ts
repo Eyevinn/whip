@@ -187,4 +187,32 @@ export class SmbProtocol {
     const responseBody: string[] = await response.json();
     return responseBody;
   }
+
+  async getEndpoints(smbUrl: string, conferenceId: string): Promise<string[]> {
+    const response = await fetch(smbUrl + conferenceId, {
+      method: "GET",
+      headers: {
+        "X-APIkey": this.apiKey,
+        ...(this.apiKey && { "Authorization": `Bearer ${this.apiKey}` })
+      }
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const responseBody: string[] = await response.json();
+    return responseBody;
+  }
+
+  async deleteEndpoint(smbUrl: string, conferenceId: string, endpointId: string): Promise<boolean> {
+    const response = await fetch(smbUrl + conferenceId + '/' + endpointId, {
+      method: "DELETE",
+      headers: {
+        "X-APIkey": this.apiKey,
+        ...(this.apiKey && { "Authorization": `Bearer ${this.apiKey}` })
+      }
+    });
+    return response.ok;
+  }
 }

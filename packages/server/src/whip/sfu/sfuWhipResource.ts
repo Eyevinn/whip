@@ -76,6 +76,17 @@ export class SfuWhipResource implements WhipResource {
         });
 
         return;
+      } else {
+        const endpoints: any = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
+        if (endpoints.find((e: any) => e.id == 'ingest' && e.iceState == 'FAILED')) {
+          // Ingest endpoint is in failed state, delete the channel
+          for (const endpoint of endpoints) {
+            await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id);
+          }
+          this.egressResources.forEach(async (element) => {
+            await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
+          });
+        }
       }
     } catch (error) {
       console.log(`SFU not responding, deleting channel ${this.channelId}`);
@@ -539,7 +550,11 @@ export class SfuWhipResource implements WhipResource {
     return this.mediaStreams;
   }
 
-  destroy() {
+  async destroy() {
+    const endpoints: any = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
+    for (const endpoint of endpoints) {
+      await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id);
+    }
     this.egressResources.forEach(async (element) => {
       await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
     });

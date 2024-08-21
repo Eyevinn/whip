@@ -112,11 +112,11 @@ export class WhipEndpoint {
     this.resources[resource.getId()] = resource;
   }
 
-  deleteResource(id: string) {
+  async deleteResource(id: string) {
     const resource = this.resources[id]; 
     if (resource) {
       delete this.resources[id];
-      resource.destroy();
+      await resource.destroy();
     }
   }
 

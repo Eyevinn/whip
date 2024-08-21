@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.6.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.5.0...@eyevinn/whip-endpoint@1.6.0) (2024-08-21)
+
+
+### Features
+
+* use origin SFU as edge ([#137](https://github.com/Eyevinn/whip/issues/137)) ([13b560f](https://github.com/Eyevinn/whip/commit/13b560f8aadc23f7e5a117a4066dca507bda5f26))
+
+
+
 ## [1.5.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.4.0...@eyevinn/whip-endpoint@1.5.0) (2024-08-15)
 
 

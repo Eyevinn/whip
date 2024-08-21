@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.6.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.6.0...@eyevinn/whip-endpoint@1.6.1) (2024-08-21)
+
+
+### Bug Fixes
+
+* remove endpoint resources on destroy ([#138](https://github.com/Eyevinn/whip/issues/138)) ([fde4987](https://github.com/Eyevinn/whip/commit/fde498765214814c0e90d585b024422b368ed3ce))
+
+
+
 ## [1.6.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.5.0...@eyevinn/whip-endpoint@1.6.0) (2024-08-21)
 
 

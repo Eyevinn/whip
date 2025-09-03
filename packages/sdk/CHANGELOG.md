@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.1.4](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@1.1.3...@eyevinn/whip-web-client@1.1.4) (2025-09-03)
+
+
+### Bug Fixes
+
+* compile error ([1e5e693](https://github.com/Eyevinn/whip/commit/1e5e693f08e293c55450a31d2ec9b8d8fbffe0ad))
+
+
+
 ### [1.1.3](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@1.1.2...@eyevinn/whip-web-client@1.1.3) (2025-09-03)
 
 **Note:** Version bump only for package @eyevinn/whip-web-client

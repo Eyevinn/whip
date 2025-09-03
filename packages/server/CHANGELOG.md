@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.6.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.6.1...@eyevinn/whip-endpoint@1.6.2) (2025-09-03)
+
+
+### Bug Fixes
+
+* handle undefined object ([#142](https://github.com/Eyevinn/whip/issues/142)) ([d6ad946](https://github.com/Eyevinn/whip/commit/d6ad946cfe52fa632f07cf1a1cd72e0edaa0d2bf))
+
+
+
 ### [1.6.1](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.6.0...@eyevinn/whip-endpoint@1.6.1) (2024-08-21)
 
 

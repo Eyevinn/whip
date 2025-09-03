@@ -158,7 +158,7 @@ export class WHIPClient extends EventEmitter {
     if (this.supportTrickleIce()) {
       const trickleIceSDP = this.makeTrickleIceSdpFragment(candidate);
       const url = await this.getResourceUrl();
-      const response = await this.whipProtocol.updateIce(url, this.eTag, trickleIceSDP);
+      const response = await this.whipProtocol.updateIce(url, this.eTag, trickleIceSDP, this.opts.authkey);
       if (!response.ok) {
         this.log("Trickle ICE not supported by endpoint");
         this.opts.noTrickleIce = true;

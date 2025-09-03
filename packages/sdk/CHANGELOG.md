@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [1.1.5](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@1.1.4...@eyevinn/whip-web-client@1.1.5) (2025-09-03)
+
+
+### Bug Fixes
+
+* need to provide authkey to update ice ([4d5ddbf](https://github.com/Eyevinn/whip/commit/4d5ddbffc4242d7f16cdf9d55eb49eccbea311a6))
+
+
+
 ### [1.1.4](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-web-client@1.1.3...@eyevinn/whip-web-client@1.1.4) (2025-09-03)
 
 

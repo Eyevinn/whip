@@ -5,7 +5,7 @@ export class WHIPProtocol {
             method: "POST",
             headers: {
                 "Content-Type": "application/sdp",
-                "Authorization": authKey
+                "Authorization": `Bearer ${authKey}`
             },
             body: sdp
         });
@@ -15,7 +15,7 @@ export class WHIPProtocol {
         return fetch(url, {
             method: "OPTIONS",
             headers: {
-                "Authorization": authKey,
+                "Authorization": `Bearer ${authKey}`,
             }
         });
     }
@@ -31,7 +31,8 @@ export class WHIPProtocol {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/trickle-ice-sdpfrag",
-                "ETag": eTag
+                "ETag": eTag,
+                "Authorization": `Bearer ${authKey}`,
             },
             body: sdp
         });

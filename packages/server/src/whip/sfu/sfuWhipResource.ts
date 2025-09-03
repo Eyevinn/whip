@@ -124,8 +124,10 @@ export class SfuWhipResource implements WhipResource {
       media['iceOptions'] = undefined;
       media.iceUfrag = transport.ice.ufrag;
       media.icePwd = transport.ice.pwd;
-      media.fingerprint.type = transport.dtls.type;
-      media.fingerprint.hash = transport.dtls.hash;
+      media.fingerprint = {
+        type: transport.dtls.type,
+        hash: transport.dtls.hash
+      };
       media.setup = media.setup === 'actpass' ? 'active' : 'actpass';
       media.ssrcGroups = undefined;
       media.ssrcs = undefined;

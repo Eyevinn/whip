@@ -26,7 +26,7 @@ export class WHIPProtocol {
         });
     }
 
-    updateIce(url: string, eTag: string, sdp: string): Promise<Response> {
+    updateIce(url: string, eTag: string, sdp: string, authKey: string | undefined): Promise<Response> {
         return fetch(url, {
             method: "PATCH",
             headers: {

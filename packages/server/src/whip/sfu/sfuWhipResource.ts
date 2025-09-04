@@ -176,23 +176,25 @@ export class SfuWhipResource implements WhipResource {
 
       } else if (media.type === 'video') {
         const vp8Codec = media.rtp.find(rtp => rtp.codec === 'VP8');
-        const vp8PayloadType = vp8Codec.payload;
+        if (vp8Codec) {
+          const vp8PayloadType = vp8Codec.payload;
 
-        const rtxFmtp = media.fmtp.find(fmtp => fmtp.config === `apt=${vp8PayloadType}`);
-        const vp8RtxPayloadType = rtxFmtp.payload;
+          const rtxFmtp = media.fmtp.find(fmtp => fmtp.config === `apt=${vp8PayloadType}`);
+          const vp8RtxPayloadType = rtxFmtp.payload;
 
-        media.rtp = media.rtp.filter(rtp => rtp.payload === vp8PayloadType || rtp.payload === vp8RtxPayloadType);
+          media.rtp = media.rtp.filter(rtp => rtp.payload === vp8PayloadType || rtp.payload === vp8RtxPayloadType);
 
-        media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === vp8PayloadType || fmtp.payload === vp8RtxPayloadType);
-        media.payloads = `${vp8PayloadType} ${vp8RtxPayloadType}`;
+          media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === vp8PayloadType || fmtp.payload === vp8RtxPayloadType);
+          media.payloads = `${vp8PayloadType} ${vp8RtxPayloadType}`;
+          media.rtcpFb = media.rtcpFb.filter(rtcpFb => rtcpFb.payload === vp8PayloadType &&
+            (rtcpFb.type === 'goog-remb' || rtcpFb.type === 'nack'));
+        }
         media.setup = 'active';
 
         media.ext = media.ext && media.ext.filter(ext => ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time' ||
           ext.uri === 'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id');
 
         media.direction = 'recvonly';
-        media.rtcpFb = media.rtcpFb.filter(rtcpFb => rtcpFb.payload === vp8PayloadType &&
-          (rtcpFb.type === 'goog-remb' || rtcpFb.type === 'nack'));
 
         media.ssrcGroups = undefined;
       }
@@ -221,7 +223,7 @@ export class SfuWhipResource implements WhipResource {
     if (offerVideo && offerVideo.ssrcs) {
       let ssrcs = offerVideo.ssrcs.filter(element => element.attribute === 'msid' && element.value);
       videoMainSsrc = ssrcs.at(0).id.toString();
-      videoRtxSsrc = ssrcs.at(1).id.toString();
+      videoRtxSsrc = ssrcs.at(1) && ssrcs.at(1).id.toString();
 
       let mainMsid = ssrcs.filter(element => element.id == videoMainSsrc);
       if (mainMsid.length !== 0) {
@@ -362,11 +364,11 @@ export class SfuWhipResource implements WhipResource {
     // Add information from the WHIP client offer to the SFU endpoint description
     const transport = endpointDescription['bundle-transport'];
     const offerMediaDescription = parsedOffer.media[0];
-    transport.dtls.setup = offerMediaDescription.setup;
-    transport.dtls.type = offerMediaDescription.fingerprint.type;
-    transport.dtls.hash = offerMediaDescription.fingerprint.hash;
-    transport.ice.ufrag = offerMediaDescription.iceUfrag;
-    transport.ice.pwd = offerMediaDescription.icePwd;
+    transport.dtls.setup = offerMediaDescription.setup || parsedOffer.setup;
+    transport.dtls.type = offerMediaDescription.fingerprint?.type || parsedOffer.fingerprint?.type;
+    transport.dtls.hash = offerMediaDescription.fingerprint?.hash || parsedOffer.fingerprint?.hash;
+    transport.ice.ufrag = offerMediaDescription.iceUfrag || parsedOffer.iceUfrag;
+    transport.ice.pwd = offerMediaDescription.icePwd || parsedOffer.icePwd;
     transport.ice.candidates = [];
 
     for (let media of parsedOffer.media) {
@@ -394,7 +396,7 @@ export class SfuWhipResource implements WhipResource {
               streamsMap.set(mediaStreamId, smbVideoStream);
             }
 
-            let feedbackGroup = media.ssrcGroups
+            let feedbackGroup = media.ssrcGroups && media.ssrcGroups
               .filter(element => element.semantics === 'FID')
               .filter(element => element.ssrcs.indexOf(`${ssrc.id}`) !== -1)
               .pop();
@@ -431,9 +433,10 @@ export class SfuWhipResource implements WhipResource {
 
       } else if (media.type === 'video') {
         endpointDescription.video["payload-types"][0].id = media.rtp[0].payload;
-        endpointDescription.video["payload-types"][1].id = media.rtp[1].payload;
-        endpointDescription.video["payload-types"][1].parameters = { 'apt': media.rtp[0].payload.toString() };
-
+        if (media.rtp[1]) {
+          endpointDescription.video["payload-types"][1].id = media.rtp[1].payload;
+          endpointDescription.video["payload-types"][1].parameters = { 'apt': media.rtp[0].payload.toString() };
+        }
         endpointDescription.video["rtp-hdrexts"] = [];
         media.ext && media.ext.forEach(ext => endpointDescription.video["rtp-hdrexts"].push({ id: ext.value, uri: ext.uri }));
 

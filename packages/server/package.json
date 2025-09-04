@@ -10,6 +10,7 @@
     "prepare": "npm run build",
     "build": "tsc --project ./",
     "dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node --inspect ./dist/server.js\"",
+    "dev-sfu": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node --inspect ./dist/sfuServer.js\"",
     "server": "node ./dist/server.js",
     "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'spec/**/*.ts'"
   },

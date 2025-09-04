@@ -46,7 +46,7 @@ export default function(fastify: FastifyInstance, opts, done) {
 
   fastify.addHook('onRequest', (request, reply, done) => {
     if (request.method === "POST") {
-      if (API_KEY && request.headers.authorization !== API_KEY) {
+      if (API_KEY && (request.headers.authorization !== `Bearer ${API_KEY}` && request.headers.authorization !== API_KEY)) {
         reply.code(401);
         done(new Error("Unauthorized"));
       }

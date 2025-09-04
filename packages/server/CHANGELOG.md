@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.7.0](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.6.2...@eyevinn/whip-endpoint@1.7.0) (2025-09-04)
+
+
+### Features
+
+* provide codec to broadcaster service ([#144](https://github.com/Eyevinn/whip/issues/144)) ([afb1de1](https://github.com/Eyevinn/whip/commit/afb1de15d198579de87caf43e37b6e34d977d19e))
+
+
+### Bug Fixes
+
+* handle ingest from OBS ([#143](https://github.com/Eyevinn/whip/issues/143)) ([d2f599b](https://github.com/Eyevinn/whip/commit/d2f599bcec79d883592643aa9529b0d85d239c5f))
+
+
+
 ### [1.6.2](https://github.com/Eyevinn/whip/compare/@eyevinn/whip-endpoint@1.6.1...@eyevinn/whip-endpoint@1.6.2) (2025-09-03)
 
 

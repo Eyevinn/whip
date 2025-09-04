@@ -510,6 +510,11 @@ export class SfuWhipResource implements WhipResource {
       if (media.type !== 'audio' && media.type !== 'video') {
         continue;
       }
+      if (media.type === 'video') {
+        if (!media.rtp.some(rtp => rtp.codec === 'VP8')) {
+          this.mediaStreams.video.codec = 'H264';
+        }
+      }
 
       let mediaStreams = media.type === 'audio' ? audioMediaStreams : videoMediaStreams;
       media.ssrcs.forEach(ssrc => {

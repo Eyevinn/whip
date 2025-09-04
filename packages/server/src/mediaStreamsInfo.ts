@@ -18,5 +18,6 @@ export interface MediaStreamsInfo {
   video: {
     ssrcs: MediaStreamsInfoSsrc[];
     ssrcGroups: MediaStreamsInfoSsrcGroup[];
+    codec?: string;
   }
 }

@@ -248,16 +248,49 @@ export class SfuWhipResource implements WhipResource {
       originEdgeEndpointDesc.audio.ssrcs = [parseInt(audioSsrc)];
     }
 
-    if (offerVideo && videoMainSsrc && videoRtxSsrc && videoMediaStream) {
-      let videoStreamId = offerVideo.ssrcs.at
+    if (offerVideo) {
+      originEdgeEndpointDesc.video["payload-types"][0].id = offerVideo.rtp[0].payload;
+      originEdgeEndpointDesc.video["payload-types"][0].name = offerVideo.rtp[0].codec;
+      if (offerVideo.rtp[1]) {
+        originEdgeEndpointDesc.video["payload-types"][1].id = offerVideo.rtp[1].payload;
+        originEdgeEndpointDesc.video["payload-types"][1].parameters = { 'apt': offerVideo.rtp[0].payload.toString() };        
+      } else {
+        originEdgeEndpointDesc.video["payload-types"] = originEdgeEndpointDesc.video["payload-types"].filter(pt => pt.name !== 'rtx');
+      }
+      originEdgeEndpointDesc.video["rtp-hdrexts"] = [];
+      offerVideo.ext && offerVideo.ext.forEach(ext => originEdgeEndpointDesc.video["rtp-hdrexts"].push({ id: ext.value, uri: ext.uri }));
 
-      originEdgeEndpointDesc.video.streams = [
-        {
-          sources: [{ main: parseInt(videoMainSsrc), feedback: parseInt(videoRtxSsrc) }],
-          id: videoMediaStream,
-          content: 'video'
-        }
-      ];
+      originEdgeEndpointDesc.video["payload-types"].forEach(payloadType => {
+        const rtcpFbs = offerVideo.rtcpFb.filter(element => element.payload === payloadType.id);
+        payloadType["rtcp-fbs"] = rtcpFbs.map(rtcpFb => {
+          return {
+            type: rtcpFb.type,
+            subtype: rtcpFb.subtype
+          };
+        });
+      });
+    }
+
+    if (offerVideo && videoMainSsrc && videoMediaStream) {
+      if (videoRtxSsrc) {
+        let videoStreamId = offerVideo.ssrcs.at
+
+        originEdgeEndpointDesc.video.streams = [
+          {
+            sources: [{ main: parseInt(videoMainSsrc), feedback: parseInt(videoRtxSsrc) }],
+            id: videoMediaStream,
+            content: 'video'
+          }
+        ];
+      } else {
+        originEdgeEndpointDesc.video.streams = [
+          {
+            sources: [{ main: parseInt(videoMainSsrc) }],
+            id: videoMediaStream,
+            content: 'video'
+          }
+        ];
+      }
     }
     
     console.log(`Configuring origin edge with\n${JSON.stringify(originEdgeEndpointDesc)}`);

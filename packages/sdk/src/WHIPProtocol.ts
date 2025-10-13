@@ -1,39 +1,60 @@
 export class WHIPProtocol {
 
     sendOffer(url: string, authKey: string | undefined, sdp: string): Promise<Response> {
+        const headers = {
+            "Content-Type": "application/sdp",
+        };
+
+        if (authKey) {
+            headers['Authorization'] = `Bearer ${authKey}`;
+        }
+
         return fetch(url, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/sdp",
-                "Authorization": `Bearer ${authKey}`
-            },
+            headers,
             body: sdp
         });
     }
 
     getConfiguration(url: string, authKey: string | undefined): Promise<Response> {
+        const headers = {};
+
+        if (authKey) {
+            headers['Authorization'] = `Bearer ${authKey}`;
+        }
+
         return fetch(url, {
             method: "OPTIONS",
-            headers: {
-                "Authorization": `Bearer ${authKey}`,
-            }
+            headers
         });
     }
 
-    delete(url: string): Promise<Response> {
+    delete(url: string, authKey: string | undefined): Promise<Response> {
+        const headers = {};
+
+        if (authKey) {
+            headers['Authorization'] = `Bearer ${authKey}`;
+        }
+
         return fetch(url, {
-            method: "DELETE"
+            method: "DELETE",
+            headers
         });
     }
 
     updateIce(url: string, eTag: string, sdp: string, authKey: string | undefined): Promise<Response> {
+        const headers = {
+            "Content-Type": "application/trickle-ice-sdpfrag",
+            "ETag": eTag,
+        };
+
+        if (authKey) {
+            headers['Authorization'] = `Bearer ${authKey}`;
+        }
+
         return fetch(url, {
             method: "PATCH",
-            headers: {
-                "Content-Type": "application/trickle-ice-sdpfrag",
-                "ETag": eTag,
-                "Authorization": `Bearer ${authKey}`,
-            },
+            headers,
             body: sdp
         });
     }

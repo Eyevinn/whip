@@ -384,7 +384,7 @@ export class WHIPClient extends EventEmitter {
  */
   async destroy(): Promise<void> {
     const resourceUrl = await this.getResourceUrl();
-    await this.whipProtocol.delete(resourceUrl).catch((e) => this.error("destroy()", e));
+    await this.whipProtocol.delete(resourceUrl, this.opts.authkey).catch((e) => this.error("destroy()", e));
 
     const senders = this.peer.getSenders();
     if (senders) {

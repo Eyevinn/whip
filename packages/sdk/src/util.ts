@@ -5,21 +5,26 @@ export function parseWHIPIceLinkHeader(value: string): WHIPClientIceServer|null 
 
   if (value.match(/rel="ice-server"/)) {
     if (value.match(/^stun:/)) {
-      const [ _, urls ] = value.match(/^(stun:\S+);/);
+      const stunMatch = value.match(/^(stun:\S+);/);
+      if (!stunMatch) return null;
+      const urls = stunMatch[1];
       if (urls) {
         iceServerConfig = { urls: urls };
       }
     } else if (value.match(/^turn:/)) {
       value.split(";").forEach((attr) => {
         if (attr.match(/^turn:/)) {
-          const [ _, urls ] = attr.match(/^(turn:\S+)/);
-          iceServerConfig = { urls: urls };
+          const turnMatch = attr.match(/^(turn:\S+)/);
+          if (!turnMatch) return;
+          iceServerConfig = { urls: turnMatch[1] };
         } else if (attr.match(/^\s*username[=:]/)) {
-          const [ _, username ] = attr.match(/^\s*username[=:]\s*"*([^"]+)/);
-          iceServerConfig.username = username;
+          const usernameMatch = attr.match(/^\s*username[=:]\s*"*([^"]+)/);
+          if (!usernameMatch) return;
+          iceServerConfig.username = usernameMatch[1];
         } else if (attr.match(/^\s*credential[=:]/)) {
-          const [ _, credential ] = attr.match(/^\s*credential[=:]\s*"*([^"]+)/);
-          iceServerConfig.credential = credential;
+          const credentialMatch = attr.match(/^\s*credential[=:]\s*"*([^"]+)/);
+          if (!credentialMatch) return;
+          iceServerConfig.credential = credentialMatch[1];
         }
       });
     }

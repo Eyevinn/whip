@@ -2,7 +2,8 @@ import { WhipResource, WhipResourceIceServer, IANA_PREFIX } from "../whipResourc
 import { MediaStreamsInfo, MediaStreamsInfoSsrc } from '../../mediaStreamsInfo'
 import { parse, SessionDescription, write } from 'sdp-transform'
 import { v4 as uuidv4 } from "uuid";
-import { SmbEndpointDescription, SmbProtocol, SmbVideoStream } from "../../smb/smbProtocol";
+import { SmbEndpoint, SmbEndpointDescription, SmbVideoStream } from "../../smb/smbProtocol";
+import { ISmbProtocol } from "../../smb/ISmbProtocol";
 import { clearTimeout } from "timers";
 import { BroadcasterClientSfuPair } from '../../broadcasterClient';
 
@@ -21,10 +22,10 @@ export class SfuWhipResource implements WhipResource {
   private channelId?: string = undefined;
   private eTag: string;
   private mediaStreams: MediaStreamsInfo;
-  private smbProtocol: SmbProtocol;
+  private smbProtocol: ISmbProtocol;
   private channelHealthTimeout?: NodeJS.Timeout;
 
-  constructor(smbProtocolFactory: (apiKey: string | undefined) => SmbProtocol, sdpOffer: string, channelId?: string, apiKey?: string) {
+  constructor(smbProtocolFactory: (apiKey: string | undefined) => ISmbProtocol, sdpOffer: string, channelId?: string, apiKey?: string) {
     this.resourceId = uuidv4();
     this.offer = sdpOffer;
     this.channelId = channelId ? channelId : this.getId();
@@ -77,8 +78,8 @@ export class SfuWhipResource implements WhipResource {
 
         return;
       } else {
-        const endpoints: any = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
-        if (endpoints.find((e: any) => e.id == 'ingest' && e.iceState == 'FAILED')) {
+        const endpoints: SmbEndpoint[] = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
+        if (endpoints.find((e: SmbEndpoint) => e.id == 'ingest' && e.iceState == 'FAILED')) {
           // Ingest endpoint is in failed state, delete the channel
           for (const endpoint of endpoints) {
             await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id);
@@ -594,7 +595,7 @@ export class SfuWhipResource implements WhipResource {
   }
 
   async destroy() {
-    const endpoints: any = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
+    const endpoints: SmbEndpoint[] = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
     for (const endpoint of endpoints) {
       await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id);
     }

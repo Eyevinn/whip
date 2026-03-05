@@ -39,6 +39,8 @@ export class BroadcasterClient {
     });
     if (response.ok) {
       console.log(`Removed channel ${channelId} from egress endpoint`);
+    } else {
+      throw new Error(`Failed to remove channel ${channelId}`);
     }
   }
 }

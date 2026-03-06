@@ -36,14 +36,6 @@ export default async function(fastify: FastifyInstance, opts) {
     return [];
   };
 
-  fastify.addContentTypeParser('application/sdp', { parseAs: "string" }, (req, body, done) => {
-    done(null, body);
-  })
-
-  fastify.addContentTypeParser('application/trickle-ice-sdpfrag', { parseAs: "string" }, (req, body, done) => {
-    done(null, body);
-  })
-
   fastify.addHook('onRequest', async (request, reply) => {
     if (request.method === "POST") {
       if (API_KEY && (request.headers.authorization !== `Bearer ${API_KEY}` && request.headers.authorization !== API_KEY)) {
@@ -149,19 +141,11 @@ export default async function(fastify: FastifyInstance, opts) {
     reply.code(405).send("reserved");
   });
 
-  fastify.head("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
-    reply.code(405).send("reserved");
-  });
-
   fastify.put("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
 
   fastify.get("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
-    reply.code(405).send("reserved");
-  });
-
-  fastify.head("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
 

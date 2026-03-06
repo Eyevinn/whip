@@ -1,13 +1,3 @@
-import nodeFetch from 'node-fetch';
-
-type FetchFn = typeof nodeFetch;
-
-// Resolve fetch at call-time so tests can override via globalThis.fetch.
-// Falls back to node-fetch for environments without native fetch (Node < 18).
-function fetch(...args: Parameters<FetchFn>): ReturnType<FetchFn> {
-  const impl: FetchFn = ((globalThis as unknown) as { fetch?: FetchFn }).fetch ?? nodeFetch;
-  return impl(...args);
-}
 import { ISmbProtocol } from './ISmbProtocol';
 
 interface SmbCandidate {

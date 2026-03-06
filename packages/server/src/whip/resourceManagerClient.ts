@@ -1,5 +1,3 @@
-import fetch from 'cross-fetch';
-
 type Origin = string;
 type Territory = string;
 

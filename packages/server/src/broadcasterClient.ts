@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 import { MediaStreamsInfo } from "./mediaStreamsInfo";
 
 export interface BroadcasterClientSfuPair {

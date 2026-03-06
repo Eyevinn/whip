@@ -64,7 +64,10 @@ export class SfuWhipResource implements WhipResource {
       }
     });
       
-    this.checkChannelHealth();
+    // Delay the first health check to give ICE time to connect before evaluating state
+    this.channelHealthTimeout = setTimeout(() => {
+      this.checkChannelHealth();
+    }, 15000);
   }
 
   private async checkChannelHealth() {
@@ -72,28 +75,29 @@ export class SfuWhipResource implements WhipResource {
       const result = await this.smbProtocol.getConferences(this.smbOriginUrl);
       if (result.find(element => element === this.sfuOriginResourceId) === undefined) {
         console.log(`SFU resource does not exist, deleting channel ${this.channelId}`);
-        this.egressResources.forEach(async (element) => {
-          await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-        });
-
+        for (const element of this.egressResources) {
+          try { await element.broadcasterClientSfuPair.client.removeChannel(this.channelId); } catch (_) { /* best effort */ }
+        }
         return;
       } else {
         const endpoints: SmbEndpoint[] = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
         if (endpoints.find((e: SmbEndpoint) => e.id == 'ingest' && e.iceState == 'FAILED')) {
           // Ingest endpoint is in failed state, delete the channel
+          console.log(`Ingest ICE FAILED on channel ${this.channelId}, cleaning up`);
           for (const endpoint of endpoints) {
-            await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id);
+            try { await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id); } catch (_) { /* best effort */ }
           }
-          this.egressResources.forEach(async (element) => {
-            await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-          });
+          for (const element of this.egressResources) {
+            try { await element.broadcasterClientSfuPair.client.removeChannel(this.channelId); } catch (_) { /* best effort */ }
+          }
+          return;
         }
       }
     } catch (error) {
       console.log(`SFU not responding, deleting channel ${this.channelId}`);
-      this.egressResources.forEach(async (element) => {
-        await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-      });
+      for (const element of this.egressResources) {
+        try { await element.broadcasterClientSfuPair.client.removeChannel(this.channelId); } catch (_) { /* best effort */ }
+      }
       return;
     }
 
@@ -595,16 +599,20 @@ export class SfuWhipResource implements WhipResource {
   }
 
   async destroy() {
-    const endpoints: SmbEndpoint[] = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
-    for (const endpoint of endpoints) {
-      await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id);
-    }
-    this.egressResources.forEach(async (element) => {
-      await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-    });
     if (this.channelHealthTimeout) {
       clearTimeout(this.channelHealthTimeout);
       this.channelHealthTimeout = undefined;
+    }
+    try {
+      const endpoints: SmbEndpoint[] = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
+      for (const endpoint of endpoints) {
+        try { await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id); } catch (_) { /* best effort */ }
+      }
+    } catch (e) {
+      console.log(`Could not fetch SFU endpoints during destroy (already cleaned up?): ${e}`);
+    }
+    for (const element of this.egressResources) {
+      try { await element.broadcasterClientSfuPair.client.removeChannel(this.channelId); } catch (_) { /* best effort */ }
     }
   }
 }

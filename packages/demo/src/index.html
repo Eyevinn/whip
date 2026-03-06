@@ -331,7 +331,6 @@
         background: #000;
         flex: 1;
         min-height: 0;
-        border-bottom: 1px solid var(--border);
         overflow: hidden;
       }
 
@@ -368,10 +367,10 @@
       /* ── Resources pane ──────────────────────────────── */
 
       .resources-pane {
-        flex-shrink: 0;
-        height: 160px;
+        flex: 1;
         overflow-y: auto;
-        padding: 10px 16px;
+        min-height: 0;
+        padding: 4px 0;
       }
 
       .section-header {
@@ -405,7 +404,7 @@
         flex-direction: column;
         align-items: center;
         gap: 8px;
-        padding: 40px 20px;
+        padding: 20px 10px;
         color: var(--muted);
       }
 
@@ -631,6 +630,22 @@
           <textarea id="param-b64json"></textarea>
         </div>
 
+        <div class="resources-pane">
+          <div class="section-header">
+            <span class="section-title">Active Resources</span>
+            <span id="resource-count" class="count-badge">0</span>
+          </div>
+          <div id="empty-state" class="empty-state">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p>No active resources yet</p>
+          </div>
+          <div id="resource-list" class="resource-list"></div>
+        </div>
+
       </aside>
 
       <div class="content">
@@ -644,22 +659,6 @@
             </svg>
             <p>No stream — click Camera or Screen to begin</p>
           </div>
-        </div>
-
-        <div class="resources-pane">
-          <div class="section-header">
-            <span class="section-title">Active Resources</span>
-            <span id="resource-count" class="count-badge">0</span>
-          </div>
-          <div id="empty-state" class="empty-state">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <p>No active resources yet</p>
-          </div>
-          <div id="resource-list" class="resource-list"></div>
         </div>
 
       </div>

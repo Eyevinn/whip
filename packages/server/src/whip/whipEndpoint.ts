@@ -67,6 +67,20 @@ export class WhipEndpoint {
       logger: { level: "info" },
       https: httpsOptions,
     });
+
+    // Register SDP content-type parsers at the root level so Fastify 5 can
+    // resolve them before route-scope plugins are consulted.
+    this.server.addContentTypeParser(
+      "application/sdp",
+      { parseAs: "string" },
+      (_req, body, done) => done(null, body)
+    );
+    this.server.addContentTypeParser(
+      "application/trickle-ice-sdpfrag",
+      { parseAs: "string" },
+      (_req, body, done) => done(null, body)
+    );
+
     this.server.register(cors, {
       exposedHeaders: ["Location", "ETag", "Link", "Access-Control-Allow-Methods"],
       methods: ["POST", "GET", "OPTIONS", "DELETE", "PATCH"],

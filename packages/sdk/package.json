@@ -13,7 +13,7 @@
   "scripts": {
     "build": "microbundle --no-sourcemap --format modern,es,cjs",
     "dev": "microbundle --watch --format modern,es,cjs",
-    "test": "karma start",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --require ./spec/setup.js -r ts-node/register 'spec/**/*.ts'",
     "build:docs": "typedoc"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",

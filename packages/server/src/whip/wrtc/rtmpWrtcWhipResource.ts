@@ -16,8 +16,8 @@ export class RtmpWrtcWhipResource extends WrtcWhipResource {
   private height: number;
   private output;
 
-  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], opts?: RtmpWrtcWhipResourceOptions) {
-    super(sdpOffer, iceServers);
+  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], opts?: RtmpWrtcWhipResourceOptions, pcFactory?: () => any) {
+    super(sdpOffer, iceServers, pcFactory);
     this.rtmpUrl = opts.rtmpUrl;
     this.width = opts.width;
     this.height = opts.height;

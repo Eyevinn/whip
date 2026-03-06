@@ -94,7 +94,6 @@ function makeMockFfmpegProc(): any {
 // ---------------------------------------------------------------------------
 class TestableRtspWrtcWhipResource extends RtspWrtcWhipResource {
   public mockFfmpegProc: any;
-  private _mockPc: any;
 
   constructor(
     sdpOffer: string,
@@ -102,9 +101,9 @@ class TestableRtspWrtcWhipResource extends RtspWrtcWhipResource {
     opts?: any,
     mockPc?: any
   ) {
-    super(sdpOffer, iceServers, opts);
-    this._mockPc = mockPc || makeMockPc();
-    this.pc = this._mockPc;
+    // Pass a factory so @koush/wrtc is never required in CI.
+    const pc = mockPc || makeMockPc();
+    super(sdpOffer, iceServers, opts, () => pc);
     this.mockFfmpegProc = makeMockFfmpegProc();
   }
 

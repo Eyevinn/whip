@@ -1,4 +1,3 @@
-import { RTCPeerConnection } from "@koush/wrtc";
 import { v4 as uuidv4 } from "uuid";
 import { SessionDescription, parse } from 'sdp-transform'
 import { WhipResource, WhipResourceIceServer } from "../whipResource";
@@ -14,7 +13,7 @@ interface IceCredentials {
 
 export class WrtcWhipResource implements WhipResource {
   protected sdpOffer: string;
-  protected pc: RTCPeerConnection;
+  protected pc: any;
 
   private resourceId: string;
   private localSdp: string;
@@ -24,13 +23,21 @@ export class WrtcWhipResource implements WhipResource {
   private iceCredentials: IceCredentials | undefined = undefined;
   private eTag: string | undefined = undefined;
 
-  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[]) {
+  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], pcFactory?: () => any) {
     this.sdpOffer = sdpOffer;
     this.iceServers = iceServers || [];
-    this.pc = new RTCPeerConnection({
-      sdpSemantics: "unified-plan",
-      iceServers: this.iceServers,
-    });
+    if (pcFactory) {
+      this.pc = pcFactory();
+    } else {
+      // Lazy-load the native binary only when no mock factory is provided.
+      // This prevents @koush/wrtc from being required (and compiled) in CI
+      // environments where tests inject a mock peer connection.
+      const { RTCPeerConnection } = require("@koush/wrtc");
+      this.pc = new RTCPeerConnection({
+        sdpSemantics: "unified-plan",
+        iceServers: this.iceServers,
+      });
+    }
 
     this.resourceId = uuidv4();
     this.pc.oniceconnectionstatechange = e => this.log(`iceconnection=${this.pc.iceConnectionState}`);

@@ -108,8 +108,9 @@ class TestableRtmpWrtcWhipResource extends RtmpWrtcWhipResource {
     opts?: { rtmpUrl: string; width: number; height: number },
     mockPc?: any
   ) {
-    super(sdpOffer, iceServers, opts);
-    this.pc = mockPc || makeMockPc();
+    // Pass a factory so @koush/wrtc is never required in CI.
+    const pc = mockPc || makeMockPc();
+    super(sdpOffer, iceServers, opts, () => pc);
     this.mockFfmpegProc = makeMockFfmpegProc();
   }
 

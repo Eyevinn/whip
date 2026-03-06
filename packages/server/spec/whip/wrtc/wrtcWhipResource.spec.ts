@@ -91,16 +91,14 @@ function makeMockPc(overrides: Partial<any> = {}): any {
 }
 
 // ---------------------------------------------------------------------------
-// TestableWrtcWhipResource — subclass that replaces this.pc with a mock
-// immediately after the parent constructor runs.
+// TestableWrtcWhipResource — subclass that injects a mock RTCPeerConnection
+// via the pcFactory constructor parameter so @koush/wrtc is never required.
 // ---------------------------------------------------------------------------
 class TestableWrtcWhipResource extends WrtcWhipResource {
   constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], mockPc?: any) {
-    super(sdpOffer, iceServers);
-    if (mockPc) {
-      // Replace the RTCPeerConnection created by the parent with the mock
-      this.pc = mockPc;
-    }
+    // Pass a factory so the parent constructor uses the mock instead of the
+    // native @koush/wrtc RTCPeerConnection (avoids native binary loading in CI).
+    super(sdpOffer, iceServers, mockPc ? () => mockPc : undefined);
   }
 
   getMockPc(): any {

@@ -31,7 +31,8 @@
     "ts-mockito": "^2.6.1",
     "ts-node": "^10.9.2",
     "tsc-watch": "^4.6.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "undici-types": "^7.22.0"
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",

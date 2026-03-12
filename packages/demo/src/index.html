@@ -521,7 +521,7 @@
         background: var(--surface3);
         border: 1px solid var(--border-hover);
         border-radius: var(--radius-sm);
-        padding: 9px 14px;
+        padding: 10px 14px;
         font-size: 12px;
         color: var(--text);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -530,12 +530,75 @@
         transition: opacity 0.22s ease, transform 0.22s ease;
         pointer-events: none;
         z-index: 999;
-        max-width: 280px;
+        max-width: 480px;
+        word-break: break-word;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      #toast.has-action {
+        position: fixed;   /* must stay fixed */
+        display: block;    /* override the base flex */
+        padding-top: 32px; /* space above message for the X button */
+      }
+
+      .toast-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       }
 
       #toast.visible {
         opacity: 1;
         transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .toast-msg {
+        display: block;
+        padding-right: 20px;
+        word-break: break-word;
+      }
+
+      .toast-action-btn {
+        padding: 3px 10px;
+        background: var(--blue-dim);
+        color: var(--blue);
+        border: 1px solid var(--blue);
+        border-radius: var(--radius-sm);
+        font-size: 11px;
+        cursor: pointer;
+        font-family: var(--font);
+      }
+
+      .toast-action-btn:hover {
+        background: var(--blue);
+        color: #fff;
+      }
+
+      .toast-close-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 2px 6px;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        font-family: var(--font);
+      }
+      .toast-close-btn:hover {
+        color: var(--text);
+        border-color: var(--border-hover);
+      }
+
+      .toast-buttons {
+        display: flex;
+        justify-content: flex-end;
       }
 
       /* ── Responsive ──────────────────────────────────── */
@@ -651,7 +714,7 @@
       <div class="content">
 
         <div class="video-area">
-          <video id="ingest" autoplay playsinline muted controls></video>
+          <video id="ingest" autoplay playsinline muted></video>
           <div id="video-placeholder" class="video-placeholder">
             <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M23 7l-7 5 7 5V7z"/>

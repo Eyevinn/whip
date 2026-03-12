@@ -168,7 +168,9 @@ export class SfuWhipResource implements WhipResource {
 
       if (media.type === 'audio') {
         media.rtp = media.rtp.filter(rtp => rtp.codec.toLowerCase() === 'opus');
-        let opusPayloadType = media.rtp.at(0).payload;
+        const opusRtp = media.rtp.at(0);
+        if (!opusRtp) continue;
+        let opusPayloadType = opusRtp.payload;
 
         media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === opusPayloadType);
         media.payloads = `${opusPayloadType}`;
@@ -185,14 +187,13 @@ export class SfuWhipResource implements WhipResource {
           const vp8PayloadType = vp8Codec.payload;
 
           const rtxFmtp = media.fmtp.find(fmtp => fmtp.config === `apt=${vp8PayloadType}`);
-          const vp8RtxPayloadType = rtxFmtp.payload;
+          const vp8RtxPayloadType = rtxFmtp?.payload;
 
-          media.rtp = media.rtp.filter(rtp => rtp.payload === vp8PayloadType || rtp.payload === vp8RtxPayloadType);
+          media.rtp = media.rtp.filter(rtp => rtp.payload === vp8PayloadType || (vp8RtxPayloadType && rtp.payload === vp8RtxPayloadType));
 
-          media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === vp8PayloadType || fmtp.payload === vp8RtxPayloadType);
-          media.payloads = `${vp8PayloadType} ${vp8RtxPayloadType}`;
-          media.rtcpFb = media.rtcpFb.filter(rtcpFb => rtcpFb.payload === vp8PayloadType &&
-            (rtcpFb.type === 'goog-remb' || rtcpFb.type === 'nack'));
+          media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === vp8PayloadType || (vp8RtxPayloadType && fmtp.payload === vp8RtxPayloadType));
+          media.payloads = vp8RtxPayloadType ? `${vp8PayloadType} ${vp8RtxPayloadType}` : `${vp8PayloadType}`;
+          media.rtcpFb = media.rtcpFb.filter(rtcpFb => rtcpFb.payload === vp8PayloadType && (rtcpFb.type === 'goog-remb' || rtcpFb.type === 'nack'));
         }
         media.setup = 'active';
 
@@ -221,13 +222,13 @@ export class SfuWhipResource implements WhipResource {
 
     let offerAudio = ingestorOffer.media.find(element => element.type === 'audio');
     if (offerAudio && offerAudio.ssrcs) {
-      audioSsrc = offerAudio.ssrcs.at(0).id.toString();
+      audioSsrc = offerAudio.ssrcs.at(0)?.id.toString();
     }
 
     let offerVideo = ingestorOffer.media.find(element => element.type === 'video');
     if (offerVideo && offerVideo.ssrcs) {
       let ssrcs = offerVideo.ssrcs.filter(element => element.attribute === 'msid' && element.value);
-      videoMainSsrc = ssrcs.at(0).id.toString();
+      videoMainSsrc = ssrcs.at(0)?.id.toString();
       videoRtxSsrc = ssrcs.at(1) && ssrcs.at(1).id.toString();
 
       let mainMsid = ssrcs.filter(element => element.id == videoMainSsrc);
@@ -315,14 +316,14 @@ export class SfuWhipResource implements WhipResource {
 
     let offerAudio = ingestorOffer.media.find(element => element.type === 'audio');
     if (offerAudio && offerAudio.ssrcs) {
-      audioSsrc = offerAudio.ssrcs.at(0).id.toString();
+      audioSsrc = offerAudio.ssrcs.at(0)?.id.toString();
     }
 
     let offerVideo = ingestorOffer.media.find(element => element.type === 'video');
     if (offerVideo && offerVideo.ssrcs) {
       let ssrcs = offerVideo.ssrcs.filter(element => element.attribute === 'msid' && element.value);
-      videoMainSsrc = ssrcs.at(0).id.toString();
-      videoRtxSsrc = ssrcs.at(1).id.toString();
+      videoMainSsrc = ssrcs.at(0)?.id.toString();
+      videoRtxSsrc = ssrcs.at(1)?.id.toString();
 
       let mainMsid = ssrcs.filter(element => element.id == videoMainSsrc);
       if (mainMsid.length !== 0) {
@@ -522,6 +523,7 @@ export class SfuWhipResource implements WhipResource {
       }
 
       let mediaStreams = media.type === 'audio' ? audioMediaStreams : videoMediaStreams;
+      if (!media.ssrcs) continue;
       media.ssrcs.forEach(ssrc => {
         const ssrcString = ssrc.id.toString();
 

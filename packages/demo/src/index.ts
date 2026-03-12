@@ -4,13 +4,59 @@ import { getIceServers } from "./util";
 let resourceCount = 0;
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
-function showToast(message: string, duration = 2500) {
+function showToast(message: string, duration = 2500, action?: { label: string; onClick: () => void }) {
   const toast = document.querySelector<HTMLDivElement>("#toast");
   if (!toast) return;
   if (toastTimer) clearTimeout(toastTimer);
-  toast.textContent = message;
-  toast.classList.add("visible");
-  toastTimer = setTimeout(() => toast.classList.remove("visible"), duration);
+  toast.innerHTML = '';
+
+  if (action) {
+    // The toast itself becomes position:relative via .has-action
+    // X button: absolutely positioned top-right
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    closeBtn.className = 'toast-close-btn';
+    closeBtn.onclick = () => {
+      toast.classList.remove('visible', 'has-action');
+    };
+
+    // Content wrapper: holds message + buttons, has right padding so text doesn't go under X
+    const content = document.createElement('div');
+    content.className = 'toast-content';
+
+    const msg = document.createElement('span');
+    msg.className = 'toast-msg';
+    msg.textContent = message;
+    content.appendChild(msg);
+
+    const buttonsRow = document.createElement('div');
+    buttonsRow.className = 'toast-buttons';
+    const btn = document.createElement('button');
+    btn.textContent = action.label;
+    btn.className = 'toast-action-btn';
+    btn.onclick = () => {
+      toast.classList.remove('visible', 'has-action');
+      action.onClick();
+    };
+    buttonsRow.appendChild(btn);
+    content.appendChild(buttonsRow);
+
+    toast.appendChild(closeBtn);   // absolute, outside content flow
+    toast.appendChild(content);    // block content
+    toast.classList.add('has-action');
+    toast.classList.add('visible');
+    // no setTimeout — stays until closed
+  } else {
+    const msg = document.createElement('span');
+    msg.textContent = message;
+    toast.appendChild(msg);
+
+    toast.classList.add('visible');
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('visible');
+      toast.classList.remove('has-action');
+    }, duration);
+  }
 }
 
 function setStatus(state: "idle" | "connecting" | "live") {
@@ -28,9 +74,10 @@ function updateResourceCount() {
   if (emptyEl) emptyEl.style.display = resourceCount === 0 ? "flex" : "none";
 }
 
-async function createResourceCard(client: WHIPClient): Promise<HTMLElement> {
+async function createResourceCard(client: WHIPClient, endpointUrl: string, clientOpts: WHIPClientOptions): Promise<HTMLElement> {
   const card = document.createElement("div");
   card.className = "resource-card";
+  card.title = endpointUrl;
 
   // Header row: live dot + URL + delete button
   const header = document.createElement("div");
@@ -41,9 +88,10 @@ async function createResourceCard(client: WHIPClient): Promise<HTMLElement> {
 
   const urlSpan = document.createElement("span");
   urlSpan.className = "resource-url";
-  const resourceUrl = await client.getResourceUrl();
-  urlSpan.textContent = resourceUrl;
-  urlSpan.title = resourceUrl;
+  await client.getResourceUrl();
+  const lastSegment = endpointUrl.split('/').filter(Boolean).pop() ?? endpointUrl;
+  urlSpan.textContent = lastSegment;
+  urlSpan.title = endpointUrl;
 
   const deleteBtn = document.createElement("button");
   deleteBtn.className = "btn-danger-sm";
@@ -55,6 +103,8 @@ async function createResourceCard(client: WHIPClient): Promise<HTMLElement> {
     updateResourceCount();
     if (resourceCount === 0) {
       setStatus("idle");
+      const videoEl = document.querySelector<HTMLVideoElement>("video#ingest");
+      if (videoEl) { videoEl.srcObject = null; videoEl.controls = false; }
       const placeholder = document.querySelector<HTMLElement>("#video-placeholder");
       if (placeholder) placeholder.classList.remove("hidden");
     }
@@ -113,7 +163,7 @@ async function createResourceCard(client: WHIPClient): Promise<HTMLElement> {
   return card;
 }
 
-async function ingest(client: WHIPClient, mediaStream: MediaStream) {
+async function ingest(client: WHIPClient, mediaStream: MediaStream, endpointUrl: string, clientOpts: WHIPClientOptions) {
   const videoEl = document.querySelector<HTMLVideoElement>("video#ingest");
   const placeholder = document.querySelector<HTMLElement>("#video-placeholder");
   const resourceList = document.querySelector<HTMLElement>("#resource-list");
@@ -121,7 +171,38 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   setStatus("connecting");
 
   videoEl.srcObject = mediaStream;
+  videoEl.controls = true;
   if (placeholder) placeholder.classList.add("hidden");
+
+  // Register before ingest() so early failures are caught.
+  // cardRef is populated after the card is created below.
+  let cardRef: HTMLElement | null = null;
+
+  client.on('connectionfailed', () => {
+    if (cardRef) cardRef.remove();
+    resourceCount--;
+    updateResourceCount();
+    if (resourceCount === 0) {
+      setStatus('idle');
+      if (videoEl) { videoEl.srcObject = null; videoEl.controls = false; }
+      if (placeholder) placeholder.classList.remove('hidden');
+    }
+    showToast(`Stream disconnected: ${endpointUrl}`, 8000, {
+      label: 'Reconnect',
+      onClick: async () => {
+        try {
+          setStatus('connecting');
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          const newClient = new WHIPClient({ endpoint: endpointUrl, opts: clientOpts });
+          await ingest(newClient, stream, endpointUrl, clientOpts);
+        } catch (e) {
+          console.error('Reconnect failed', e);
+          showToast('Reconnect failed — please try again manually');
+          setStatus('idle');
+        }
+      },
+    });
+  });
 
   await client.ingest(mediaStream);
 
@@ -129,7 +210,8 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream) {
   resourceCount++;
   updateResourceCount();
 
-  const card = await createResourceCard(client);
+  const card = await createResourceCard(client, endpointUrl, clientOpts);
+  cardRef = card;
   resourceList.appendChild(card);
 
   showToast("Stream started successfully");
@@ -202,25 +284,27 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   ingestCamera.addEventListener("click", async () => {
-    const client = await createClient(input.value, iceConfigRemote, {
+    const opts: WHIPClientOptions = {
       debug,
       iceServers: getIceServers(),
       authkey: getAuthKey(),
       noTrickleIce: paramNoTrickleIce.checked,
-    });
+    };
+    const client = await createClient(input.value, iceConfigRemote, opts);
     const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    ingest(client, mediaStream);
+    ingest(client, mediaStream, input.value, opts);
   });
 
   ingestScreen.addEventListener("click", async () => {
-    const client = await createClient(input.value, iceConfigRemote, {
+    const opts: WHIPClientOptions = {
       debug,
       iceServers: getIceServers(),
       authkey: getAuthKey(),
       noTrickleIce: paramNoTrickleIce.checked,
-    });
+    };
+    const client = await createClient(input.value, iceConfigRemote, opts);
     const mediaStream = await navigator.mediaDevices.getDisplayMedia();
-    ingest(client, mediaStream);
+    ingest(client, mediaStream, input.value, opts);
   });
 
   paramChannelId?.addEventListener("change", () => {

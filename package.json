@@ -36,7 +36,7 @@
     "@types/node-fetch": "^2.6.13",
     "@types/sdp-transform": "^2.4.5",
     "conventional-changelog-conventionalcommits": "^4.6.3",
-    "lerna": "^5.5.1",
+    "lerna": "^9.0.5",
     "prettier": "^2.5.1"
   }
 }

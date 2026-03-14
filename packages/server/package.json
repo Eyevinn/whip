@@ -25,7 +25,7 @@
     "url": "git+https://github.com/Eyevinn/whip.git"
   },
   "devDependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.9",
+    "@mapbox/node-pre-gyp": "^2.0.3",
     "chai": "^4.3.6",
     "mocha": "^10.0.0",
     "ts-mockito": "^2.6.1",

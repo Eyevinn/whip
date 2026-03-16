@@ -30,9 +30,9 @@ export class WrtcWhipResource implements WhipResource {
       this.pc = pcFactory();
     } else {
       // Lazy-load the native binary only when no mock factory is provided.
-      // This prevents @koush/wrtc from being required (and compiled) in CI
+      // This prevents @roamhq/wrtc from being required (and compiled) in CI
       // environments where tests inject a mock peer connection.
-      const { RTCPeerConnection } = require("@koush/wrtc");
+      const { RTCPeerConnection } = require("@roamhq/wrtc");
       this.pc = new RTCPeerConnection({
         sdpSemantics: "unified-plan",
         iceServers: this.iceServers,

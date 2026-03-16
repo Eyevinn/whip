@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",
-    "@roamhq/wrtc": "^0.10.0",
+    "@koush/wrtc": "^0.5.3",
     "cross-fetch": "^3.1.5",
     "fast-xml-parser": "^4.0.7",
     "fastify": "^5.7.4",

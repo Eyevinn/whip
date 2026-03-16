@@ -1,7 +1,4 @@
-# Use Debian-based (glibc) Node image — required by @roamhq/wrtc prebuilt
-# native binaries which link against glibc (ld-linux-x86-64.so.2).
-# Do NOT switch to Alpine/musl variants; the wrtc native addon will fail.
-FROM node:22-bookworm-slim
+FROM node:16-slim
 
 ADD . /app
 WORKDIR /app

@@ -8,7 +8,7 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "dev": "lerna run dev --stream --parallel",
-    "start": "lerna run server --stream --parallel --no-prefix",
+    "start": "node packages/demo/server.js",
     "lerna:version": "lerna version --changelog-preset conventionalcommits --conventional-commits",
     "lerna:majorversion": "lerna version major --changelog-preset conventionalcommits --conventional-commits",
     "publish": "lerna publish from-package --yes --ignore-scripts --no-verify-access",

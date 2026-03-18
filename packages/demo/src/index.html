@@ -206,7 +206,8 @@
         margin-bottom: 5px;
       }
 
-      input[type="text"] {
+      input[type="text"],
+      input:not([type]) {
         width: 100%;
         background: var(--bg);
         border: 1px solid var(--border);
@@ -219,8 +220,10 @@
         transition: border-color 0.2s;
       }
 
-      input[type="text"]::placeholder { color: var(--muted); }
-      input[type="text"]:focus { border-color: var(--blue); }
+      input[type="text"]::placeholder,
+      input:not([type])::placeholder { color: var(--muted); }
+      input[type="text"]:focus,
+      input:not([type]):focus { border-color: var(--blue); }
 
       .checkbox-row {
         display: flex;

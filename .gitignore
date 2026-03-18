@@ -8,4 +8,5 @@ lerna-debug.log
 .vscode/extensions.json
 *.pem
 tools/SymphonyMediaBridge
+*.local.yml
 

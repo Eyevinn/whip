@@ -1,6 +1,9 @@
 import { WHIPClient, WHIPClientOptions } from "../../sdk/src/index";
 import { getIceServers } from "./util";
 
+const CAMERA_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`;
+const SCREEN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`;
+
 let resourceCount = 0;
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -74,14 +77,29 @@ function updateResourceCount() {
   if (emptyEl) emptyEl.style.display = resourceCount === 0 ? "flex" : "none";
 }
 
-async function createResourceCard(client: WHIPClient, endpointUrl: string, clientOpts: WHIPClientOptions): Promise<HTMLElement> {
+async function createResourceCard(client: WHIPClient, endpointUrl: string, clientOpts: WHIPClientOptions, captureType: 'camera' | 'screen', mediaStream: MediaStream): Promise<HTMLElement> {
   const card = document.createElement("div");
   card.className = "resource-card";
   card.title = endpointUrl;
+  card.style.cursor = 'pointer';
 
-  // Header row: live dot + URL + delete button
+  card.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    const videoEl = document.querySelector<HTMLVideoElement>('video#ingest');
+    if (videoEl) {
+      videoEl.srcObject = mediaStream;
+    }
+    document.querySelectorAll('.resource-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+  });
+
+  // Header row: capture icon + live dot + URL + delete button
   const header = document.createElement("div");
   header.className = "resource-card-header";
+
+  const icon = document.createElement("span");
+  icon.className = "capture-icon";
+  icon.innerHTML = captureType === 'camera' ? CAMERA_SVG : SCREEN_SVG;
 
   const dot = document.createElement("span");
   dot.className = "live-dot";
@@ -89,8 +107,19 @@ async function createResourceCard(client: WHIPClient, endpointUrl: string, clien
   const urlSpan = document.createElement("span");
   urlSpan.className = "resource-url";
   await client.getResourceUrl();
-  const lastSegment = endpointUrl.split('/').filter(Boolean).pop() ?? endpointUrl;
-  urlSpan.textContent = lastSegment;
+  let label: string;
+  try {
+    const u = new URL(endpointUrl);
+    const channelId = u.searchParams.get('channelId');
+    if (channelId) {
+      label = `Channel: ${channelId}`;
+    } else {
+      label = u.pathname.split('/').filter(Boolean).pop() ?? endpointUrl;
+    }
+  } catch {
+    label = endpointUrl;
+  }
+  urlSpan.textContent = label;
   urlSpan.title = endpointUrl;
 
   const deleteBtn = document.createElement("button");
@@ -111,6 +140,7 @@ async function createResourceCard(client: WHIPClient, endpointUrl: string, clien
     showToast("Resource deleted");
   };
 
+  header.appendChild(icon);
   header.appendChild(dot);
   header.appendChild(urlSpan);
   header.appendChild(deleteBtn);
@@ -163,38 +193,84 @@ async function createResourceCard(client: WHIPClient, endpointUrl: string, clien
   return card;
 }
 
-async function ingest(client: WHIPClient, mediaStream: MediaStream, endpointUrl: string, clientOpts: WHIPClientOptions) {
+function buildLoadingCard(endpointUrl: string, captureType: 'camera' | 'screen'): HTMLElement {
+  const card = document.createElement("div");
+  card.className = "resource-card loading";
+
+  const header = document.createElement("div");
+  header.className = "resource-card-header";
+
+  const icon = document.createElement("span");
+  icon.className = "capture-icon";
+  icon.innerHTML = captureType === 'camera' ? CAMERA_SVG : SCREEN_SVG;
+
+  const dot = document.createElement("span");
+  dot.className = "connecting-dot";
+
+  const urlSpan = document.createElement("span");
+  urlSpan.className = "resource-url";
+  try {
+    const u = new URL(endpointUrl);
+    const channelId = u.searchParams.get('channelId');
+    urlSpan.textContent = channelId ? `Channel: ${channelId}` : (u.pathname.split('/').filter(Boolean).pop() ?? endpointUrl);
+  } catch {
+    urlSpan.textContent = endpointUrl;
+  }
+
+  const ghostBtn = document.createElement("button");
+  ghostBtn.className = "btn-danger-sm";
+  ghostBtn.textContent = "Delete";
+  ghostBtn.style.visibility = "hidden";
+
+  header.appendChild(icon);
+  header.appendChild(dot);
+  header.appendChild(urlSpan);
+  header.appendChild(ghostBtn);
+  card.appendChild(header);
+  return card;
+}
+
+async function ingest(client: WHIPClient, mediaStream: MediaStream, endpointUrl: string, clientOpts: WHIPClientOptions, captureType: 'camera' | 'screen') {
   const videoEl = document.querySelector<HTMLVideoElement>("video#ingest");
   const placeholder = document.querySelector<HTMLElement>("#video-placeholder");
   const resourceList = document.querySelector<HTMLElement>("#resource-list");
 
   setStatus("connecting");
 
+  // Show the local preview immediately while connecting.
   videoEl.srcObject = mediaStream;
   videoEl.controls = true;
   if (placeholder) placeholder.classList.add("hidden");
 
-  // Register before ingest() so early failures are caught.
-  // cardRef is populated after the card is created below.
+  // Show a loading card immediately so the count reflects the attempt.
+  const loadingCard = buildLoadingCard(endpointUrl, captureType);
+  resourceList.appendChild(loadingCard);
+  resourceCount++;
+  updateResourceCount();
+
   let cardRef: HTMLElement | null = null;
 
   client.on('connectionfailed', () => {
-    if (cardRef) cardRef.remove();
-    resourceCount--;
-    updateResourceCount();
+    if (cardRef) {
+      cardRef.remove();
+      resourceCount--;
+      updateResourceCount();
+    }
     if (resourceCount === 0) {
       setStatus('idle');
       if (videoEl) { videoEl.srcObject = null; videoEl.controls = false; }
       if (placeholder) placeholder.classList.remove('hidden');
     }
-    showToast(`Stream disconnected: ${endpointUrl}`, 8000, {
+    showToast(`Stream disconnected`, 8000, {
       label: 'Reconnect',
       onClick: async () => {
         try {
           setStatus('connecting');
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          const stream = captureType === 'screen'
+            ? await navigator.mediaDevices.getDisplayMedia()
+            : await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
           const newClient = new WHIPClient({ endpoint: endpointUrl, opts: clientOpts });
-          await ingest(newClient, stream, endpointUrl, clientOpts);
+          await ingest(newClient, stream, endpointUrl, clientOpts, captureType);
         } catch (e) {
           console.error('Reconnect failed', e);
           showToast('Reconnect failed — please try again manually');
@@ -206,13 +282,35 @@ async function ingest(client: WHIPClient, mediaStream: MediaStream, endpointUrl:
 
   await client.ingest(mediaStream);
 
-  setStatus("live");
-  resourceCount++;
-  updateResourceCount();
+  // The SDK swallows HTTP errors silently — ingest() always resolves even on a 500.
+  // For non-trickle ICE (which this server uses), sendOffer() is called from a
+  // setTimeout *after* ingest() resolves, so we must wait long enough to cover
+  // the full ICE gathering timeout + HTTP round-trip before declaring failure.
+  const resourceUrl = await Promise.race([
+    client.getResourceUrl().then(() => true),
+    new Promise<false>(resolve => setTimeout(() => resolve(false), 15_000)),
+  ]);
 
-  const card = await createResourceCard(client, endpointUrl, clientOpts);
+  if (!resourceUrl) {
+    loadingCard.remove();
+    resourceCount--;
+    updateResourceCount();
+    setStatus('idle');
+    if (resourceCount === 0) {
+      videoEl.srcObject = null;
+      videoEl.controls = false;
+      if (placeholder) placeholder.classList.remove("hidden");
+    }
+    showToast('Failed to connect — check the endpoint URL and try again', 6000);
+    return;
+  }
+
+  // Connection succeeded — replace loading card with the real card.
+  setStatus("live");
+
+  const card = await createResourceCard(client, endpointUrl, clientOpts, captureType, mediaStream);
   cardRef = card;
-  resourceList.appendChild(card);
+  loadingCard.replaceWith(card);
 
   showToast("Stream started successfully");
 }
@@ -241,15 +339,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   const paramNoTrickleIce = document.querySelector<HTMLInputElement>("#param-no-trickleice");
   const shareBtn = document.querySelector<HTMLButtonElement>("#share-btn");
 
-  // Set default endpoint
-  if (process.env.NODE_ENV === "development") {
-    const protocol = process.env.TLS_TERMINATION_ENABLED ? "https" : "http";
-    input.value = `${protocol}://${window.location.hostname}:8000/api/v2/whip/sfu-broadcaster`;
-  } else if (process.env.NODE_ENV === "awsdev") {
-    input.value = "https://whip.dev.eyevinn.technology/api/v1/whip/broadcaster";
-  } else {
-    input.value = "https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster";
-  }
 
   const debug = process.env.NODE_ENV === "development" || !!process.env.DEBUG;
   const iceConfigRemote = !!(process.env.ICE_CONFIG_REMOTE);
@@ -260,7 +349,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     return url.toString();
   }
 
-  // Load endpoint + params from URL
+  // Pre-fill endpoint from env var if no URL param overrides it
+  if (!input.value && process.env.WHIP_URL_PLACEHOLDER) {
+    input.value = process.env.WHIP_URL_PLACEHOLDER;
+  }
+
+  // Load endpoint + params from URL (overrides env var if present)
   const pageUrl = new URL(window.location.href);
   if (pageUrl.searchParams.has("endpoint")) {
     input.value = pageUrl.searchParams.get("endpoint");
@@ -292,7 +386,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     };
     const client = await createClient(input.value, iceConfigRemote, opts);
     const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    ingest(client, mediaStream, input.value, opts);
+    ingest(client, mediaStream, input.value, opts, 'camera');
   });
 
   ingestScreen.addEventListener("click", async () => {
@@ -304,7 +398,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     };
     const client = await createClient(input.value, iceConfigRemote, opts);
     const mediaStream = await navigator.mediaDevices.getDisplayMedia();
-    ingest(client, mediaStream, input.value, opts);
+    ingest(client, mediaStream, input.value, opts, 'screen');
   });
 
   paramChannelId?.addEventListener("change", () => {

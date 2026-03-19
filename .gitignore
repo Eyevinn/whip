@@ -9,4 +9,5 @@ lerna-debug.log
 *.pem
 tools/SymphonyMediaBridge
 *.local.yml
+.env.local
 

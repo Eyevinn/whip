@@ -96,6 +96,7 @@
         background: var(--surface2);
         transition: all 0.25s;
         user-select: none;
+        line-height: normal;
       }
 
       .status-pill.connecting {
@@ -447,9 +448,25 @@
         flex-shrink: 0;
       }
 
+      .connecting-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--blue);
+        box-shadow: 0 0 5px var(--blue);
+        animation: blink 0.9s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      .resource-card.loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
       .resource-url {
         font-family: var(--font-mono);
         font-size: 11px;
+        line-height: 1;
         color: var(--text-secondary);
         flex: 1;
         overflow: hidden;
@@ -499,6 +516,27 @@
         font-family: var(--font-mono);
       }
 
+      .capture-icon {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        color: var(--text-secondary);
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
+      }
+      .capture-icon svg {
+        width: 14px;
+        height: 14px;
+      }
+      .resource-card.selected {
+        border-color: var(--blue);
+        background: var(--surface3);
+      }
+      .resource-card {
+        cursor: pointer;
+      }
+
       /* ── Footer ──────────────────────────────────────── */
 
       .app-footer {
@@ -510,6 +548,7 @@
         gap: 6px;
         flex-shrink: 0;
         background: var(--surface);
+        line-height: normal;
       }
 
       .app-footer a { color: var(--blue); text-decoration: none; }
@@ -657,7 +696,7 @@
           <p class="card-label">Connection</p>
           <div class="field">
             <label class="field-label" for="whip-endpoint">WHIP Endpoint URL</label>
-            <input id="whip-endpoint" type="text" placeholder="https://…/api/v2/whip/type" />
+            <input id="whip-endpoint" type="text" placeholder="WHIP Endpoint URL" />
           </div>
           <div class="field">
             <label class="field-label" for="param-auth">Authorization</label>

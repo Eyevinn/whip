@@ -1,85 +1,781 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>WHIP Client SDK Demo</title>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
       content="Demonstration of the WHIP Client SDK for Web by Eyevinn Technology AB"
     />
     <script type="module" src="./index.ts"></script>
-    <style type="text/css">
-      header {
+    <style>
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0d0d0d;
+        --surface: #161616;
+        --surface2: #1e1e1e;
+        --surface3: #252525;
+        --border: #2b2b2b;
+        --border-hover: #3a3a3a;
+        --text: #ebebeb;
+        --text-secondary: #a0a0a0;
+        --muted: #606060;
+        --red: #e63946;
+        --red-glow: rgba(230, 57, 70, 0.25);
+        --blue: #4c9ff5;
+        --blue-dim: rgba(76, 159, 245, 0.12);
+        --orange: #f4a261;
+        --radius-sm: 6px;
+        --radius: 10px;
+        --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+        --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      }
+
+      html { color-scheme: dark; }
+
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        line-height: 1.5;
+        font-size: 14px;
         display: flex;
-        justify-content: space-evenly;
+        flex-direction: column;
+      }
+
+      /* ── Header ─────────────────────────────────────── */
+
+      .app-header {
+        display: flex;
         align-items: center;
-        flex-wrap: wrap;        
+        gap: 12px;
+        padding: 0 20px;
+        height: 52px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
       }
-      header>*,
-      header>:last-child {
-        padding-top: 0;
-        margin-bottom: 1rem;
+
+      .header-logo img {
+        height: 28px;
+        display: block;
       }
-      #ingest video {
-        margin-top:  1rem;
-        background: black;
-        width:  100%;
+
+      .header-divider {
+        width: 1px;
+        height: 20px;
+        background: var(--border);
       }
-      #channels {
+
+      .header-title {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        flex: 1;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        background: var(--surface2);
+        transition: all 0.25s;
+        user-select: none;
+        line-height: normal;
+      }
+
+      .status-pill.connecting {
+        color: var(--orange);
+        border-color: rgba(244, 162, 97, 0.35);
+        background: rgba(244, 162, 97, 0.08);
+      }
+
+      .status-pill.live {
+        color: var(--red);
+        border-color: var(--red-glow);
+        background: rgba(230, 57, 70, 0.08);
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--muted);
+        transition: background 0.25s;
+        flex-shrink: 0;
+      }
+
+      .status-pill.connecting .status-dot {
+        background: var(--orange);
+        animation: blink 0.9s ease-in-out infinite;
+      }
+
+      .status-pill.live .status-dot {
+        background: var(--red);
+        box-shadow: 0 0 5px var(--red);
+        animation: blink 1.6s ease-in-out infinite;
+      }
+
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+      }
+
+      .header-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-family: var(--font);
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        background: transparent;
+        transition: all 0.2s;
+      }
+
+      .header-btn:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+        background: var(--blue-dim);
+      }
+
+      /* ── Layout ─────────────────────────────────────── */
+
+      .app-body {
         display: grid;
+        grid-template-columns: 300px 1fr;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
       }
-      /* Disable custom parameters that are WHIP endpoint type specific. They
-         can manually be added to the WHIP endpoint URL if needed. */
-      #params {
-        display: none;
+
+      /* ── Sidebar ─────────────────────────────────────── */
+
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        padding: 12px;
+        gap: 10px;
       }
-      #whip-endpoint {
+
+      .card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px;
+      }
+
+      .card-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+
+      .field { margin-bottom: 10px; }
+      .field:last-child { margin-bottom: 0; }
+
+      .field-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 5px;
+      }
+
+      input[type="text"],
+      input:not([type]) {
         width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 12px;
+        padding: 7px 9px;
+        outline: none;
+        transition: border-color 0.2s;
       }
-      footer {
-        text-align: center;
-        font-size: 0.8em;
+
+      input[type="text"]::placeholder,
+      input:not([type])::placeholder { color: var(--muted); }
+      input[type="text"]:focus,
+      input:not([type]):focus { border-color: var(--blue); }
+
+      .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 2px 0;
       }
+
+      .checkbox-row input[type="checkbox"] {
+        accent-color: var(--blue);
+        width: 13px;
+        height: 13px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .checkbox-row span {
+        font-size: 12px;
+        color: var(--text);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      /* ── Capture buttons ─────────────────────────────── */
+
+      .capture-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 9px 14px;
+        border-radius: var(--radius-sm);
+        font-family: var(--font);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.18s;
+        line-height: 1;
+      }
+
+      .btn svg { flex-shrink: 0; }
+
+      .btn-primary {
+        background: var(--blue);
+        color: #fff;
+        border-color: var(--blue);
+      }
+
+      .btn-primary:hover {
+        background: #6aadff;
+        border-color: #6aadff;
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--border);
+      }
+
+      .btn-ghost:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+        background: var(--blue-dim);
+      }
+
+      .btn-danger-sm {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 9px;
+        border-radius: var(--radius-sm);
+        font-family: var(--font);
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid rgba(230, 57, 70, 0.3);
+        color: var(--red);
+        background: transparent;
+        transition: all 0.18s;
+        flex-shrink: 0;
+      }
+
+      .btn-danger-sm:hover {
+        background: rgba(230, 57, 70, 0.1);
+        border-color: var(--red);
+      }
+
+      /* ── Content ─────────────────────────────────────── */
+
+      .content {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* ── Video area ──────────────────────────────────── */
+
+      .video-area {
+        position: relative;
+        background: #000;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      #ingest {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+      }
+
+      .video-placeholder {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+
+      .video-placeholder.hidden { opacity: 0; }
+
+      .video-placeholder svg { opacity: 0.2; }
+
+      .video-placeholder p {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* ── Resources pane ──────────────────────────────── */
+
+      .resources-pane {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+        padding: 4px 0;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .section-title {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .count-badge {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 100px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 20px 10px;
+        color: var(--muted);
+      }
+
+      .empty-state svg { opacity: 0.2; }
+      .empty-state p { font-size: 12px; }
+
+      .resource-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .resource-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 12px 14px;
+        transition: border-color 0.2s;
+      }
+
+      .resource-card:hover { border-color: var(--border-hover); }
+
+      .resource-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .live-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--red);
+        box-shadow: 0 0 5px var(--red);
+        animation: blink 1.6s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      .connecting-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--blue);
+        box-shadow: 0 0 5px var(--blue);
+        animation: blink 0.9s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      .resource-card.loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .resource-url {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        line-height: 1;
+        color: var(--text-secondary);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+      }
+
+      .resource-links {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .resource-link-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .resource-link-row a {
+        font-size: 11px;
+        color: var(--blue);
+        text-decoration: none;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+      }
+
+      .resource-link-row a:hover { text-decoration: underline; }
+
+      .rel-badge {
+        font-size: 10px;
+        color: var(--muted);
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 2px 6px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-family: var(--font-mono);
+      }
+
+      .capture-icon {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        color: var(--text-secondary);
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
+      }
+      .capture-icon svg {
+        width: 14px;
+        height: 14px;
+      }
+      .resource-card.selected {
+        border-color: var(--blue);
+        background: var(--surface3);
+      }
+      .resource-card {
+        cursor: pointer;
+      }
+
+      /* ── Footer ──────────────────────────────────────── */
+
+      .app-footer {
+        border-top: 1px solid var(--border);
+        padding: 8px 20px;
+        font-size: 11px;
+        color: var(--muted);
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+        background: var(--surface);
+        line-height: normal;
+      }
+
+      .app-footer a { color: var(--blue); text-decoration: none; }
+      .app-footer a:hover { text-decoration: underline; }
+
+      /* ── Toast ───────────────────────────────────────── */
+
+      #toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--surface3);
+        border: 1px solid var(--border-hover);
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        font-size: 12px;
+        color: var(--text);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 0.22s ease, transform 0.22s ease;
+        pointer-events: none;
+        z-index: 999;
+        max-width: 480px;
+        word-break: break-word;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      #toast.has-action {
+        position: fixed;   /* must stay fixed */
+        display: block;    /* override the base flex */
+        padding-top: 32px; /* space above message for the X button */
+      }
+
+      .toast-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      #toast.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .toast-msg {
+        display: block;
+        padding-right: 20px;
+        word-break: break-word;
+      }
+
+      .toast-action-btn {
+        padding: 3px 10px;
+        background: var(--blue-dim);
+        color: var(--blue);
+        border: 1px solid var(--blue);
+        border-radius: var(--radius-sm);
+        font-size: 11px;
+        cursor: pointer;
+        font-family: var(--font);
+      }
+
+      .toast-action-btn:hover {
+        background: var(--blue);
+        color: #fff;
+      }
+
+      .toast-close-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 2px 6px;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        font-family: var(--font);
+      }
+      .toast-close-btn:hover {
+        color: var(--text);
+        border-color: var(--border-hover);
+      }
+
+      .toast-buttons {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      /* ── Responsive ──────────────────────────────────── */
+
+      @media (max-width: 760px) {
+        .app-body {
+          grid-template-columns: 1fr;
+          overflow: visible;
+        }
+
+        .sidebar {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .content { overflow: visible; }
+      }
+
+      /* Hidden legacy params kept for URL compatibility */
+      #params { display: none; }
     </style>
-    <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
   </head>
   <body>
-    <header>
-      <picture>
-        <source srcset="./logo-darkmode.png" media="(prefers-color-scheme: dark)">
-        <img src="./logo-lightmode.png" />
-      </picture>
-      <h1>WHIP Client SDK Demo</h1>
-      <input id="thisurl" type="text" size="100" readonly></input>
-    </header>
-    <section>
-      <h2>WHIP Endpoint</h2>
-      <!-- https://broadcaster-whip.prod.eyevinn.technology/api/v1/whip/broadcaster -->
-      <input id="whip-endpoint" type="text" value=""></input>
-      <label for="param-auth">Authorization:</label>
-      <input id="param-auth" type="text" value=""></input>
-      <input id="param-no-trickleice" type="checkbox"></input>
-      <label for="param-no-trickleice">Force No Trickle ICE</label>
-  </section>
-    <section>
-      <div id="params">
-        <label for="param-channel-id">Channel Id:</label>
-        <input id="param-channel-id" type="text" value=""></input>
-        <label for="param-b64json">JSON:</label>
-        <textarea id="param-b64json" rows="5" cols="60"></textarea>
+
+    <header class="app-header">
+      <div class="header-logo">
+        <picture>
+          <source srcset="./logo-darkmode.png" media="(prefers-color-scheme: dark)" />
+          <img src="./logo-lightmode.png" alt="Eyevinn Technology" />
+        </picture>
       </div>
-    </section>
-    <section id="ingest">
-      <h2>Ingest</h2>
-      <button id="ingest-camera">Camera</button>
-      <button id="ingest-screen">Screen</button>
-      <video id="ingest" autoplay controls muted playsinline></video>
-    </section>
-    <section id="resources">
-      <h2>Resources</h2>
-    </section>
-    <footer>
-      <p>By <a target="_blank" href="https://www.eyevinn.se">Eyevinn Technology AB</a> and it is <a target="_blank" href="https://github.com/Eyevinn/whip">open source</a></p>
+      <div class="header-divider"></div>
+      <span class="header-title">WHIP Client SDK Demo</span>
+      <div id="status-pill" class="status-pill">
+        <span class="status-dot"></span>
+        <span id="status-label">Idle</span>
+      </div>
+      <button id="share-btn" class="header-btn" title="Copy shareable URL to clipboard">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+        Share
+      </button>
+    </header>
+
+    <div class="app-body">
+
+      <aside class="sidebar">
+
+        <div class="card">
+          <p class="card-label">Connection</p>
+          <div class="field">
+            <label class="field-label" for="whip-endpoint">WHIP Endpoint URL</label>
+            <input id="whip-endpoint" type="text" placeholder="WHIP Endpoint URL" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="param-auth">Authorization</label>
+            <input id="param-auth" type="text" placeholder="Bearer token or API key" />
+          </div>
+          <div class="checkbox-row">
+            <input id="param-no-trickleice" type="checkbox" />
+            <span>Force No Trickle ICE</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-label">Capture</p>
+          <div class="capture-grid">
+            <button id="ingest-camera" class="btn btn-primary">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 7l-7 5 7 5V7z"/>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              </svg>
+              Camera
+            </button>
+            <button id="ingest-screen" class="btn btn-ghost">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              Screen
+            </button>
+          </div>
+        </div>
+
+        <!-- Hidden params preserved for URL compatibility -->
+        <div id="params">
+          <input id="param-channel-id" type="text" />
+          <textarea id="param-b64json"></textarea>
+        </div>
+
+        <div class="resources-pane">
+          <div class="section-header">
+            <span class="section-title">Active Resources</span>
+            <span id="resource-count" class="count-badge">0</span>
+          </div>
+          <div id="empty-state" class="empty-state">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p>No active resources yet</p>
+          </div>
+          <div id="resource-list" class="resource-list"></div>
+        </div>
+
+      </aside>
+
+      <div class="content">
+
+        <div class="video-area">
+          <video id="ingest" autoplay playsinline muted></video>
+          <div id="video-placeholder" class="video-placeholder">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 7l-7 5 7 5V7z"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+            <p>No stream — click Camera or Screen to begin</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <span>By <a href="https://www.eyevinn.se" target="_blank" rel="noopener">Eyevinn Technology AB</a></span>
+      <span>·</span>
+      <a href="https://github.com/Eyevinn/whip" target="_blank" rel="noopener">Open source on GitHub</a>
     </footer>
+
+    <div id="toast"></div>
+
   </body>
+</html>

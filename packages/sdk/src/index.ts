@@ -173,6 +173,7 @@ export class WHIPClient extends EventEmitter {
   async onConnectionStateChange(event: Event) {
     this.log("PeerConnectionState", this.peer.connectionState);
     if (this.peer.connectionState === 'failed') {
+      this.emit('connectionfailed', { endpoint: this.whipEndpoint.toString() });
       await this.destroy();
     }
   }
@@ -268,7 +269,6 @@ export class WHIPClient extends EventEmitter {
 
   private async sendOffer(): Promise<void> {
     this.log("Sending offer");
-    this.log(this.peer.localDescription.sdp);
     const response = await this.whipProtocol.sendOffer(
       this.whipEndpoint.toString(),
       this.opts.authkey,

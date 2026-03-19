@@ -13,7 +13,7 @@
   "scripts": {
     "build": "microbundle --no-sourcemap --format modern,es,cjs",
     "dev": "microbundle --watch --format modern,es,cjs",
-    "test": "karma start",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --require ./spec/setup.js -r ts-node/register 'spec/**/*.ts'",
     "build:docs": "typedoc"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",
@@ -27,25 +27,26 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/node": "^18.19.130",
     "chai": "^4.3.6",
-    "karma": "^6.3.18",
-    "karma-chrome-launcher": "^3.1.1",
+    "karma": "^6.4.4",
+    "karma-chrome-launcher": "^3.2.0",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
-    "karma-typescript": "^5.5.3",
-    "microbundle": "^0.14.2",
+    "karma-typescript": "^5.5.4",
+    "microbundle": "^0.15.1",
     "mocha": "^9.2.2",
     "ts-mockito": "^2.6.1",
-    "ts-node": "^10.7.0",
-    "typedoc": "^0.23.24",
-    "typedoc-theme-hierarchy": "^3.0.2",
-    "typescript": "^4.6.2"
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.28.17",
+    "typedoc-theme-hierarchy": "^6.0.0",
+    "typescript": "^5.9.3"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "events": "^3.3.0",
-    "sdp-transform": "^2.14.1"
+    "sdp-transform": "^2.15.0"
   }
 }

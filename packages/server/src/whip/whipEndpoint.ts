@@ -1,5 +1,5 @@
 import fastify, { FastifyInstance } from "fastify";
-import https from "https";
+import cors from "@fastify/cors";
 import { WhipResource, WhipResourceIceServer } from "./whipResource";
 import api from "./whipFastifyApi";
 import { BroadcasterClientSfuPair } from "../broadcasterClient";
@@ -58,16 +58,30 @@ export class WhipEndpoint {
     this.tls = opts?.tls;
     this.resourceManager = opts?.resourceManager;
 
-    let httpsServer;
-    if (this.useHttps && this.tls) {
-      httpsServer = https.createServer({ key: this.tls.key, cert: this.tls.cert });
-    }    
-    this.server = fastify({ 
-      ignoreTrailingSlash: true, 
+    const httpsOptions = this.useHttps && this.tls
+      ? { key: this.tls.key, cert: this.tls.cert }
+      : undefined;
+
+    this.server = fastify({
+      ignoreTrailingSlash: true,
       logger: { level: "info" },
-      https: httpsServer,
+      https: httpsOptions,
     });
-    this.server.register(require("fastify-cors"), {
+
+    // Register SDP content-type parsers at the root level so Fastify 5 can
+    // resolve them before route-scope plugins are consulted.
+    this.server.addContentTypeParser(
+      "application/sdp",
+      { parseAs: "string" },
+      (_req, body, done) => done(null, body)
+    );
+    this.server.addContentTypeParser(
+      "application/trickle-ice-sdpfrag",
+      { parseAs: "string" },
+      (_req, body, done) => done(null, body)
+    );
+
+    this.server.register(cors, {
       exposedHeaders: ["Location", "ETag", "Link", "Access-Control-Allow-Methods"],
       methods: ["POST", "GET", "OPTIONS", "DELETE", "PATCH"],
       preflightContinue: true,
@@ -113,7 +127,7 @@ export class WhipEndpoint {
   }
 
   async deleteResource(id: string) {
-    const resource = this.resources[id]; 
+    const resource = this.resources[id];
     if (resource) {
       delete this.resources[id];
       await resource.destroy();
@@ -121,7 +135,7 @@ export class WhipEndpoint {
   }
 
   async patchResource(id: string, body: string, eTag:string | undefined): Promise<number> {
-    const resource = this.resources[id]; 
+    const resource = this.resources[id];
     if (resource) {
       return resource.patch(body, eTag);
     }
@@ -165,7 +179,7 @@ export class WhipEndpoint {
   }
 
   listen() {
-    this.server.listen(this.port, this.interfaceIp, (err, address) => {
+    this.server.listen({ port: this.port, host: this.interfaceIp }, (err, address) => {
       if (err) throw err;
       console.log(`WHIP endpoint listening at ${address}/api/v2/whip`);
     });

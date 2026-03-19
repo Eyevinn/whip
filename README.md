@@ -1,14 +1,14 @@
 # WebRTC-HTTP ingestion protocol
 
-![Screenshot](screenshot.png)
+![Screenshot](https://github.com/user-attachments/assets/584b3280-af2c-440f-9f45-4f0814cd1b75)
 
 Live demo at [web.whip.eyevinn.technology](https://web.whip.eyevinn.technology)
 
 Client and Server modules for WebRTC HTTP Ingestion Protocol (WHIP)
 
-| Module | Description |
-| ------ | ----------- |
-| [@eyevinn/whip-endpoint](https://www.npmjs.com/package/@eyevinn/whip-endpoint) | Server endpoint for providing WHIP resources |
+| Module                                                                             | Description                                                           |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [@eyevinn/whip-endpoint](https://www.npmjs.com/package/@eyevinn/whip-endpoint)     | Server endpoint for providing WHIP resources                          |
 | [@eyevinn/whip-web-client](https://www.npmjs.com/package/@eyevinn/whip-web-client) | Client Javascript SDK for browser based WHIP client (WebRTC producer) |
 
 ## Getting started
@@ -33,12 +33,14 @@ Start media server and WHEP egress endoint as docker containers
 docker-compose -f docker-compose-sfu.yml up
 ```
 
+For local development, make sure to change the IPV4_ADDR in the docker-compose-sfu.yml for both the sfu-origin and sfu-edge to your local ip.
+
 The WHEP egress endpoint is then available at `http://localhost:8001/whep/channel/<channelId>`. The `<channelId>` is the one provided as a query parameter to the WHIP endpoint, e.g. `http://localhost:8000/api/v2/whip/sfu-broadcaster?channelId=<channelId>`. You can test WHEP playback with the Eyevinn WebRTC player available online at https://webrtc.player.eyevinn.technology/
 
 ### With TLS termination
 
 ```
-NODE_ENV=development \ 
+NODE_ENV=development \
 TLS_TERMINATION_ENABLED=true \
 WHIP_ENDPOINT_USE_HTTPS=true \
 npm run dev

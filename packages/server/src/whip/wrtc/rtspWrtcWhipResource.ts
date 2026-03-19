@@ -36,8 +36,8 @@ export class RtspWrtcWhipResource extends WrtcWhipResource {
   private output;
   private outputResolution: RTSPResolution;
 
-  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], opts?: RtspWrtcWhipResourceOptions) {
-    super(sdpOffer, iceServers);
+  constructor(sdpOffer: string, iceServers?: WhipResourceIceServer[], opts?: RtspWrtcWhipResourceOptions, pcFactory?: () => any) {
+    super(sdpOffer, iceServers, pcFactory);
     this.rtspServer = "rtsp://127.0.0.1:8554";
     this.outputResolution = new RTSPResolution(960, 540);
     if (opts && opts.server) {

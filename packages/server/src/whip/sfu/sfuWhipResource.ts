@@ -2,7 +2,8 @@ import { WhipResource, WhipResourceIceServer, IANA_PREFIX } from "../whipResourc
 import { MediaStreamsInfo, MediaStreamsInfoSsrc } from '../../mediaStreamsInfo'
 import { parse, SessionDescription, write } from 'sdp-transform'
 import { v4 as uuidv4 } from "uuid";
-import { SmbEndpointDescription, SmbProtocol, SmbVideoStream } from "../../smb/smbProtocol";
+import { SmbEndpoint, SmbEndpointDescription, SmbVideoStream } from "../../smb/smbProtocol";
+import { ISmbProtocol } from "../../smb/ISmbProtocol";
 import { clearTimeout } from "timers";
 import { BroadcasterClientSfuPair } from '../../broadcasterClient';
 
@@ -21,10 +22,10 @@ export class SfuWhipResource implements WhipResource {
   private channelId?: string = undefined;
   private eTag: string;
   private mediaStreams: MediaStreamsInfo;
-  private smbProtocol: SmbProtocol;
+  private smbProtocol: ISmbProtocol;
   private channelHealthTimeout?: NodeJS.Timeout;
 
-  constructor(smbProtocolFactory: (apiKey: string | undefined) => SmbProtocol, sdpOffer: string, channelId?: string, apiKey?: string) {
+  constructor(smbProtocolFactory: (apiKey: string | undefined) => ISmbProtocol, sdpOffer: string, channelId?: string, apiKey?: string) {
     this.resourceId = uuidv4();
     this.offer = sdpOffer;
     this.channelId = channelId ? channelId : this.getId();
@@ -63,7 +64,10 @@ export class SfuWhipResource implements WhipResource {
       }
     });
       
-    this.checkChannelHealth();
+    // Delay the first health check to give ICE time to connect before evaluating state
+    this.channelHealthTimeout = setTimeout(() => {
+      this.checkChannelHealth();
+    }, 15000);
   }
 
   private async checkChannelHealth() {
@@ -71,28 +75,29 @@ export class SfuWhipResource implements WhipResource {
       const result = await this.smbProtocol.getConferences(this.smbOriginUrl);
       if (result.find(element => element === this.sfuOriginResourceId) === undefined) {
         console.log(`SFU resource does not exist, deleting channel ${this.channelId}`);
-        this.egressResources.forEach(async (element) => {
-          await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-        });
-
+        for (const element of this.egressResources) {
+          try { await element.broadcasterClientSfuPair.client.removeChannel(this.channelId); } catch (_) { /* best effort */ }
+        }
         return;
       } else {
-        const endpoints: any = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
-        if (endpoints.find((e: any) => e.id == 'ingest' && e.iceState == 'FAILED')) {
+        const endpoints: SmbEndpoint[] = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
+        if (endpoints.find((e: SmbEndpoint) => e.id == 'ingest' && e.iceState == 'FAILED')) {
           // Ingest endpoint is in failed state, delete the channel
+          console.log(`Ingest ICE FAILED on channel ${this.channelId}, cleaning up`);
           for (const endpoint of endpoints) {
-            await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id);
+            try { await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id); } catch (_) { /* best effort */ }
           }
-          this.egressResources.forEach(async (element) => {
-            await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-          });
+          for (const element of this.egressResources) {
+            try { await element.broadcasterClientSfuPair.client.removeChannel(this.channelId); } catch (_) { /* best effort */ }
+          }
+          return;
         }
       }
     } catch (error) {
       console.log(`SFU not responding, deleting channel ${this.channelId}`);
-      this.egressResources.forEach(async (element) => {
-        await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-      });
+      for (const element of this.egressResources) {
+        try { await element.broadcasterClientSfuPair.client.removeChannel(this.channelId); } catch (_) { /* best effort */ }
+      }
       return;
     }
 
@@ -163,7 +168,9 @@ export class SfuWhipResource implements WhipResource {
 
       if (media.type === 'audio') {
         media.rtp = media.rtp.filter(rtp => rtp.codec.toLowerCase() === 'opus');
-        let opusPayloadType = media.rtp.at(0).payload;
+        const opusRtp = media.rtp.at(0);
+        if (!opusRtp) continue;
+        let opusPayloadType = opusRtp.payload;
 
         media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === opusPayloadType);
         media.payloads = `${opusPayloadType}`;
@@ -180,14 +187,13 @@ export class SfuWhipResource implements WhipResource {
           const vp8PayloadType = vp8Codec.payload;
 
           const rtxFmtp = media.fmtp.find(fmtp => fmtp.config === `apt=${vp8PayloadType}`);
-          const vp8RtxPayloadType = rtxFmtp.payload;
+          const vp8RtxPayloadType = rtxFmtp?.payload;
 
-          media.rtp = media.rtp.filter(rtp => rtp.payload === vp8PayloadType || rtp.payload === vp8RtxPayloadType);
+          media.rtp = media.rtp.filter(rtp => rtp.payload === vp8PayloadType || (vp8RtxPayloadType && rtp.payload === vp8RtxPayloadType));
 
-          media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === vp8PayloadType || fmtp.payload === vp8RtxPayloadType);
-          media.payloads = `${vp8PayloadType} ${vp8RtxPayloadType}`;
-          media.rtcpFb = media.rtcpFb.filter(rtcpFb => rtcpFb.payload === vp8PayloadType &&
-            (rtcpFb.type === 'goog-remb' || rtcpFb.type === 'nack'));
+          media.fmtp = media.fmtp.filter(fmtp => fmtp.payload === vp8PayloadType || (vp8RtxPayloadType && fmtp.payload === vp8RtxPayloadType));
+          media.payloads = vp8RtxPayloadType ? `${vp8PayloadType} ${vp8RtxPayloadType}` : `${vp8PayloadType}`;
+          media.rtcpFb = media.rtcpFb.filter(rtcpFb => rtcpFb.payload === vp8PayloadType && (rtcpFb.type === 'goog-remb' || rtcpFb.type === 'nack'));
         }
         media.setup = 'active';
 
@@ -216,13 +222,13 @@ export class SfuWhipResource implements WhipResource {
 
     let offerAudio = ingestorOffer.media.find(element => element.type === 'audio');
     if (offerAudio && offerAudio.ssrcs) {
-      audioSsrc = offerAudio.ssrcs.at(0).id.toString();
+      audioSsrc = offerAudio.ssrcs.at(0)?.id.toString();
     }
 
     let offerVideo = ingestorOffer.media.find(element => element.type === 'video');
     if (offerVideo && offerVideo.ssrcs) {
       let ssrcs = offerVideo.ssrcs.filter(element => element.attribute === 'msid' && element.value);
-      videoMainSsrc = ssrcs.at(0).id.toString();
+      videoMainSsrc = ssrcs.at(0)?.id.toString();
       videoRtxSsrc = ssrcs.at(1) && ssrcs.at(1).id.toString();
 
       let mainMsid = ssrcs.filter(element => element.id == videoMainSsrc);
@@ -310,14 +316,14 @@ export class SfuWhipResource implements WhipResource {
 
     let offerAudio = ingestorOffer.media.find(element => element.type === 'audio');
     if (offerAudio && offerAudio.ssrcs) {
-      audioSsrc = offerAudio.ssrcs.at(0).id.toString();
+      audioSsrc = offerAudio.ssrcs.at(0)?.id.toString();
     }
 
     let offerVideo = ingestorOffer.media.find(element => element.type === 'video');
     if (offerVideo && offerVideo.ssrcs) {
       let ssrcs = offerVideo.ssrcs.filter(element => element.attribute === 'msid' && element.value);
-      videoMainSsrc = ssrcs.at(0).id.toString();
-      videoRtxSsrc = ssrcs.at(1).id.toString();
+      videoMainSsrc = ssrcs.at(0)?.id.toString();
+      videoRtxSsrc = ssrcs.at(1)?.id.toString();
 
       let mainMsid = ssrcs.filter(element => element.id == videoMainSsrc);
       if (mainMsid.length !== 0) {
@@ -517,6 +523,7 @@ export class SfuWhipResource implements WhipResource {
       }
 
       let mediaStreams = media.type === 'audio' ? audioMediaStreams : videoMediaStreams;
+      if (!media.ssrcs) continue;
       media.ssrcs.forEach(ssrc => {
         const ssrcString = ssrc.id.toString();
 
@@ -594,16 +601,20 @@ export class SfuWhipResource implements WhipResource {
   }
 
   async destroy() {
-    const endpoints: any = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
-    for (const endpoint of endpoints) {
-      await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id);
-    }
-    this.egressResources.forEach(async (element) => {
-      await element.broadcasterClientSfuPair.client.removeChannel(this.channelId);
-    });
     if (this.channelHealthTimeout) {
       clearTimeout(this.channelHealthTimeout);
       this.channelHealthTimeout = undefined;
+    }
+    try {
+      const endpoints: SmbEndpoint[] = await this.smbProtocol.getEndpoints(this.smbOriginUrl, this.sfuOriginResourceId);
+      for (const endpoint of endpoints) {
+        try { await this.smbProtocol.deleteEndpoint(this.smbOriginUrl, this.sfuOriginResourceId, endpoint.id); } catch (_) { /* best effort */ }
+      }
+    } catch (e) {
+      console.log(`Could not fetch SFU endpoints during destroy (already cleaned up?): ${e}`);
+    }
+    for (const element of this.egressResources) {
+      try { await element.broadcasterClientSfuPair.client.removeChannel(this.channelId); } catch (_) { /* best effort */ }
     }
   }
 }

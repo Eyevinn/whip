@@ -12,7 +12,7 @@
     "dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node --inspect ./dist/server.js\"",
     "dev-sfu": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node --inspect ./dist/sfuServer.js\"",
     "server": "node ./dist/server.js",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'spec/**/*.ts'"
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register --require spec/hooks.ts 'spec/**/*.ts'"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",
   "contributors": [
@@ -25,19 +25,21 @@
     "url": "git+https://github.com/Eyevinn/whip.git"
   },
   "devDependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.9",
+    "@mapbox/node-pre-gyp": "^2.0.3",
     "chai": "^4.3.6",
-    "mocha": "^10.0.0",
+    "mocha": "^10.8.2",
     "ts-mockito": "^2.6.1",
-    "ts-node": "^10.8.1",
-    "tsc-watch": "^4.6.0",
-    "typescript": "^4.6.2"
+    "ts-node": "^10.9.2",
+    "tsc-watch": "^4.6.2",
+    "typescript": "^5.9.3",
+    "undici-types": "^7.22.0"
   },
   "dependencies": {
+    "@fastify/cors": "^10.1.0",
     "@koush/wrtc": "^0.5.3",
     "cross-fetch": "^3.1.5",
     "fast-xml-parser": "^4.0.7",
-    "fastify": "^3.27.4",
+    "fastify": "^5.7.4",
     "fastify-cors": "^6.0.3",
     "fluent-ffmpeg": "^2.1.2",
     "node-fetch": "^2.6.5",

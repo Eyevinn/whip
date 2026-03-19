@@ -2,10 +2,10 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { createWHIPResourceFromType, WHIPResourceParams } from "./whipResourceFactory";
 import { WhipResource, WhipResourceIceServer } from "./whipResource";
 
-type WHIPRequest = FastifyRequest<{ 
-  Params: { 
+type WHIPRequest = FastifyRequest<{
+  Params: {
     type: string;
-    resourceId: string; 
+    resourceId: string;
   },
   Querystring: {
     channelId?: string;
@@ -13,7 +13,7 @@ type WHIPRequest = FastifyRequest<{
   }
 }>
 
-export default function(fastify: FastifyInstance, opts, done) {
+export default async function(fastify: FastifyInstance, opts) {
   const API_KEY = process.env.NODE_ENV === "development" ? "devkey" : process.env.API_KEY;
 
   const addIceLinks = (iceServers: WhipResourceIceServer[], auth): string[] => {
@@ -36,22 +36,13 @@ export default function(fastify: FastifyInstance, opts, done) {
     return [];
   };
 
-  fastify.addContentTypeParser('application/sdp', { parseAs: "string" }, (req, body, done) => {
-    done(null, body);
-  })
-
-  fastify.addContentTypeParser('application/trickle-ice-sdpfrag', { parseAs: "string" }, (req, body, done) => {
-    done(null, body);
-  })
-
-  fastify.addHook('onRequest', (request, reply, done) => {
+  fastify.addHook('onRequest', async (request, reply) => {
     if (request.method === "POST") {
       if (API_KEY && (request.headers.authorization !== `Bearer ${API_KEY}` && request.headers.authorization !== API_KEY)) {
         reply.code(401);
-        done(new Error("Unauthorized"));
+        throw new Error("Unauthorized");
       }
     }
-    done();
   });
 
   fastify.post("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
@@ -59,10 +50,10 @@ export default function(fastify: FastifyInstance, opts, done) {
       const type = request.params.type;
       const whipResourceParams = request.query;
 
-      const resource = createWHIPResourceFromType(type, 
+      const resource = createWHIPResourceFromType(type,
         whipResourceParams,
-        <string>request.body, 
-        opts.instance.getEnabledPlugins(), 
+        <string>request.body,
+        opts.instance.getEnabledPlugins(),
         opts.instance.getIceServers(),
         opts.instance.getSfuApiKey());
       opts.instance.addResource(resource);
@@ -87,7 +78,7 @@ export default function(fastify: FastifyInstance, opts, done) {
         "Location": locationUrl,
         "ETag": resource.getETag()
       });
-      
+
       const links = addIceLinks(resource.getIceServers(), request.headers["authorization"]);
       reply.header("Link", links);
       reply.code(201).send(sdpAnswer);
@@ -101,7 +92,7 @@ export default function(fastify: FastifyInstance, opts, done) {
   fastify.options("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
       reply.header("Accept-Post", "application/sdp");
-      reply.header("Link", 
+      reply.header("Link",
         addIceLinks(opts.instance.getIceServers(), request.headers["authorization"]));
       reply.code(200).send();
     } catch (e) {
@@ -123,7 +114,7 @@ export default function(fastify: FastifyInstance, opts, done) {
 
   fastify.delete("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     try {
-      const { resourceId } = request.params; 
+      const { resourceId } = request.params;
       await opts.instance.deleteResource(resourceId);
       reply.code(200).send("OK");
     } catch (e) {
@@ -134,7 +125,7 @@ export default function(fastify: FastifyInstance, opts, done) {
   });
 
   fastify.patch("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
-    const { resourceId } = request.params; 
+    const { resourceId } = request.params;
     const body = <string>request.body;
 
     try {
@@ -150,19 +141,11 @@ export default function(fastify: FastifyInstance, opts, done) {
     reply.code(405).send("reserved");
   });
 
-  fastify.head("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
-    reply.code(405).send("reserved");
-  });
-
   fastify.put("/whip/:type", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
 
   fastify.get("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
-    reply.code(405).send("reserved");
-  });
-
-  fastify.head("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
 
@@ -173,6 +156,4 @@ export default function(fastify: FastifyInstance, opts, done) {
   fastify.put("/whip/:type/:resourceId", {}, async (request: WHIPRequest, reply: FastifyReply) => {
     reply.code(405).send("reserved");
   });
-
-  done();
 }

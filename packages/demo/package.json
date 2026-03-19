@@ -5,7 +5,8 @@
   "description": "Demonstration of a browser based WHIP client",
   "scripts": {
     "dev": "parcel -p 1234 --no-cache src/index.html",
-    "build": "parcel build --no-cache --public-url ./ src/index.html"
+    "build": "parcel build --no-cache --public-url ./ src/index.html",
+    "start": "npm run build && node server.js"
   },
   "author": "Eyevinn Technology <work@eyevinn.se>",
   "contributors": [
